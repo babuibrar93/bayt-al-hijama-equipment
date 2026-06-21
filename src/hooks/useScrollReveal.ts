@@ -1,34 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
-export function useScrollReveal<T extends HTMLElement>(
-  threshold = 0.12,
-  rootMargin = "0px 0px -40px 0px",
+function revealElement(
+  element: Element,
+  observer: IntersectionObserver,
 ) {
-  const ref = useRef<T>(null);
+  element.classList.add("is-visible");
+  observer.unobserve(element);
+}
 
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold, rootMargin },
-    );
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [threshold, rootMargin]);
-
-  return ref;
+function isInViewport(element: Element) {
+  const rect = element.getBoundingClientRect();
+  return rect.top < window.innerHeight && rect.bottom > 0;
 }
 
 export function useScrollRevealGroup(
@@ -44,22 +28,27 @@ export function useScrollRevealGroup(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            observer.unobserve(entry.target);
+            revealElement(entry.target, observer);
           }
         });
       },
       { threshold, rootMargin },
     );
 
-    elements.forEach((el) => observer.observe(el));
+    elements.forEach((element) => {
+      observer.observe(element);
+      if (isInViewport(element)) {
+        revealElement(element, observer);
+      }
+    });
+
     return () => observer.disconnect();
   }, [selector, threshold, rootMargin]);
 }
 
 export function useSectionGlow() {
   useEffect(() => {
-    const sections = document.querySelectorAll(".section");
+    const sections = document.querySelectorAll("[data-section]");
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {

@@ -6,9 +6,9 @@ export function useHeroParallax() {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const visual = document.querySelector<HTMLElement>(".hero__visual");
-    const geos = document.querySelectorAll<HTMLElement>(".hero__geo");
-    const hero = document.querySelector<HTMLElement>(".hero");
+    const visual = document.querySelector<HTMLElement>("[data-hero-visual]");
+    const geos = document.querySelectorAll<HTMLElement>("[data-hero-geo]");
+    const hero = document.getElementById("hero");
     if (!visual || !hero) return;
 
     let ticking = false;
@@ -43,7 +43,7 @@ export function useGeoMouseTrack() {
     if (window.matchMedia("(pointer: coarse)").matches) return;
 
     const hero = document.getElementById("hero");
-    const geos = document.querySelectorAll<HTMLElement>(".hero__geo");
+    const geos = document.querySelectorAll<HTMLElement>("[data-hero-geo]");
     if (!hero || !geos.length) return;
 
     const onMouseMove = (event: MouseEvent) => {

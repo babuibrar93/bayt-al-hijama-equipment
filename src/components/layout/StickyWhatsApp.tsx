@@ -31,15 +31,19 @@ export default function StickyWhatsApp() {
     <a
       ref={waRef}
       href={WHATSAPP.sticky}
-      className="sticky-wa"
       id="stickyWA"
+      data-magnetic
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat on WhatsApp"
+      className="fixed bottom-8 right-8 z-50 flex items-center gap-2.5 overflow-visible rounded-full bg-whatsapp px-5 py-3.5 text-[0.82rem] font-bold tracking-[0.04em] text-white shadow-[0_8px_32px_rgba(37,211,102,0.4)] transition-all duration-300 ease-spring hover:-translate-y-[3px] hover:scale-[1.06] hover:shadow-[0_12px_40px_rgba(37,211,102,0.55)] max-sm:bottom-6 max-sm:right-5 max-sm:px-4 max-sm:py-3"
     >
-      <div className="sticky-wa__pulse" aria-hidden="true" />
+      <div
+        className="absolute -inset-1.5 animate-wa-pulse rounded-full bg-[rgba(37,211,102,0.25)]"
+        aria-hidden="true"
+      />
       <WhatsAppIcon size={26} />
-      <span className="sticky-wa__label">Order Now</span>
+      <span>Order Now</span>
     </a>
   );
 }

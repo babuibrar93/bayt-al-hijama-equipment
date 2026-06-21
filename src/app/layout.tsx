@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { siteMetadata } from "@/lib/metadata";
 import { fontVariables, inter } from "@/lib/fonts";
+import { cn } from "@/lib/classes";
 import StructuredData from "@/components/seo/StructuredData";
 import Loader from "@/components/layout/Loader";
 import CursorGlow from "@/components/layout/CursorGlow";
@@ -22,7 +23,13 @@ export default function RootLayout({
       <head>
         <StructuredData />
       </head>
-      <body className={`${fontVariables} ${inter.className}`}>
+      <body
+        className={cn(
+          fontVariables,
+          inter.className,
+          "min-h-screen overflow-x-hidden bg-black font-body text-base leading-[1.7] text-white/80 antialiased",
+        )}
+      >
         <Loader />
         <CursorGlow />
         <Navbar />

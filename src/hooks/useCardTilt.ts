@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const TILT_SELECTOR = ".product-card, .trust__card, .cat-card";
+const TILT_SELECTOR = "[data-tilt]";
 
 export function useCardTilt() {
   useEffect(() => {

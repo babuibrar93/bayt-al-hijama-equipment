@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { TESTIMONIALS } from "@/constants/testimonials";
+import { cn, container, section } from "@/lib/classes";
 
 export default function TestimonialsSection() {
   const [current, setCurrent] = useState(0);
@@ -38,8 +39,13 @@ export default function TestimonialsSection() {
   };
 
   return (
-    <section className="testimonials section" id="testimonials" aria-label="Customer testimonials">
-      <div className="container">
+    <section
+      data-section
+      className={`${section} bg-black-3`}
+      id="testimonials"
+      aria-label="Customer testimonials"
+    >
+      <div className={container}>
         <SectionHeader
           eyebrow="Voices of Trust"
           title={
@@ -51,10 +57,10 @@ export default function TestimonialsSection() {
           }
         />
 
-        <div className="testimonials__slider" id="testimonialsSlider">
+        <div className="my-16 overflow-hidden">
           <div
-            className="testimonials__track"
             id="testimonialsTrack"
+            className="flex transition-transform duration-[600ms] ease-in-out"
             style={{ transform: `translateX(-${current * 100}%)` }}
             onTouchStart={(event) => {
               touchStartRef.current = event.touches[0].clientX;
@@ -68,21 +74,34 @@ export default function TestimonialsSection() {
             }}
           >
             {TESTIMONIALS.map((testimonial) => (
-              <div className="testimonial-card" key={testimonial.id}>
-                <div className="testimonial-card__quote" aria-hidden="true">
+              <div
+                key={testimonial.id}
+                className="relative min-w-full rounded-xl border border-glass-border bg-glass-bg px-[60px] py-12 max-sm:px-6 max-sm:py-8"
+              >
+                <div
+                  className="mb-6 font-display text-[6rem] font-normal leading-[0.8] text-gold/40"
+                  aria-hidden="true"
+                >
                   &quot;
                 </div>
-                <p className="testimonial-card__text">{testimonial.text}</p>
-                <div className="testimonial-card__author">
-                  <div className="testimonial-card__avatar" aria-hidden="true">
+                <p className="mb-8 max-w-[700px] font-display text-[1.35rem] font-normal italic leading-[1.65] text-white/80 max-sm:text-[1.1rem]">
+                  {testimonial.text}
+                </p>
+                <div className="mb-4 flex items-center gap-4">
+                  <div
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-mid to-gold text-[0.8rem] font-bold text-white"
+                    aria-hidden="true"
+                  >
                     {testimonial.initials}
                   </div>
                   <div>
-                    <strong>{testimonial.author}</strong>
-                    <span>{testimonial.role}</span>
+                    <strong className="mb-0.5 block font-semibold text-white">
+                      {testimonial.author}
+                    </strong>
+                    <span className="text-[0.8rem] text-white/50">{testimonial.role}</span>
                   </div>
                 </div>
-                <div className="testimonial-card__stars" aria-label="5 out of 5 stars">
+                <div className="text-[0.9rem] tracking-[3px] text-gold" aria-label="5 out of 5 stars">
                   ★★★★★
                 </div>
               </div>
@@ -90,25 +109,24 @@ export default function TestimonialsSection() {
           </div>
         </div>
 
-        <div className="testimonials__controls">
+        <div className="flex items-center justify-center gap-6">
           <button
             type="button"
-            className="testimonials__btn"
             id="prevBtn"
             aria-label="Previous testimonial"
             onClick={handlePrev}
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-glass-border bg-glass-bg text-white/80 transition-all duration-[250ms] hover:scale-110 hover:border-green-mid hover:bg-green-mid hover:text-white"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20" aria-hidden="true">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
 
-          <div className="testimonials__dots" id="testimonialsDots" role="tablist" aria-label="Testimonial navigation">
+          <div className="flex gap-2" role="tablist" aria-label="Testimonial navigation">
             {TESTIMONIALS.map((testimonial, index) => (
               <button
                 key={testimonial.id}
                 type="button"
-                className={`testimonials__dot${index === current ? " active" : ""}`}
                 aria-label={`Go to testimonial ${index + 1}`}
                 aria-selected={index === current}
                 role="tab"
@@ -116,16 +134,20 @@ export default function TestimonialsSection() {
                   goTo(index);
                   resetAuto();
                 }}
+                className={cn(
+                  "h-1.5 cursor-pointer rounded-[3px] border-none bg-white/30 transition-all duration-300 ease-out",
+                  index === current ? "w-6 bg-gold" : "w-1.5",
+                )}
               />
             ))}
           </div>
 
           <button
             type="button"
-            className="testimonials__btn"
             id="nextBtn"
             aria-label="Next testimonial"
             onClick={handleNext}
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-glass-border bg-glass-bg text-white/80 transition-all duration-[250ms] hover:scale-110 hover:border-green-mid hover:bg-green-mid hover:text-white"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20" aria-hidden="true">
               <path d="M9 18l6-6-6-6" />

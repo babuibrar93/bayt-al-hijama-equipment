@@ -32,19 +32,3 @@ export function useSmoothScroll() {
     };
   }, []);
 }
-
-export function useNavScroll() {
-  useEffect(() => {
-    const nav = document.getElementById("nav");
-    if (!nav) return;
-
-    const onScroll = () => {
-      nav.classList.toggle("scrolled", window.scrollY > 40);
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-}

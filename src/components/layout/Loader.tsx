@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/classes";
 
 export default function Loader() {
   const [hidden, setHidden] = useState(false);
@@ -18,9 +19,16 @@ export default function Loader() {
   }, []);
 
   return (
-    <div className={`loader${hidden ? " hidden" : ""}`} id="loader" aria-hidden={hidden}>
-      <div className="loader__inner">
-        <div className="loader__arabesque">
+    <div
+      id="loader"
+      aria-hidden={hidden}
+      className={cn(
+        "fixed inset-0 z-[9999] flex items-center justify-center bg-black transition-[opacity,visibility] duration-[600ms] ease-out",
+        hidden && "pointer-events-none invisible opacity-0",
+      )}
+    >
+      <div className="flex flex-col items-center gap-6 text-center">
+        <div className="[&_svg]:h-24 [&_svg]:w-24 [&_svg]:animate-loader-spin">
           <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <circle cx="60" cy="60" r="54" stroke="url(#lg1)" strokeWidth="1" strokeDasharray="4 4" />
             <circle cx="60" cy="60" r="38" stroke="url(#lg2)" strokeWidth="0.5" opacity="0.6" />
@@ -39,9 +47,11 @@ export default function Loader() {
             </defs>
           </svg>
         </div>
-        <p className="loader__text">Bayt Al Hijama</p>
-        <div className="loader__bar">
-          <div className="loader__fill" />
+        <p className="font-display text-[1.4rem] font-light uppercase tracking-[0.3em] text-gold">
+          Bayt Al Hijama
+        </p>
+        <div className="h-0.5 w-[200px] overflow-hidden rounded-sm bg-white/10">
+          <div className="h-full w-0 animate-loader-fill rounded-sm bg-grad-gold" />
         </div>
       </div>
     </div>

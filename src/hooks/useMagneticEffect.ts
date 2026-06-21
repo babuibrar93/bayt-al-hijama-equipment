@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const MAGNETIC_SELECTOR = ".btn, .nav__cta, .sticky-wa";
+const MAGNETIC_SELECTOR = "[data-magnetic]";
 
 export function useMagneticEffect() {
   useEffect(() => {

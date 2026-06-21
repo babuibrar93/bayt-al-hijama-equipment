@@ -2,13 +2,15 @@
 
 import { useEffect, useRef } from "react";
 import type { ParticleOptions } from "@/types";
+import { cn } from "@/lib/classes";
 
 interface ParticlesProps {
   id: string;
   options: ParticleOptions;
+  className?: string;
 }
 
-export default function Particles({ id, options }: ParticlesProps) {
+export default function Particles({ id, options, className }: ParticlesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,27 +31,12 @@ export default function Particles({ id, options }: ParticlesProps) {
       maxDur = 16,
     } = options;
 
-    const styleId = `particle-keyframes-${id}`;
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement("style");
-      style.id = styleId;
-      style.textContent = `
-        @keyframes particleRise {
-          0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
-          10%  { opacity: 1; }
-          50%  { transform: translateY(-120px) translateX(20px) scale(1.2); }
-          90%  { opacity: 0.3; }
-          100% { transform: translateY(-240px) translateX(0) scale(0.5); opacity: 0; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
     const fragment = document.createDocumentFragment();
 
     for (let i = 0; i < count; i += 1) {
       const particle = document.createElement("div");
-      particle.className = "particle";
+      particle.className =
+        "pointer-events-none absolute rounded-full animate-particle-rise";
 
       const isGold = Math.random() < goldRatio;
       const size = minSize + Math.random() * (maxSize - minSize);
@@ -65,11 +52,8 @@ export default function Particles({ id, options }: ParticlesProps) {
         width: `${size}px`,
         height: `${size}px`,
         background: color,
-        animationName: "particleRise",
         animationDuration: `${duration}s`,
         animationDelay: `${delay}s`,
-        animationTimingFunction: "linear",
-        animationIterationCount: "infinite",
       });
 
       fragment.appendChild(particle);
@@ -80,14 +64,14 @@ export default function Particles({ id, options }: ParticlesProps) {
     return () => {
       container.innerHTML = "";
     };
-  }, [id, options]);
+  }, [options]);
 
   return (
     <div
       ref={containerRef}
       id={id}
-      className={id === "heroParticles" ? "hero__particles" : "cta-section__particles"}
       aria-hidden="true"
+      className={cn("pointer-events-none absolute inset-0", className)}
     />
   );
 }
