@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
+import { Toaster } from "sonner";
 import { siteMetadata } from "@/lib/metadata";
 import { fontVariables, inter } from "@/lib/fonts";
 import { cn } from "@/lib/classes";
-import StructuredData from "@/components/seo/StructuredData";
-import Loader from "@/components/layout/Loader";
-import CursorGlow from "@/components/layout/CursorGlow";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import StickyWhatsApp from "@/components/layout/StickyWhatsApp";
-import ClientEffects from "@/components/layout/ClientEffects";
+import { CartProvider } from "@/context/CartContext";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = siteMetadata;
@@ -20,9 +15,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" dir="ltr">
-      <head>
-        <StructuredData />
-      </head>
       <body
         className={cn(
           fontVariables,
@@ -30,13 +22,20 @@ export default function RootLayout({
           "min-h-screen overflow-x-hidden bg-black font-body text-base leading-[1.7] text-white/80 antialiased",
         )}
       >
-        <Loader />
-        <CursorGlow />
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
-        <StickyWhatsApp />
-        <ClientEffects />
+        <CartProvider>
+          {children}
+          <Toaster
+            position="bottom-right"
+            theme="dark"
+            toastOptions={{
+              style: {
+                background: "rgba(5,12,8,0.96)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                color: "rgba(255,255,255,0.9)",
+              },
+            }}
+          />
+        </CartProvider>
       </body>
     </html>
   );

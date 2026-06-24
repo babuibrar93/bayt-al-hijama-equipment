@@ -52,10 +52,12 @@ module.exports = {
         nav: "76px",
       },
       borderRadius: {
-        sm: "8px",
-        md: "16px",
-        lg: "24px",
-        xl: "32px",
+        sm: "6px",
+        md: "8px",
+        lg: "12px",
+        xl: "12px",
+        "2xl": "12px",
+        "3xl": "12px",
       },
       transitionTimingFunction: {
         out: "cubic-bezier(0.22, 1, 0.36, 1)",

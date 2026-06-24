@@ -1,6 +1,9 @@
 import { SITE, SEO } from "@/constants/site";
 import { FAQ_ITEMS } from "@/constants/testimonials";
 import { PRODUCTS } from "@/constants/products";
+import type { ProductWithCategory } from "@/types/db";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || SITE.url;
 
 export function getOrganizationSchema() {
   return {
@@ -140,4 +143,74 @@ export function getStructuredData() {
     getProductListSchema(),
     getFaqSchema(),
   ];
+}
+
+/** Product + Offer schema for an individual product detail page. */
+export function getProductSchema(product: ProductWithCategory) {
+  const image = product.images[0];
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    ...(image ? { image: [image] } : {}),
+    sku: product.id,
+    category: product.category?.name,
+    brand: {
+      "@type": "Brand",
+      name: SITE.name,
+    },
+    offers: {
+      "@type": "Offer",
+      url: `${SITE_URL}/shop/${product.slug}`,
+      priceCurrency: "PKR",
+      price: product.price,
+      itemCondition: "https://schema.org/NewCondition",
+      availability:
+        product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      seller: {
+        "@type": "Organization",
+        name: SITE.name,
+      },
+    },
+  };
+}
+
+export interface BreadcrumbEntry {
+  name: string;
+  path: string;
+}
+
+/** BreadcrumbList schema. Pass paths relative to the site root. */
+export function getBreadcrumbSchema(entries: BreadcrumbEntry[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: entries.map((entry, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: entry.name,
+      item: `${SITE_URL}${entry.path}`,
+    })),
+  };
+}
+
+/** ItemList schema for the shop collection / category pages. */
+export function getShopItemListSchema(
+  products: ProductWithCategory[],
+  listName = "Hijama Equipment Products",
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: listName,
+    itemListElement: products.map((product, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${SITE_URL}/shop/${product.slug}`,
+      name: product.name,
+    })),
+  };
 }

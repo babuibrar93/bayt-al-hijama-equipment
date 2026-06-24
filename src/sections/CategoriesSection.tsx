@@ -1,9 +1,25 @@
+import Link from "next/link";
 import SectionHeader from "@/components/ui/SectionHeader";
 import CategoryIcon from "@/components/icons/CategoryIcon";
-import { CATEGORIES } from "@/constants/categories";
+import { getCategories } from "@/lib/products";
 import { container, getRevealClass, section } from "@/lib/classes";
 
-export default function CategoriesSection() {
+const ICON_BY_SLUG: Record<string, string> = {
+  "hijama-cups": "cups",
+  "complete-kits": "kits",
+  accessories: "accessories",
+  consumables: "consumables",
+};
+
+function iconForSlug(slug: string): string {
+  return ICON_BY_SLUG[slug] ?? "cups";
+}
+
+export default async function CategoriesSection() {
+  const categories = await getCategories();
+
+  if (categories.length === 0) return null;
+
   return (
     <section
       data-section
@@ -23,38 +39,37 @@ export default function CategoriesSection() {
           }
         />
 
-        <div className="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {CATEGORIES.map((category, index) => (
-            <div
-              key={category.title}
+        <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
+          {categories.map((category, index) => (
+            <Link
+              key={category.id}
+              href={`/shop?category=${category.slug}`}
               data-reveal
               data-tilt
-              className={`group relative overflow-hidden rounded-lg border border-glass-border bg-glass-bg px-7 pb-8 pt-9 transition-all duration-[350ms] ease-spring after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:origin-left after:scale-x-0 after:bg-grad-gold after:transition-transform after:duration-[400ms] after:ease-out hover:-translate-y-2 hover:border-gold/20 hover:bg-glass-bg-hover hover:after:scale-x-100 ${getRevealClass("up", (index + 1) as 1 | 2 | 3 | 4)}`}
+              aria-label={`Shop ${category.name}`}
+              className={`group relative block overflow-hidden rounded-lg border border-glass-border bg-glass-bg px-4 pb-5 pt-5 transition-all duration-[350ms] ease-spring after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:origin-left after:scale-x-0 after:bg-grad-gold after:transition-transform after:duration-[400ms] after:ease-out hover:-translate-y-1.5 hover:border-gold/20 hover:bg-glass-bg-hover hover:after:scale-x-100 sm:px-6 sm:pb-7 sm:pt-7 ${getRevealClass("up", ((index % 4) + 1) as 1 | 2 | 3 | 4)}`}
             >
               <div
-                className="pointer-events-none absolute right-6 top-5 select-none font-display text-[3.5rem] font-bold leading-none text-gold/[0.06]"
+                className="pointer-events-none absolute right-5 top-4 select-none font-display text-[2.75rem] font-bold leading-none text-gold/[0.06] sm:text-[3.5rem]"
                 aria-hidden="true"
               >
-                {category.number}
+                {String(index + 1).padStart(2, "0")}
               </div>
-              <div className="relative mb-6 h-14 w-14 [&_svg]:h-full [&_svg]:w-full">
-                <CategoryIcon iconId={category.iconId} />
+              <div className="relative mb-4 h-11 w-11 [&_svg]:h-full [&_svg]:w-full sm:mb-5 sm:h-14 sm:w-14">
+                <CategoryIcon iconId={iconForSlug(category.slug)} />
               </div>
-              <h3 className="relative mb-3 font-display text-[1.35rem] font-semibold text-white">
-                {category.title}
+              <h3 className="relative mb-2 font-display text-lg font-semibold text-white sm:text-[1.35rem]">
+                {category.name}
               </h3>
-              <p className="relative mb-6 text-[0.87rem] leading-[1.7] text-white/60">
-                {category.description}
-              </p>
-              <a
-                href={category.whatsappUrl}
-                className="relative text-[0.8rem] font-semibold tracking-[0.06em] text-gold transition-all duration-[250ms] group-hover:tracking-[0.12em]"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              {category.description && (
+                <p className="relative mb-4 text-[0.82rem] leading-[1.6] text-white/60 sm:text-[0.87rem]">
+                  {category.description}
+                </p>
+              )}
+              <span className="relative text-[0.8rem] font-semibold tracking-[0.06em] text-gold transition-all duration-[250ms] group-hover:tracking-[0.12em]">
                 Explore Range →
-              </a>
-            </div>
+              </span>
+            </Link>
           ))}
         </div>
       </div>

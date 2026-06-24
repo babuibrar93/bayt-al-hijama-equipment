@@ -7,6 +7,8 @@ import CategoriesSection from "@/sections/CategoriesSection";
 import TestimonialsSection from "@/sections/TestimonialsSection";
 import CTASection from "@/sections/CTASection";
 
+export const revalidate = 300;
+
 export default function HomePage() {
   return (
     <>

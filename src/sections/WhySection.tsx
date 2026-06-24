@@ -10,7 +10,10 @@ export default function WhySection() {
       id="why"
       aria-label="Why choose us"
     >
-      <div className="pointer-events-none absolute inset-0 bg-why-pattern" aria-hidden="true" />
+      <div
+        className="pointer-events-none absolute inset-0 bg-why-pattern"
+        aria-hidden="true"
+      />
       <div className={`${container} relative`}>
         <SectionHeader
           eyebrow="Our Promise"
@@ -50,7 +53,9 @@ export default function WhySection() {
                 <div
                   className={cn(
                     "rounded-md border border-glass-border bg-glass-bg p-8 transition-all duration-[350ms] hover:border-gold/20 hover:bg-glass-bg-hover",
-                    isLeft ? "lg:col-start-1 lg:row-start-1" : "lg:col-start-3 lg:row-start-1",
+                    isLeft
+                      ? "lg:col-start-1 lg:row-start-1"
+                      : "lg:col-start-3 lg:row-start-1",
                   )}
                 >
                   <h3 className="mb-2.5 font-display text-[1.3rem] font-semibold text-white">

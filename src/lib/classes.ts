@@ -9,7 +9,10 @@ export const container =
   "mx-auto w-full max-w-container px-6";
 
 export const section =
-  "relative py-[120px] max-sm:py-20";
+  "relative py-16 md:py-20 lg:py-24";
+
+/** Consistent, highly-readable numeric styling (prices, counts, stats). */
+export const numeric = "font-body tabular-nums";
 
 export const sectionEyebrow =
   "mb-5 inline-flex items-center gap-3 text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-gold before:h-px before:w-6 before:bg-gold before:content-['']";
@@ -18,7 +21,7 @@ export const sectionTitle =
   "mb-5 font-display text-[clamp(2.2rem,4vw,3.8rem)] font-normal leading-[1.15] tracking-[-0.01em] text-white [&_em]:italic [&_em]:text-gold";
 
 export const sectionSub =
-  "mb-16 max-w-[520px] text-base text-white/60";
+  "mb-10 max-w-[520px] text-base text-white/60";
 
 export const revealUp =
   "opacity-0 translate-y-9 transition-all duration-[800ms] ease-out visible-state:opacity-100 visible-state:translate-y-0";

@@ -18,7 +18,7 @@ export default function TrustSection() {
           }
         />
 
-        <div className="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
           {TRUST_CARDS.map((card, index) => (
             <div
               key={card.title}
