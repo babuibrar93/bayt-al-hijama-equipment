@@ -131,7 +131,7 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
         <ArrowLeft className="h-4 w-4" /> Back to products
       </Link>
 
-      <h1 className="mb-6 font-display text-2xl font-normal text-white sm:text-3xl">
+      <h1 className="mb-6 font-body text-2xl font-normal text-white sm:text-3xl">
         {isEdit ? "Edit Product" : "Add Product"}
       </h1>
 

@@ -96,7 +96,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg text-white">Recent Orders</h2>
+        <h2 className="font-body text-lg text-white">Recent Orders</h2>
         <Link
           href="/admin/orders"
           className="text-sm text-gold transition-colors hover:text-gold-light"

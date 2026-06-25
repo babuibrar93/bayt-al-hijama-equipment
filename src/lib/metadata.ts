@@ -1,9 +1,22 @@
 import type { Metadata } from "next";
 import { SEO, SITE } from "@/constants/site";
 
+/** Canonical, env-aware site origin. Use everywhere absolute URLs are built. */
+export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || SITE.url;
+
+export const OG_IMAGE = {
+  url: "/og-default.jpg",
+  width: 1200,
+  height: 630,
+  alt: SITE.name,
+};
+
 export const siteMetadata: Metadata = {
-  metadataBase: new URL(SITE.url),
-  title: SEO.title,
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: SEO.title,
+    template: `%s | ${SITE.shortName}`,
+  },
   description: SEO.description,
   keywords: [...SEO.keywords],
   authors: [{ name: SITE.name }],
@@ -21,20 +34,22 @@ export const siteMetadata: Metadata = {
     },
   },
   alternates: {
-    canonical: SITE.url,
+    canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: SITE.locale,
-    url: SITE.url,
+    url: siteUrl,
     siteName: SITE.name,
     title: SEO.title,
     description: SEO.description,
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title: SEO.title,
     description: SEO.description,
+    images: [OG_IMAGE.url],
   },
   category: "Medical Equipment",
 };

@@ -2,6 +2,12 @@ export const SITE = {
   name: "Bayt Al Hijama Equipment",
   shortName: "Bayt Al Hijama",
   tagline: "Equipment",
+  logo: {
+    src: "/bayt-logo.png",
+    alt: "Bayt Al Hijama",
+    width: 512,
+    height: 512,
+  },
   url: "https://baytalhijama.com",
   locale: "en_PK",
   phone: "+92 329 3561309",

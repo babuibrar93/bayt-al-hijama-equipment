@@ -17,6 +17,7 @@ import type { OrderWithItems } from "@/types/db";
 
 export const metadata: Metadata = {
   title: "My Account",
+  alternates: { canonical: "/account" },
   robots: { index: false, follow: false },
 };
 
@@ -50,7 +51,7 @@ export default async function AccountPage() {
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Account" }]} />
 
         <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-          <h1 className="font-display text-[clamp(1.8rem,4vw,2.6rem)] font-normal text-white">
+          <h1 className="font-body text-[clamp(1.8rem,4vw,2.6rem)] font-normal text-white">
             My Account
           </h1>
           <SignOutButton />
@@ -58,7 +59,7 @@ export default async function AccountPage() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,420px)_1fr]">
           <section>
-            <h2 className="mb-3 font-display text-lg text-white">Profile</h2>
+            <h2 className="mb-3 font-body text-lg text-white">Profile</h2>
             <ProfileForm
               email={user.email ?? ""}
               profile={
@@ -68,7 +69,7 @@ export default async function AccountPage() {
           </section>
 
           <section>
-            <h2 className="mb-3 font-display text-lg text-white">Order History</h2>
+            <h2 className="mb-3 font-body text-lg text-white">Order History</h2>
             {orderList.length === 0 ? (
               <div className="flex flex-col items-center rounded-lg border border-glass-border bg-glass-bg px-6 py-14 text-center">
                 <Package className="mb-4 h-9 w-9 text-white/30" aria-hidden="true" />

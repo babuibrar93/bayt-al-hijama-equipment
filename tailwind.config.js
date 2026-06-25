@@ -49,7 +49,7 @@ module.exports = {
         container: "1220px",
       },
       spacing: {
-        nav: "76px",
+        nav: "72px",
       },
       borderRadius: {
         sm: "6px",
@@ -104,6 +104,52 @@ module.exports = {
             transform: "translate(-50%, -50%) translateY(-16px)",
           },
         },
+        heroFloatA: {
+          "0%, 100%": {
+            transform: "translate(-50%, -50%) translateY(0) translateX(0) rotate(-6deg)",
+          },
+          "50%": {
+            transform: "translate(-50%, -50%) translateY(-14px) translateX(8px) rotate(-4deg)",
+          },
+        },
+        heroFloatB: {
+          "0%, 100%": {
+            transform: "translate(-50%, -50%) translateY(0) scale(1)",
+          },
+          "50%": {
+            transform: "translate(-50%, -50%) translateY(-22px) scale(1.02)",
+          },
+        },
+        heroFloatC: {
+          "0%, 100%": {
+            transform: "translate(-50%, -50%) translateY(0) translateX(0) rotate(5deg)",
+          },
+          "50%": {
+            transform: "translate(-50%, -50%) translateY(-12px) translateX(-10px) rotate(7deg)",
+          },
+        },
+        heroSuctionSeal: {
+          "0%, 100%": { transform: "scaleY(1) scaleX(1)" },
+          "40%": { transform: "scaleY(0.96) scaleX(1.02)" },
+          "70%": { transform: "scaleY(1.01) scaleX(0.99)" },
+        },
+        heroValvePulse: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.55" },
+        },
+        heroPumpTrigger: {
+          "0%, 100%": { transform: "rotate(0deg) translateY(0)" },
+          "35%": { transform: "rotate(-4deg) translateY(2px)" },
+          "55%": { transform: "rotate(-2deg) translateY(1px)" },
+        },
+        heroPumpIdle: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-3px)" },
+        },
+        vacuumFlow: {
+          "0%": { strokeDashoffset: "24" },
+          "100%": { strokeDashoffset: "0" },
+        },
         suctionExpand: {
           "0%": {
             opacity: "0.8",
@@ -154,6 +200,45 @@ module.exports = {
             opacity: "0",
           },
         },
+        logoShimmer: {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
+        logoGlow: {
+          "0%, 100%": { opacity: "0.45", transform: "scale(0.92)" },
+          "50%": { opacity: "0.85", transform: "scale(1.04)" },
+        },
+        logoBeam: {
+          "0%": { transform: "translateX(-120%) skewX(-12deg)", opacity: "0" },
+          "15%": { opacity: "1" },
+          "85%": { opacity: "1" },
+          "100%": { transform: "translateX(220%) skewX(-12deg)", opacity: "0" },
+        },
+        heroLift: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-12px)" },
+        },
+        orbit: {
+          to: { transform: "rotate(360deg)" },
+        },
+        orbitCounter: {
+          to: { transform: "rotate(-360deg)" },
+        },
+        orbitSlow: {
+          to: { transform: "rotate(360deg)" },
+        },
+        orbitSlowReverse: {
+          to: { transform: "rotate(-360deg)" },
+        },
+        turntable: {
+          to: { transform: "rotateY(360deg)" },
+        },
+        turntableCounter: {
+          to: { transform: "rotateY(-360deg)" },
+        },
+        heroSpotlight: {
+          to: { transform: "rotate(360deg)" },
+        },
       },
       animation: {
         "loader-spin": "loaderSpin 4s linear infinite",
@@ -161,6 +246,14 @@ module.exports = {
         "geo-float": "geoFloat 8s ease-in-out infinite",
         "glow-pulse": "glowPulse 4s ease-in-out infinite",
         "cup-float": "cupFloat 5s ease-in-out infinite",
+        "hero-float-a": "heroFloatA 6s ease-in-out infinite",
+        "hero-float-b": "heroFloatB 5.5s ease-in-out infinite",
+        "hero-float-c": "heroFloatC 6.5s ease-in-out infinite",
+        "hero-suction-seal": "heroSuctionSeal 2.8s ease-in-out infinite",
+        "hero-valve-pulse": "heroValvePulse 1.4s ease-in-out infinite",
+        "hero-pump-trigger": "heroPumpTrigger 2.8s ease-in-out infinite",
+        "hero-pump-idle": "heroPumpIdle 4s ease-in-out infinite",
+        "vacuum-flow": "vacuumFlow 1.2s linear infinite",
         "suction-expand": "suctionExpand 3s ease-out infinite",
         "scroll-line": "scrollLine 2s ease-in-out infinite",
         marquee: "marqueeScroll 30s linear infinite",
@@ -168,6 +261,17 @@ module.exports = {
         "urgency-pulse": "urgencyPulse 2s ease-in-out infinite",
         "wa-pulse": "waPulse 2.5s ease-out infinite",
         "particle-rise": "particleRise linear infinite",
+        "logo-shimmer": "logoShimmer 6s ease-in-out infinite",
+        "logo-glow": "logoGlow 4.5s ease-in-out infinite",
+        "logo-beam": "logoBeam 5s ease-in-out infinite",
+        "hero-lift": "heroLift 6s ease-in-out infinite",
+        orbit: "orbit 26s linear infinite",
+        "orbit-counter": "orbitCounter 26s linear infinite",
+        "orbit-slow": "orbitSlow 36s linear infinite",
+        "orbit-slow-reverse": "orbitSlowReverse 48s linear infinite",
+        turntable: "turntable 22s linear infinite",
+        "turntable-counter": "turntableCounter 22s linear infinite",
+        "hero-spotlight": "heroSpotlight 14s linear infinite",
       },
     },
   },

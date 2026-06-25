@@ -18,7 +18,7 @@ export default async function AdminDashboardLayout({
     return (
       <div className="flex min-h-screen items-center justify-center px-6 text-center">
         <div className="max-w-md">
-          <h1 className="mb-3 font-display text-2xl text-white">
+          <h1 className="mb-3 font-body text-2xl text-white">
             Supabase not configured
           </h1>
           <p className="text-white/60">

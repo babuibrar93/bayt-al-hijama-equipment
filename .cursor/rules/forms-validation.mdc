@@ -1,0 +1,27 @@
+---
+description: Forms, Zod schemas, and react-hook-form patterns
+globs: src/components/**/*,src/lib/validation/**/*
+alwaysApply: false
+---
+
+# Forms & Validation
+
+## Schemas live in `src/lib/validation/`
+- `order.ts` — checkout + create order payload
+- `product.ts` — admin product CRUD
+- `profile.ts` — account profile
+
+Export both schema and inferred type: `export type X = z.infer<typeof xSchema>`
+
+## Client forms
+- Use `react-hook-form` + `zodResolver(schema)`
+- Show errors via component `error` prop; success/error toasts via `sonner`
+- Import inputs from `@/components/ui`
+
+## Server validation
+- API routes re-validate with the same Zod schemas — never skip server-side validation
+
+## Pakistan-specific fields
+- Provinces: `PROVINCES` from `@/lib/validation/order`
+- Payment methods: `cod | bank_transfer | jazzcash | easypaisa`
+- Phone: digits, spaces, `+`, `-` only

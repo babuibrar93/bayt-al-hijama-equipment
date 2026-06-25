@@ -225,6 +225,29 @@ export async function getRelatedProducts(
   return all.filter((p) => p.id !== product.id).slice(0, limit);
 }
 
+export async function getCategoryBySlug(
+  slug: string,
+): Promise<Category | null> {
+  if (!isSupabaseConfigured()) {
+    return FALLBACK_CATEGORIES.find((c) => c.slug === slug) ?? null;
+  }
+
+  const supabase = createStaticClient();
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data as Category;
+}
+
+export async function getAllCategorySlugs(): Promise<string[]> {
+  const categories = await getCategories();
+  return categories.map((c) => c.slug);
+}
+
 export async function getCategories(): Promise<Category[]> {
   if (!isSupabaseConfigured()) {
     return FALLBACK_CATEGORIES;

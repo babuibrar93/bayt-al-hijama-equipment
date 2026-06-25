@@ -56,7 +56,7 @@ export default function ProductCard({
             {product.category.name}
           </span>
         )}
-        <h3 className="mb-1.5 font-display text-base font-medium leading-snug text-white sm:text-lg">
+        <h3 className="mb-1.5 font-body text-base font-medium leading-snug text-white sm:text-lg">
           <Link
             href={`/shop/${product.slug}`}
             className="transition-colors hover:text-gold"

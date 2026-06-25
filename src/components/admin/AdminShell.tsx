@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Logo from "@/components/ui/Logo";
 import {
   LayoutDashboard,
   Package,
@@ -94,22 +95,9 @@ export default function AdminShell({ admin, children }: AdminShellProps) {
     >
       {/* Desktop sidebar */}
       <aside className="hidden flex-col border-r border-glass-border bg-black-2 p-4 md:flex">
-        <Link
-          href="/admin"
-          className={cn(
-            "mb-6 flex items-center gap-2.5 px-1.5",
-            collapsed && "justify-center px-0",
-          )}
-        >
-          <span className="text-[1.4rem] leading-none text-gold" aria-hidden="true">
-            ⬡
-          </span>
-          {!collapsed && (
-            <span className="font-display text-lg font-semibold text-white">
-              Admin
-            </span>
-          )}
-        </Link>
+        <div className={cn("mb-6 px-1.5", collapsed && "flex justify-center px-0")}>
+          <Logo size="xs" href="/admin" showText={!collapsed} />
+        </div>
         <NavLinks showLabels={!collapsed} />
         <div className="mt-auto flex flex-col gap-3 border-t border-glass-border pt-4">
           <Link
@@ -136,9 +124,7 @@ export default function AdminShell({ admin, children }: AdminShellProps) {
           />
           <aside className="absolute left-0 top-0 flex h-full w-64 flex-col border-r border-glass-border bg-black-2 p-4">
             <div className="mb-6 flex items-center justify-between px-1.5">
-              <span className="font-display text-lg font-semibold text-white">
-                Admin
-              </span>
+              <Logo size="xs" href="/admin" />
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
@@ -186,7 +172,7 @@ export default function AdminShell({ admin, children }: AdminShellProps) {
                 <PanelLeftClose className="h-5 w-5" />
               )}
             </button>
-            <h1 className="font-display text-lg font-medium text-white">
+            <h1 className="font-body text-lg font-medium text-white">
               {title}
             </h1>
           </div>

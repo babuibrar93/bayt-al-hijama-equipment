@@ -128,7 +128,7 @@ export default function ProfileForm({ email, profile }: ProfileFormProps) {
           />
         </div>
         <div className="min-w-0">
-          <p className="truncate font-display text-lg text-white">
+          <p className="truncate font-body text-lg text-white">
             {form.full_name || "Your name"}
           </p>
           <p className="truncate text-sm text-white/50">{email}</p>

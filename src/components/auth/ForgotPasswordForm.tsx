@@ -33,7 +33,7 @@ export default function ForgotPasswordForm() {
         <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-mid/20">
           <CheckCircle2 className="h-6 w-6 text-green-light" aria-hidden="true" />
         </div>
-        <h1 className="mb-2 font-display text-2xl text-white">Check your email</h1>
+        <h1 className="mb-2 font-body text-2xl text-white">Check your email</h1>
         <p className="text-sm text-white/60">
           We&apos;ve sent a password reset link to{" "}
           <span className="text-white">{email}</span>. Follow the link to set a
@@ -51,7 +51,7 @@ export default function ForgotPasswordForm() {
 
   return (
     <div className="w-full rounded-lg border border-glass-border bg-glass-bg p-7 sm:p-8">
-      <h1 className="mb-1.5 text-center font-display text-2xl text-white sm:text-3xl">
+      <h1 className="mb-1.5 text-center font-body text-2xl text-white sm:text-3xl">
         Reset Password
       </h1>
       <p className="mb-7 text-center text-sm text-white/55">

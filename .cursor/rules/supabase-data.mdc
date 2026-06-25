@@ -1,0 +1,29 @@
+---
+description: Supabase client usage and data access rules
+globs: src/lib/supabase/**/*,src/lib/**/*.ts,src/app/api/**/*
+alwaysApply: false
+---
+
+# Supabase & Data Access
+
+## Three clients — never mix them up
+1. `createClient()` from `@/lib/supabase/server` — cookie session, RLS, Server Components + user APIs
+2. `createClient()` from `@/lib/supabase/client` — browser auth only (`AuthForm`, sign out)
+3. `createAdminClient()` from `@/lib/supabase/admin` — **SERVER ONLY**, service role, bypasses RLS
+
+## When to use which
+- Public product reads (ISR/SSG): cookie-less anon client inside `src/lib/products.ts` (`createStaticClient`)
+- User profile updates: server `createClient()` — respects RLS
+- Orders, admin mutations, uploads: `createAdminClient()` after `getAdminUser()` check
+
+## Admin auth
+- Always guard admin API routes with `getAdminUser()` from `@/lib/auth`
+- Never import `createAdminClient` into any `"use client"` file
+
+## Fallback mode
+- If `isSupabaseConfigured()` is false, use `FALLBACK_*` from `@/lib/fallback-data`
+- Return 503 from order API when Supabase/service role is missing
+
+## DB types
+- Keep `src/types/db.ts` aligned with `supabase/schema.sql`
+- Snake_case in DB; camelCase only at API/form boundaries

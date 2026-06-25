@@ -50,14 +50,13 @@ export default function TestimonialsSection() {
           eyebrow="Voices of Trust"
           title={
             <>
-              What Our Community
-              <br />
-              <em>Says About Us</em>
+              What Our Community <em>Says About Us</em>
             </>
           }
+          subtitle="Feedback from therapists, clinic owners, and students across Pakistan."
         />
 
-        <div className="my-16 overflow-hidden">
+        <div className="mt-5 mb-5 overflow-hidden">
           <div
             id="testimonialsTrack"
             className="flex transition-transform duration-[600ms] ease-in-out"
@@ -76,20 +75,20 @@ export default function TestimonialsSection() {
             {TESTIMONIALS.map((testimonial) => (
               <div
                 key={testimonial.id}
-                className="relative min-w-full rounded-xl border border-glass-border bg-glass-bg px-[60px] py-12 max-sm:px-6 max-sm:py-8"
+                className="relative min-w-full rounded-xl border border-glass-border bg-glass-bg px-6 py-5 max-sm:px-4 max-sm:py-4"
               >
                 <div
-                  className="mb-6 font-display text-[6rem] font-normal leading-[0.8] text-gold/40"
+                  className="mb-2 font-body text-[2.25rem] font-normal leading-[0.8] text-gold/40 max-sm:text-[2rem]"
                   aria-hidden="true"
                 >
                   &quot;
                 </div>
-                <p className="mb-8 max-w-[700px] font-display text-[1.35rem] font-normal italic leading-[1.65] text-white/80 max-sm:text-[1.1rem]">
+                <p className="mb-4 max-w-[700px] font-body text-[1.05rem] font-normal italic leading-[1.55] text-white/80 max-sm:text-[0.95rem]">
                   {testimonial.text}
                 </p>
-                <div className="mb-4 flex items-center gap-4">
+                <div className="mb-3 flex items-center gap-3">
                   <div
-                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-mid to-gold text-[0.8rem] font-bold text-white"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-mid to-gold text-[0.75rem] font-bold text-white"
                     aria-hidden="true"
                   >
                     {testimonial.initials}
@@ -109,13 +108,13 @@ export default function TestimonialsSection() {
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-6">
+        <div className="flex items-center justify-center gap-4">
           <button
             type="button"
             id="prevBtn"
             aria-label="Previous testimonial"
             onClick={handlePrev}
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-glass-border bg-glass-bg text-white/80 transition-all duration-[250ms] hover:scale-110 hover:border-green-mid hover:bg-green-mid hover:text-white"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-glass-bg text-white/80 transition-all duration-[250ms] hover:scale-110 hover:border-green-mid hover:bg-green-mid hover:text-white"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20" aria-hidden="true">
               <path d="M15 18l-6-6 6-6" />
@@ -147,7 +146,7 @@ export default function TestimonialsSection() {
             id="nextBtn"
             aria-label="Next testimonial"
             onClick={handleNext}
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-glass-border bg-glass-bg text-white/80 transition-all duration-[250ms] hover:scale-110 hover:border-green-mid hover:bg-green-mid hover:text-white"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-glass-border bg-glass-bg text-white/80 transition-all duration-[250ms] hover:scale-110 hover:border-green-mid hover:bg-green-mid hover:text-white"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20" aria-hidden="true">
               <path d="M9 18l6-6-6-6" />

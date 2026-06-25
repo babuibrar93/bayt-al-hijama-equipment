@@ -11,6 +11,17 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      // Legacy category query URLs -> dedicated category routes (SEO canonical).
+      {
+        source: "/shop",
+        has: [{ type: "query", key: "category", value: "(?<slug>[^&]+)" }],
+        destination: "/shop/category/:slug",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -130,7 +130,7 @@ export default function ShopFilters({
             key={category.id}
             label={category.name}
             active={activeCategory === category.slug}
-            onClick={() => updateParams({ category: category.slug })}
+            onClick={() => router.push(`/shop/category/${category.slug}`)}
           />
         ))}
       </div>

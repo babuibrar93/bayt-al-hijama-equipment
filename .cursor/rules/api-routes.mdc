@@ -1,0 +1,30 @@
+---
+description: API Route Handler conventions
+globs: src/app/api/**/*
+alwaysApply: false
+---
+
+# API Route Handlers
+
+## Standard flow
+1. Auth guard (`getAdminUser()` or `supabase.auth.getUser()`)
+2. `await request.json()` in try/catch → 400 on invalid JSON
+3. Validate with Zod (`safeParse`) → 400 with `{ error, issues? }`
+4. Mutate via appropriate Supabase client
+5. Return `NextResponse.json(...)` with correct status
+
+## Status codes used in this project
+- 400 — validation / bad input
+- 401 — not authenticated or not admin
+- 409 — stock/product availability conflict (orders)
+- 500 — unexpected DB errors
+- 503 — Supabase not configured
+
+## Orders (`/api/orders`)
+- Never trust client prices — always re-fetch from DB
+- Validate stock server-side before insert
+- Emails are best-effort (`Promise.allSettled`) — never fail the order on email errors
+
+## Uploads (`/api/admin/upload`)
+- Max 5MB; only JPEG, PNG, WebP, AVIF
+- Bucket: `product-images`; return `{ url: publicUrl }`

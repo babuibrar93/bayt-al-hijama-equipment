@@ -1,0 +1,14 @@
+---
+description: Security rules for Bayt Al Hijama
+alwaysApply: true
+---
+
+# Security
+
+- Never commit `.env.local` or expose `SUPABASE_SERVICE_ROLE_KEY` / `BREVO_API_KEY` to the client
+- Only `NEXT_PUBLIC_*` vars are browser-safe
+- `createAdminClient()` is server-only; never bundle in client components
+- Admin access requires `profiles.is_admin = true` — checked in middleware AND API routes
+- Order creation must use server-side prices and stock — never trust cart prices from localStorage
+- File uploads: validate MIME type and size server-side (already in upload route)
+- Do not add public Supabase insert policies for orders — keep order writes in API routes

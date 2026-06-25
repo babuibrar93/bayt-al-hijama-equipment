@@ -1,4 +1,3 @@
-import StructuredData from "@/components/seo/StructuredData";
 import Loader from "@/components/layout/Loader";
 import CursorGlow from "@/components/layout/CursorGlow";
 import Navbar from "@/components/layout/Navbar";
@@ -13,7 +12,6 @@ export default function SiteLayout({
 }) {
   return (
     <>
-      <StructuredData />
       <Loader />
       <CursorGlow />
       <Navbar />

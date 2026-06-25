@@ -12,6 +12,7 @@ import type { PaymentMethod } from "@/types/db";
 
 export const metadata: Metadata = {
   title: "Order Confirmed",
+  alternates: { canonical: "/checkout/success" },
   robots: { index: false, follow: false },
 };
 
@@ -42,7 +43,7 @@ export default async function CheckoutSuccessPage({
         <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-mid/20">
           <CheckCircle2 className="h-9 w-9 text-green-light" aria-hidden="true" />
         </div>
-        <h1 className="mb-3 font-display text-[clamp(2rem,4vw,3rem)] font-normal text-white">
+        <h1 className="mb-3 font-body text-[clamp(2rem,4vw,3rem)] font-normal text-white">
           Order Confirmed
         </h1>
         <p className="mb-8 text-white/60">
@@ -54,14 +55,14 @@ export default async function CheckoutSuccessPage({
           <div className="mb-8 rounded-lg border border-glass-border bg-glass-bg p-6 text-left">
             <div className="flex items-center justify-between border-b border-glass-border pb-4">
               <span className="text-sm text-white/50">Order Number</span>
-              <span className="font-display text-lg font-semibold text-gold">
+              <span className="font-body text-lg font-semibold text-gold">
                 {orderNumber}
               </span>
             </div>
             {typeof total === "number" && (
               <div className="flex items-center justify-between pt-4">
                 <span className="text-sm text-white/50">Total</span>
-                <span className="font-display text-lg font-semibold text-white">
+                <span className="font-body text-lg font-semibold text-white">
                   {formatPrice(total)}
                 </span>
               </div>
@@ -71,7 +72,7 @@ export default async function CheckoutSuccessPage({
 
         {paymentOption && (
           <div className="mb-8 rounded-lg border border-gold/30 bg-gold/5 p-6 text-left">
-            <h2 className="mb-3 flex items-center gap-2 font-display text-lg text-white">
+            <h2 className="mb-3 flex items-center gap-2 font-body text-lg text-white">
               <Copy className="h-4 w-4 text-gold" aria-hidden="true" />
               {paymentOption.label} Instructions
             </h2>

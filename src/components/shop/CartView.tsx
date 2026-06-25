@@ -24,7 +24,7 @@ export default function CartView() {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-glass-border bg-glass-bg px-6 py-20 text-center">
         <ShoppingBag className="mb-5 h-12 w-12 text-white/30" aria-hidden="true" />
-        <h2 className="mb-2 font-display text-2xl text-white">
+        <h2 className="mb-2 font-body text-2xl text-white">
           Your cart is empty
         </h2>
         <p className="mb-8 max-w-sm text-white/60">
@@ -60,7 +60,7 @@ export default function CartView() {
               <div className="flex items-start justify-between gap-3">
                 <Link
                   href={`/shop/${item.slug}`}
-                  className="font-display text-lg leading-snug text-white transition-colors hover:text-gold"
+                  className="font-body text-lg leading-snug text-white transition-colors hover:text-gold"
                 >
                   {item.name}
                 </Link>
@@ -105,7 +105,7 @@ export default function CartView() {
                     <Plus className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <span className="font-display text-lg font-semibold text-white">
+                <span className="font-body text-lg font-semibold text-white">
                   {formatPrice(item.price * item.quantity)}
                 </span>
               </div>
@@ -115,7 +115,7 @@ export default function CartView() {
       </ul>
 
       <aside className="h-fit rounded-lg border border-glass-border bg-glass-bg p-6 lg:sticky lg:top-24">
-        <h2 className="mb-5 font-display text-xl text-white">Order Summary</h2>
+        <h2 className="mb-5 font-body text-xl text-white">Order Summary</h2>
         <dl className="flex flex-col gap-3 text-sm">
           <div className="flex justify-between text-white/70">
             <dt>Subtotal</dt>
@@ -132,7 +132,7 @@ export default function CartView() {
           )}
           <div className="mt-2 flex justify-between border-t border-glass-border pt-4 text-base font-semibold text-white">
             <dt>Total</dt>
-            <dd className="font-display text-xl">{formatPrice(total)}</dd>
+            <dd className="font-body text-xl">{formatPrice(total)}</dd>
           </div>
         </dl>
 

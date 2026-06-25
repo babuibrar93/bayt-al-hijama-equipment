@@ -1,0 +1,30 @@
+---
+description: Next.js App Router conventions for this project
+globs: src/app/**/*
+alwaysApply: false
+---
+
+# Next.js Patterns
+
+## Server vs Client
+- Pages and layouts are Server Components by default
+- Add `"use client"` only for hooks, browser APIs, or event handlers
+- Data fetching belongs in Server Components via `src/lib/products.ts`, not in client components
+
+## Caching
+- Shop/listing pages: `export const revalidate = 300`
+- Sitemap: `revalidate = 3600`
+- Product detail: `generateStaticParams()` + `getAllProductSlugs()`
+
+## Metadata
+- Use `generateMetadata` for dynamic pages
+- Canonical URLs: `process.env.NEXT_PUBLIC_SITE_URL || SITE.url` from `@/constants/site`
+- Admin pages: `robots: { index: false, follow: false }`
+
+## Route params (Next 15)
+- `params` and `searchParams` are Promises — always `await` them:
+  `const { slug } = await params;`
+
+## Redirects
+- Use `redirect()` from `next/navigation` in Server Components
+- Auth redirects are also handled in `src/lib/supabase/middleware.ts` — don't duplicate logic

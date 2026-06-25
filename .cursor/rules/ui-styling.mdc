@@ -1,0 +1,30 @@
+---
+description: Tailwind design system and component usage
+globs: src/components/**/*,src/sections/**/*,**/*.css
+alwaysApply: false
+---
+
+# UI & Styling
+
+## Design tokens (tailwind.config.js)
+- Background: `black`, `black-2`, `green-deep`
+- Brand: `green-mid`, `green-light`, `gold`, `gold-light`
+- Glass: `glass-bg`, `glass-border`
+- Fonts: `font-display` (Cormorant), `font-body` (Inter)
+- Layout: `max-w-container`, `pt-nav` (76px navbar offset)
+
+## Class merging
+- Always use `cn()` from `@/lib/classes` for conditional classes
+
+## Component choice
+- **Forms, shop, admin**: use `@/components/ui` (`Button`, `Input`, `Table`, etc.)
+- **Marketing sections**: may use `btnPrimary`, `btnGhost`, `glassCard`, `sectionTitle` from `@/lib/classes`
+- Prefer migrating new interactive UI to `<Button>` over raw `btnPrimary` classes
+
+## Prices & numbers
+- Display prices with `formatPrice()` and `tabular-nums` / `numeric` class
+- Currency is PKR (no decimals in formatter)
+
+## Accessibility
+- Icon-only buttons need `aria-label`
+- Decorative icons: `aria-hidden="true"`

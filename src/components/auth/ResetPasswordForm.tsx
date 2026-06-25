@@ -47,7 +47,7 @@ export default function ResetPasswordForm() {
 
   return (
     <div className="w-full rounded-lg border border-glass-border bg-glass-bg p-7 sm:p-8">
-      <h1 className="mb-1.5 text-center font-display text-2xl text-white sm:text-3xl">
+      <h1 className="mb-1.5 text-center font-body text-2xl text-white sm:text-3xl">
         Set New Password
       </h1>
       <p className="mb-7 text-center text-sm text-white/55">

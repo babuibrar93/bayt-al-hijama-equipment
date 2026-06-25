@@ -46,11 +46,11 @@ export async function generateMetadata({
 
   const title = `${product.name} | ${SITE.shortName}`;
   const description = product.description.slice(0, 160);
-  const image = product.images[0];
+  const image = product.images[0] ?? `${SITE_URL}/og-default.jpg`;
   const url = `${SITE_URL}/shop/${product.slug}`;
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical: url },
     openGraph: {
@@ -58,13 +58,13 @@ export async function generateMetadata({
       description,
       url,
       type: "website",
-      ...(image ? { images: [{ url: image, alt: product.name }] } : {}),
+      images: [{ url: image, alt: product.name }],
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description,
-      ...(image ? { images: [image] } : {}),
+      images: [image],
     },
   };
 }
@@ -94,7 +94,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               ? [
                   {
                     label: product.category.name,
-                    href: `/shop?category=${product.category.slug}`,
+                    href: `/shop/category/${product.category.slug}`,
                   },
                 ]
               : []),
@@ -138,18 +138,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <div>
             {product.category && (
               <Link
-                href={`/shop?category=${product.category.slug}`}
+                href={`/shop/category/${product.category.slug}`}
                 className="mb-3 inline-block text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-gold transition-colors hover:text-gold-light"
               >
                 {product.category.name}
               </Link>
             )}
-            <h1 className="mb-4 font-display text-[clamp(2rem,4vw,3rem)] font-normal leading-tight text-white">
+            <h1 className="mb-4 font-body text-[clamp(2rem,4vw,3rem)] font-normal leading-tight text-white">
               {product.name}
             </h1>
 
             <div className="mb-6 flex items-center gap-4">
-              <span className="font-display text-3xl font-semibold text-white">
+              <span className="font-body text-3xl font-semibold text-white">
                 {formatPrice(product.price)}
               </span>
               {inStock ? (
@@ -220,7 +220,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         {related.length > 0 && (
           <section className="mt-20" aria-label="Related products">
-            <h2 className="mb-8 font-display text-2xl font-medium text-white">
+            <h2 className="mb-8 font-body text-2xl font-medium text-white">
               You may also like
             </h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -242,7 +242,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               ? [
                   {
                     name: product.category.name,
-                    path: `/shop?category=${product.category.slug}`,
+                    path: `/shop/category/${product.category.slug}`,
                   },
                 ]
               : []),

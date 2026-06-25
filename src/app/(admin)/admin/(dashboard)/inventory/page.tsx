@@ -30,7 +30,7 @@ export default async function AdminInventoryPage() {
 
   return (
     <div>
-      <h1 className="mb-1.5 font-display text-2xl font-normal text-white sm:text-3xl">
+      <h1 className="mb-1.5 font-body text-2xl font-normal text-white sm:text-3xl">
         Inventory
       </h1>
       <p className="mb-6 text-sm text-white/50">

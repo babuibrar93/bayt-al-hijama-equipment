@@ -31,37 +31,51 @@ export default function Particles({ id, options, className }: ParticlesProps) {
       maxDur = 16,
     } = options;
 
-    const fragment = document.createDocumentFragment();
+    const build = () => {
+      const fragment = document.createDocumentFragment();
 
-    for (let i = 0; i < count; i += 1) {
-      const particle = document.createElement("div");
-      particle.className =
-        "pointer-events-none absolute rounded-full animate-particle-rise";
+      for (let i = 0; i < count; i += 1) {
+        const particle = document.createElement("div");
+        particle.className =
+          "pointer-events-none absolute rounded-full animate-particle-rise";
 
-      const isGold = Math.random() < goldRatio;
-      const size = minSize + Math.random() * (maxSize - minSize);
-      const duration = minDur + Math.random() * (maxDur - minDur);
-      const delay = Math.random() * -duration;
-      const color = isGold
-        ? `rgba(201, 168, 76, ${0.2 + Math.random() * 0.5})`
-        : `rgba(27, 107, 71, ${0.2 + Math.random() * 0.4})`;
+        const isGold = Math.random() < goldRatio;
+        const size = minSize + Math.random() * (maxSize - minSize);
+        const duration = minDur + Math.random() * (maxDur - minDur);
+        const delay = Math.random() * -duration;
+        const color = isGold
+          ? `rgba(201, 168, 76, ${0.2 + Math.random() * 0.5})`
+          : `rgba(27, 107, 71, ${0.2 + Math.random() * 0.4})`;
 
-      Object.assign(particle.style, {
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        width: `${size}px`,
-        height: `${size}px`,
-        background: color,
-        animationDuration: `${duration}s`,
-        animationDelay: `${delay}s`,
-      });
+        Object.assign(particle.style, {
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          width: `${size}px`,
+          height: `${size}px`,
+          background: color,
+          animationDuration: `${duration}s`,
+          animationDelay: `${delay}s`,
+        });
 
-      fragment.appendChild(particle);
-    }
+        fragment.appendChild(particle);
+      }
 
-    container.appendChild(fragment);
+      container.appendChild(fragment);
+    };
+
+    // Defer decorative DOM work until the browser is idle so it never
+    // competes with hydration or the LCP paint.
+    const hasIdle = typeof window.requestIdleCallback === "function";
+    const handle = hasIdle
+      ? window.requestIdleCallback(build, { timeout: 1500 })
+      : window.setTimeout(build, 600);
 
     return () => {
+      if (hasIdle && typeof window.cancelIdleCallback === "function") {
+        window.cancelIdleCallback(handle as number);
+      } else {
+        window.clearTimeout(handle as number);
+      }
       container.innerHTML = "";
     };
   }, [options]);

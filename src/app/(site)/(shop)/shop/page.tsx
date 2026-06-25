@@ -21,21 +21,6 @@ export const revalidate = 300;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || SITE.url;
 const PER_PAGE = 9;
 
-export const metadata: Metadata = {
-  title: "Shop Hijama Equipment | Cups, Kits & Accessories",
-  description:
-    "Browse premium Hijama equipment online. Hijama cups, complete kits, pumps, and consumables with nationwide delivery across Pakistan.",
-  keywords: [...SEO.keywords, "Buy Hijama Equipment Online", "Hijama Shop Pakistan"],
-  alternates: { canonical: `${SITE_URL}/shop` },
-  openGraph: {
-    title: "Shop Hijama Equipment | Bayt Al Hijama",
-    description:
-      "Browse premium Hijama equipment online with nationwide delivery across Pakistan.",
-    url: `${SITE_URL}/shop`,
-    type: "website",
-  },
-};
-
 interface ShopPageProps {
   searchParams: Promise<{
     category?: string;
@@ -44,6 +29,46 @@ interface ShopPageProps {
     view?: string;
     page?: string;
   }>;
+}
+
+const SHOP_DESCRIPTION =
+  "Browse premium Hijama equipment online. Hijama cups, complete kits, pumps, and consumables with nationwide delivery across Pakistan.";
+
+export async function generateMetadata({
+  searchParams,
+}: ShopPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const page = Math.max(1, Number(params.page) || 1);
+  // Search results and paginated/sorted views are kept out of the index to
+  // prevent thin, duplicate listings; the canonical /shop stays indexable.
+  const isFiltered =
+    Boolean(params.search) ||
+    page > 1 ||
+    (Boolean(params.sort) && params.sort !== "newest");
+
+  return {
+    title: { absolute: "Shop Hijama Equipment Online | Bayt Al Hijama" },
+    description: SHOP_DESCRIPTION,
+    keywords: [
+      ...SEO.keywords,
+      "Buy Hijama Equipment Online",
+      "Hijama Shop Pakistan",
+    ],
+    alternates: { canonical: `${SITE_URL}/shop` },
+    ...(isFiltered ? { robots: { index: false, follow: true } } : {}),
+    openGraph: {
+      title: "Shop Hijama Equipment | Bayt Al Hijama",
+      description:
+        "Browse premium Hijama equipment online with nationwide delivery across Pakistan.",
+      url: `${SITE_URL}/shop`,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Shop Hijama Equipment | Bayt Al Hijama",
+      description: SHOP_DESCRIPTION,
+    },
+  };
 }
 
 const VALID_SORTS: ProductSort[] = ["newest", "price-asc", "price-desc", "name"];
@@ -85,7 +110,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           <span className="mb-3 inline-flex items-center gap-3 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-gold before:h-px before:w-6 before:bg-gold before:content-['']">
             Online Store
           </span>
-          <h1 className="mb-3 font-display text-[clamp(1.8rem,4vw,2.8rem)] font-normal leading-tight text-white">
+          <h1 className="mb-3 font-body text-[clamp(1.8rem,4vw,2.8rem)] font-normal leading-tight text-white">
             {activeCategory ? activeCategory.name : "Shop Hijama Equipment"}
           </h1>
           <p className="text-sm text-white/60 sm:text-base">

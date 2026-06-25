@@ -29,7 +29,7 @@ export default async function AdminProductsPage() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="font-display text-2xl font-normal text-white sm:text-3xl">
+        <h1 className="font-body text-2xl font-normal text-white sm:text-3xl">
           Products
         </h1>
         <Button href="/admin/products/new" leftIcon={<Plus className="h-4 w-4" />}>

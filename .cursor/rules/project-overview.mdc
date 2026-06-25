@@ -1,0 +1,28 @@
+---
+description: Bayt Al Hijama project context and architecture
+alwaysApply: true
+---
+
+# Bayt Al Hijama — Project Standards
+
+E-commerce for Hijama equipment (Pakistan). Next.js 15 App Router + Supabase + Tailwind.
+
+## Layout
+- `src/app/(site)/` — public shop and marketing
+- `src/app/(auth)/` — login, signup, password reset
+- `src/app/(admin)/admin/` — admin dashboard (products, orders, inventory)
+- `src/app/api/` — Route Handlers only (no Server Actions yet)
+- `src/lib/` — data access, auth, validation, email
+- `src/components/ui/` — reusable form/UI primitives
+- `src/sections/` — landing page sections only
+- `src/types/db.ts` — database/domain types (mirror `supabase/schema.sql`)
+- `supabase/schema.sql` — source of truth for DB shape
+
+## Imports
+- Use `@/` path alias (`@/lib/...`, `@/components/...`)
+- Barrel import UI from `@/components/ui` when possible
+
+## Scope
+- Minimize diff scope; match existing patterns in the file you edit
+- PKR currency via `formatPrice()` from `@/utils`
+- Site copy/constants in `src/constants/`

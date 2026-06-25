@@ -102,7 +102,7 @@ export default function CheckoutView() {
     >
       <div className="flex flex-col gap-6">
         <section className="rounded-lg border border-glass-border bg-glass-bg p-5 sm:p-6">
-          <h2 className="mb-4 font-display text-lg text-white">
+          <h2 className="mb-4 font-body text-lg text-white">
             Shipping Details
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -177,7 +177,7 @@ export default function CheckoutView() {
         </section>
 
         <section className="rounded-lg border border-glass-border bg-glass-bg p-5 sm:p-6">
-          <h2 className="mb-4 font-display text-lg text-white">Payment Method</h2>
+          <h2 className="mb-4 font-body text-lg text-white">Payment Method</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {PAYMENT_OPTIONS.map((option) => (
               <label
@@ -221,7 +221,7 @@ export default function CheckoutView() {
       </div>
 
       <aside className="h-fit rounded-lg border border-glass-border bg-glass-bg p-5 sm:p-6 lg:sticky lg:top-24">
-        <h2 className="mb-4 font-display text-lg text-white">Your Order</h2>
+        <h2 className="mb-4 font-body text-lg text-white">Your Order</h2>
         <ul className="mb-4 flex flex-col gap-3" role="list">
           {items.map((item) => (
             <li key={item.productId} className="flex justify-between gap-3 text-sm">

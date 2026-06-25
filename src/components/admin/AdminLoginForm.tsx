@@ -52,7 +52,7 @@ export default function AdminLoginForm() {
         <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-gold/15">
           <ShieldCheck className="h-6 w-6 text-gold" aria-hidden="true" />
         </div>
-        <h1 className="font-display text-2xl text-white">Admin Login</h1>
+        <h1 className="font-body text-2xl text-white">Admin Login</h1>
         <p className="mt-1 text-sm text-white/55">
           Sign in to manage products and orders.
         </p>
