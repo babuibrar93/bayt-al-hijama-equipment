@@ -52,4 +52,12 @@ export const siteMetadata: Metadata = {
     images: [OG_IMAGE.url],
   },
   category: "Medical Equipment",
+  icons: {
+    icon: [
+      { url: SITE.favicon, sizes: "32x32" },
+      { url: SITE.faviconPng, sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: SITE.favicon,
+    apple: SITE.faviconPng,
+  },
 };

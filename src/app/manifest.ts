@@ -14,13 +14,13 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["shopping", "medical"],
     icons: [
       {
-        src: SITE.logo.src,
+        src: SITE.faviconPng,
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: SITE.logo.src,
+        src: SITE.faviconPng,
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",

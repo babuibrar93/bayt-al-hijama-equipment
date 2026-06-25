@@ -8,6 +8,9 @@ export const SITE = {
     width: 512,
     height: 512,
   },
+  favicon: "/favicon.ico",
+  /** Cropped from bayt-logo.png — emblem fills the frame (favicon only). */
+  faviconPng: "/favicon.png",
   url: "https://baytalhijama.com",
   locale: "en_PK",
   phone: "+92 329 3561309",

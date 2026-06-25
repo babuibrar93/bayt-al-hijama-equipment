@@ -1,30 +1,33 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SITE } from "@/constants/site";
-import { LOGO_MARK_TOP, LOGO_MARK_ZOOM } from "@/lib/logo-crop";
 import { cn } from "@/lib/classes";
 
 type LogoSize = "xs" | "sm" | "md" | "lg";
 
-/** Circular emblem clip — PNG has wide margins; zoom centres the round logo. */
+/** Logo PNG has wide black margins; scale up inside a round clip so the emblem fills the circle. */
 const SIZE = {
   xs: {
     wrap: "h-9 w-9",
+    zoom: "h-[185%] w-[185%]",
     title: "text-sm",
     gap: "gap-2.5",
   },
   sm: {
     wrap: "h-10 w-10",
+    zoom: "h-[185%] w-[185%]",
     title: "text-[1.05rem] sm:text-[1.125rem]",
     gap: "gap-2.5",
   },
   md: {
     wrap: "h-11 w-11",
+    zoom: "h-[185%] w-[185%]",
     title: "text-[1.125rem]",
     gap: "gap-3",
   },
   lg: {
     wrap: "h-14 w-14",
+    zoom: "h-[185%] w-[185%]",
     title: "text-xl",
     gap: "gap-3.5",
   },
@@ -92,14 +95,10 @@ export default function Logo({
           height={SITE.logo.height}
           priority={priority}
           className={cn(
-            "absolute left-1/2 max-w-none -translate-x-1/2 -translate-y-1/2 object-contain",
+            "absolute left-[60%] top-[80%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain",
+            tokens.zoom,
             imageClassName,
           )}
-          style={{
-            top: LOGO_MARK_TOP,
-            width: LOGO_MARK_ZOOM,
-            height: LOGO_MARK_ZOOM,
-          }}
         />
       </span>
       {showText ? <LogoText className={tokens.title} /> : null}
