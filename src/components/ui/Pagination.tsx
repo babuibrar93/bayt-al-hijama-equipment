@@ -35,7 +35,7 @@ export default function Pagination({
   return (
     <nav
       aria-label="Pagination"
-      className="mt-10 flex items-center justify-center gap-1.5"
+      className="mt-10 flex flex-wrap items-center justify-center gap-1.5"
     >
       {currentPage > 1 ? (
         <Link

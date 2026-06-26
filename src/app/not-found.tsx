@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-black px-6 py-24 text-center">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-black px-4 py-24 text-center sm:px-6">
       <span
         className="font-body text-[clamp(5rem,18vw,11rem)] font-normal leading-none text-gold/90"
         aria-hidden="true"

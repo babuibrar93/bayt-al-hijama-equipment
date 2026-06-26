@@ -41,13 +41,13 @@ export default function Navbar() {
         role="navigation"
         aria-label="Main navigation"
         className={cn(
-          "fixed inset-x-0 top-0 z-[100] flex h-nav items-center gap-6 border-b px-6 transition-all duration-300 ease-out lg:px-8",
+          "fixed inset-x-0 top-0 z-[100] flex h-nav items-center gap-4 border-b px-4 transition-all duration-300 ease-out sm:px-6 lg:gap-6 lg:px-8",
           scrolled
             ? "border-glass-border bg-[rgba(5,12,8,0.94)] shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl"
             : "border-transparent bg-[rgba(5,12,8,0.55)] backdrop-blur-md",
         )}
       >
-        <Logo size="sm" priority />
+        <Logo size="sm" priority className="min-w-0" />
 
         <ul className="mx-auto hidden items-center gap-7 lg:flex" role="list">
           <li>

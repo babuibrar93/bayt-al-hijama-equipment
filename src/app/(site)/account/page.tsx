@@ -4,8 +4,8 @@ import Link from "next/link";
 import { Package } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/utils";
-import { cn, numeric } from "@/lib/classes";
-import Breadcrumbs from "@/components/shop/Breadcrumbs";
+import { cn, numeric, pageInner, pageShell } from "@/lib/classes";
+import PageHeader from "@/components/shop/PageHeader";
 import SignOutButton from "@/components/auth/SignOutButton";
 import ProfileForm from "@/components/account/ProfileForm";
 import { Button } from "@/components/ui";
@@ -46,18 +46,18 @@ export default async function AccountPage() {
   const orderList = (orders ?? []) as OrderWithItems[];
 
   return (
-    <div className="px-4 pb-20 pt-nav sm:px-6">
-      <div className="mx-auto w-full max-w-container pt-8 sm:pt-10">
-        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Account" }]} />
+    <div className={pageShell}>
+      <div className={pageInner}>
+        <PageHeader
+          crumbs={[{ label: "Home", href: "/" }, { label: "Account" }]}
+          eyebrow="Customer Portal"
+          description="Update your profile, saved address, and track past orders in one place."
+          actions={
+            <SignOutButton className="rounded-md border border-glass-border px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.06em]" />
+          }
+        />
 
-        <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-          <h1 className="font-body text-[clamp(1.8rem,4vw,2.6rem)] font-normal text-white">
-            My Account
-          </h1>
-          <SignOutButton />
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,420px)_1fr]">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,420px)_1fr] lg:gap-6">
           <section>
             <h2 className="mb-3 font-body text-lg text-white">Profile</h2>
             <ProfileForm
@@ -110,7 +110,7 @@ export default async function AccountPage() {
                           key={item.id}
                           className="flex justify-between gap-3 text-sm text-white/70"
                         >
-                          <span>
+                          <span className="min-w-0">
                             {item.product_name}
                             <span className="text-white/40"> x{item.quantity}</span>
                           </span>

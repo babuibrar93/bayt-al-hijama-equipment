@@ -93,7 +93,7 @@ export default function TestimonialsSection() {
                   >
                     {testimonial.initials}
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <strong className="mb-0.5 block font-semibold text-white">
                       {testimonial.author}
                     </strong>

@@ -75,7 +75,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+      <div className="mb-6 grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (

@@ -14,7 +14,7 @@ export default function Footer() {
     <footer className="border-t border-glass-border bg-black-3" role="contentinfo">
       <div className="py-10 pb-8">
         <div
-          className={`${container} grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-[1.8fr_1fr_1fr_1fr] lg:gap-10 max-lg:[&_.footer-brand]:col-span-2`}
+          className={`${container} grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-[1.8fr_1fr_1fr_1fr] lg:gap-10 sm:max-lg:[&_.footer-brand]:col-span-2`}
         >
           <div className="footer-brand">
             <Logo size="md" href="/" className="mb-3" />

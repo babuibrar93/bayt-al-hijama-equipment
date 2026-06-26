@@ -22,7 +22,22 @@ values from **Supabase > Project Settings > API**:
 In **Supabase > SQL Editor**, paste and run the contents of:
 
 1. [`schema.sql`](./schema.sql) — tables, triggers, RLS policies
-2. [`seed.sql`](./seed.sql) — starter categories + 3 products (optional)
+2. [`seed.sql`](./seed.sql) — categories only (optional)
+
+For the **full catalog** (15 products with real Hijama/cupping photos), run from the project root:
+
+```bash
+npm install
+npm run seed
+```
+
+This downloads images into `public/products/`, uploads them to the `product-images` bucket, and upserts all categories and products. Re-run safely anytime — it uses upserts.
+
+To download images only (no database):
+
+```bash
+npm run seed:images
+```
 
 > Re-running `schema.sql` is safe and will add the newer profile columns
 > (`email`, `avatar_url`, address fields) to existing installations.

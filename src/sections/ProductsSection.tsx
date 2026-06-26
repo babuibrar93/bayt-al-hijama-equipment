@@ -10,6 +10,7 @@ import {
   container,
   getBadgeClass,
   getRevealClass,
+  productBadgeScrim,
   section,
 } from "@/lib/classes";
 
@@ -28,7 +29,12 @@ export default async function ProductsSection() {
   const products = featured.length > 0 ? featured : await getProducts({ limit: 3 });
 
   return (
-    <section className={`${section} bg-black-3`} data-section id="products" aria-label="Featured products">
+    <section
+      className={`${section} bg-black-3`}
+      data-section
+      id="products"
+      aria-label="Featured products"
+    >
       <div className={container}>
         <SectionHeader
           eyebrow="Our Products"
@@ -40,7 +46,7 @@ export default async function ProductsSection() {
           subtitle="Professional-grade tools, authentically sourced, delivered with care."
         />
 
-        <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3 [&>article:last-child:nth-child(odd)]:col-span-2 [&>article:last-child:nth-child(odd)]:mx-auto [&>article:last-child:nth-child(odd)]:max-w-[85%] sm:[&>article:last-child:nth-child(odd)]:col-span-1 sm:[&>article:last-child:nth-child(odd)]:max-w-none">
+        <div className="mt-5 grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 xl:grid-cols-3 xl:[&>article:last-child:nth-child(odd)]:col-span-1">
           {products.map((product, index) => {
             const image = product.images[0];
             const whatsappUrl = `https://wa.me/${SITE.whatsappNumber}?text=${encodeURIComponent(
@@ -52,10 +58,10 @@ export default async function ProductsSection() {
                 data-reveal
                 data-tilt
                 aria-label={product.name}
-                className={`group relative overflow-hidden rounded-xl border border-glass-border bg-glass-bg transition-all duration-[400ms] ease-spring hover:-translate-y-2.5 hover:border-gold/25 ${getRevealClass("up", (index + 1) as 1 | 2 | 3 | 4)}`}
+                className={`group relative overflow-hidden rounded-xl border border-glass-border bg-glass-bg transition-all duration-[400ms] ease-spring hover:-translate-y-2.5 hover:border-gold/25 min-[520px]:max-xl:[&:last-child:nth-child(odd)]:col-span-2 min-[520px]:max-xl:[&:last-child:nth-child(odd)]:mx-auto min-[520px]:max-xl:[&:last-child:nth-child(odd)]:max-w-[min(100%,28rem)] ${getRevealClass("up", (index + 1) as 1 | 2 | 3 | 4)}`}
               >
                 <div className="pointer-events-none absolute -inset-px z-0 animate-border-spin rounded-[inherit] bg-product-glow opacity-0 [animation-play-state:paused] group-hover:opacity-100 group-hover:[animation-play-state:running]" />
-                <div className="relative z-[1]">
+                <div className="relative z-[1] flex h-full flex-col">
                   {product.badge && (
                     <div className={getBadgeClass(product.badge_variant)}>
                       {product.badge}
@@ -67,27 +73,30 @@ export default async function ProductsSection() {
                     aria-label={`View ${product.name}`}
                   >
                     {image ? (
-                      <div className="relative min-h-[140px] overflow-hidden bg-product-visual">
+                      <div className="relative min-h-[140px] overflow-hidden bg-product-visual sm:min-h-[160px]">
+                        {product.badge ? (
+                          <span className={productBadgeScrim} aria-hidden="true" />
+                        ) : null}
                         <Image
                           src={image}
                           alt={product.name}
                           width={400}
                           height={300}
-                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, 33vw"
-                          className="h-[180px] w-full object-cover transition-transform duration-[400ms] ease-spring group-hover:scale-[1.05]"
+                          sizes="(max-width: 519px) 100vw, (max-width: 1279px) 50vw, 33vw"
+                          className="h-[150px] w-full object-cover transition-transform duration-[400ms] ease-spring sm:h-[170px] md:h-[180px] group-hover:scale-[1.05]"
                         />
                       </div>
                     ) : (
-                      <div className="flex min-h-[140px] items-center justify-center bg-product-visual px-6 py-8">
-                        <div className="h-[80px] w-[80px] transition-transform duration-[400ms] ease-spring group-hover:scale-[1.08] group-hover:-translate-y-1 [&_svg]:h-full [&_svg]:w-full">
+                      <div className="flex min-h-[140px] items-center justify-center bg-product-visual px-6 py-8 sm:min-h-[160px] md:min-h-[180px]">
+                        <div className="h-[72px] w-[72px] transition-transform duration-[400ms] ease-spring group-hover:scale-[1.08] group-hover:-translate-y-1 sm:h-[80px] sm:w-[80px] [&_svg]:h-full [&_svg]:w-full">
                           <ProductIcon iconId={iconForSlug(product.slug)} />
                         </div>
                       </div>
                     )}
                   </Link>
-                  <div className="px-4 pb-5 pt-4 sm:px-5">
-                    <div className="mb-2 flex items-start justify-between gap-2">
-                      <h3 className="font-body text-base font-semibold leading-snug text-white sm:text-lg">
+                  <div className="flex flex-1 flex-col px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
+                    <div className="mb-2 flex items-start justify-between gap-2 sm:gap-3">
+                      <h3 className="min-w-0 font-body text-[0.9375rem] font-semibold leading-snug text-white sm:text-base md:text-lg">
                         <Link
                           href={`/shop/${product.slug}`}
                           className="transition-colors hover:text-gold"
@@ -95,14 +104,14 @@ export default async function ProductsSection() {
                           {product.name}
                         </Link>
                       </h3>
-                      <span className="shrink-0 font-body text-sm font-semibold tabular-nums text-gold sm:text-base">
+                      <span className="shrink-0 font-body text-[0.8125rem] font-semibold tabular-nums text-gold sm:text-sm md:text-base">
                         {formatPrice(product.price)}
                       </span>
                     </div>
-                    <p className="mb-3 line-clamp-2 text-[0.8rem] leading-[1.6] text-white/60 sm:text-[0.85rem]">
+                    <p className="mb-3 line-clamp-2 text-[0.78rem] leading-[1.6] text-white/60 sm:text-[0.8rem] md:text-[0.85rem]">
                       {product.description}
                     </p>
-                    <ul className="mb-4 hidden flex-col gap-1 sm:flex">
+                    <ul className="mb-4 hidden flex-col gap-1 md:flex">
                       {product.features.slice(0, 3).map((feature) => (
                         <li
                           key={feature}
@@ -112,7 +121,7 @@ export default async function ProductsSection() {
                         </li>
                       ))}
                     </ul>
-                    <div className="flex flex-col gap-2">
+                    <div className="mt-auto flex flex-col gap-2">
                       <AddToCartButton
                         product={{
                           productId: product.id,
@@ -122,18 +131,18 @@ export default async function ProductsSection() {
                           image: image ?? null,
                           maxStock: product.stock,
                         }}
-                        className="w-full justify-center px-3 py-2 text-[0.78rem] sm:text-[0.82rem]"
+                        className="w-full justify-center px-3 py-2 text-[0.75rem] sm:text-[0.78rem] md:text-[0.82rem]"
                       />
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <Link
                           href={`/shop/${product.slug}`}
-                          className="flex flex-1 items-center justify-center rounded-sm border border-glass-border px-2 py-2 text-center text-[0.72rem] font-semibold tracking-[0.04em] text-white/80 transition-all duration-[250ms] hover:-translate-y-px hover:border-gold/40 hover:text-gold sm:px-3 sm:text-[0.78rem]"
+                          className="flex items-center justify-center rounded-sm border border-glass-border px-2 py-2 text-center text-[0.7rem] font-semibold tracking-[0.04em] text-white/80 transition-all duration-[250ms] hover:-translate-y-px hover:border-gold/40 hover:text-gold sm:px-3 sm:text-[0.75rem] md:text-[0.78rem]"
                         >
                           Details
                         </Link>
                         <a
                           href={whatsappUrl}
-                          className="flex flex-1 items-center justify-center rounded-sm border border-glass-border px-2 py-2 text-center text-[0.72rem] font-semibold tracking-[0.04em] text-white/80 transition-all duration-[250ms] hover:-translate-y-px hover:border-green-mid hover:bg-green-mid hover:text-white sm:px-3 sm:text-[0.78rem]"
+                          className="flex items-center justify-center rounded-sm border border-glass-border px-2 py-2 text-center text-[0.7rem] font-semibold tracking-[0.04em] text-white/80 transition-all duration-[250ms] hover:-translate-y-px hover:border-green-mid hover:bg-green-mid hover:text-white sm:px-3 sm:text-[0.75rem] md:text-[0.78rem]"
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -148,10 +157,10 @@ export default async function ProductsSection() {
           })}
         </div>
 
-        <div className="mt-5 text-center">
+        <div className="mt-6 text-center sm:mt-8">
           <Link
             href="/shop"
-            className="inline-flex items-center gap-2 rounded-sm border border-gold/40 px-8 py-3.5 text-[0.88rem] font-semibold tracking-[0.04em] text-gold transition-all duration-[250ms] hover:-translate-y-0.5 hover:bg-gold/10"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-sm border border-gold/40 px-6 py-3 text-[0.82rem] font-semibold tracking-[0.04em] text-gold transition-all duration-[250ms] hover:-translate-y-0.5 hover:bg-gold/10 sm:w-auto sm:px-8 sm:py-3.5 sm:text-[0.88rem]"
           >
             View All Products
           </Link>

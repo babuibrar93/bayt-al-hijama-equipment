@@ -10,13 +10,14 @@ import {
   getProducts,
 } from "@/lib/products";
 import ProductCard from "@/components/shop/ProductCard";
-import Breadcrumbs from "@/components/shop/Breadcrumbs";
+import PageHeader from "@/components/shop/PageHeader";
 import JsonLd from "@/components/seo/JsonLd";
 import {
   getBreadcrumbSchema,
   getShopItemListSchema,
   getWebPageSchema,
 } from "@/lib/structured-data";
+import { pageInner, pageShell } from "@/lib/classes";
 
 export const revalidate = 300;
 
@@ -84,25 +85,17 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const otherCategories = categories.filter((c) => c.slug !== slug);
 
   return (
-    <div className="px-4 pb-20 pt-nav sm:px-6">
-      <div className="mx-auto w-full max-w-container pt-8 sm:pt-10">
-        <Breadcrumbs
-          items={[
+    <div className={pageShell}>
+      <div className={pageInner}>
+        <PageHeader
+          crumbs={[
             { label: "Home", href: "/" },
             { label: "Shop", href: "/shop" },
             { label: category.name },
           ]}
+          eyebrow="Category"
+          description={description}
         />
-
-        <header className="mb-7 max-w-2xl">
-          <span className="mb-3 inline-flex items-center gap-3 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-gold before:h-px before:w-6 before:bg-gold before:content-['']">
-            Category
-          </span>
-          <h1 className="mb-3 font-body text-[clamp(1.8rem,4vw,2.8rem)] font-normal leading-tight text-white">
-            {category.name}
-          </h1>
-          <p className="text-sm text-white/60 sm:text-base">{description}</p>
-        </header>
 
         {products.length === 0 ? (
           <div className="rounded-lg border border-glass-border bg-glass-bg p-10 text-center">
@@ -124,7 +117,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               </span>{" "}
               {products.length === 1 ? "product" : "products"}
             </p>
-            <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 lg:grid-cols-3 lg:gap-5">
               {products.map((product, index) => (
                 <ProductCard
                   key={product.id}
@@ -160,7 +153,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                   <li key={c.id}>
                     <Link
                       href={`/shop/category/${c.slug}`}
-                      className="inline-block rounded-full border border-glass-border bg-glass-bg px-4 py-1.5 text-sm text-white/70 transition-colors hover:border-gold/40 hover:text-gold"
+                      className="inline-block rounded-lg border border-glass-border bg-glass-bg px-4 py-1.5 text-sm text-white/70 transition-colors hover:border-gold/40 hover:text-gold"
                     >
                       {c.name}
                     </Link>

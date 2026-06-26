@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import CartView from "@/components/shop/CartView";
-import Breadcrumbs from "@/components/shop/Breadcrumbs";
+import PageHeader from "@/components/shop/PageHeader";
+import { pageInner, pageShell } from "@/lib/classes";
 
 export const metadata: Metadata = {
   title: "Your Cart",
@@ -10,12 +11,13 @@ export const metadata: Metadata = {
 
 export default function CartPage() {
   return (
-    <div className="px-6 pb-24 pt-nav">
-      <div className="mx-auto w-full max-w-container pt-12">
-        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Cart" }]} />
-        <h1 className="mb-10 font-body text-[clamp(2rem,4vw,3rem)] font-normal text-white">
-          Your Cart
-        </h1>
+    <div className={pageShell}>
+      <div className={pageInner}>
+        <PageHeader
+          crumbs={[{ label: "Home", href: "/" }, { label: "Cart" }]}
+          eyebrow="Shopping Cart"
+          description="Review your items, adjust quantities, and proceed when you're ready to checkout."
+        />
         <CartView />
       </div>
     </div>

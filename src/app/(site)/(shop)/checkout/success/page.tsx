@@ -7,7 +7,7 @@ import {
   BANK_DETAILS,
 } from "@/constants/payment";
 import { formatPrice } from "@/utils";
-import { btnPrimary, btnGhost, cn } from "@/lib/classes";
+import { btnPrimary, btnGhost, cn, pageShell } from "@/lib/classes";
 import type { PaymentMethod } from "@/types/db";
 
 export const metadata: Metadata = {
@@ -38,8 +38,8 @@ export default async function CheckoutSuccessPage({
   )}`;
 
   return (
-    <div className="px-6 pb-24 pt-nav">
-      <div className="mx-auto w-full max-w-2xl pt-16 text-center">
+    <div className={pageShell}>
+      <div className="mx-auto w-full max-w-2xl pt-4 text-center sm:pt-5">
         <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-mid/20">
           <CheckCircle2 className="h-9 w-9 text-green-light" aria-hidden="true" />
         </div>

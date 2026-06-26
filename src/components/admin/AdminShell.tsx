@@ -135,7 +135,7 @@ export default function AdminShell({ admin, children }: AdminShellProps) {
               </button>
             </div>
             <NavLinks showLabels />
-            <div className="mt-auto border-t border-glass-border pt-4">
+            <div className="mt-auto flex flex-col gap-3 border-t border-glass-border pt-4">
               <Link
                 href="/"
                 className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-white/60 hover:text-white"
@@ -143,6 +143,7 @@ export default function AdminShell({ admin, children }: AdminShellProps) {
                 <Store className="h-[18px] w-[18px]" aria-hidden="true" />
                 View Store
               </Link>
+              <SignOutButton className="w-full justify-center" />
             </div>
           </aside>
         </div>

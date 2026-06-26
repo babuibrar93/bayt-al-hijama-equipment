@@ -10,7 +10,7 @@ import {
   getAllProductSlugs,
 } from "@/lib/products";
 import { formatPrice } from "@/utils";
-import { getBadgeClass } from "@/lib/classes";
+import { getBadgeClass, pageInner, pageShell, productBadgeScrim } from "@/lib/classes";
 import ProductImage from "@/components/shop/ProductImage";
 import ProductCard from "@/components/shop/ProductCard";
 import AddToCartButton from "@/components/shop/AddToCartButton";
@@ -84,8 +84,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
   )}`;
 
   return (
-    <div className="px-6 pb-24 pt-nav">
-      <div className="mx-auto w-full max-w-container pt-12">
+    <div className={pageShell}>
+      <div className={pageInner}>
         <Breadcrumbs
           items={[
             { label: "Home", href: "/" },
@@ -109,7 +109,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 {product.badge}
               </span>
             )}
-            <div className="overflow-hidden rounded-lg border border-glass-border bg-glass-bg">
+            <div className="relative overflow-hidden rounded-lg border border-glass-border bg-glass-bg">
+              {product.badge ? (
+                <span className={productBadgeScrim} aria-hidden="true" />
+              ) : null}
               <ProductImage
                 src={mainImage}
                 alt={product.name}
@@ -118,7 +121,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               />
             </div>
             {product.images.length > 1 && (
-              <div className="mt-4 grid grid-cols-4 gap-3">
+              <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3">
                 {product.images.slice(0, 4).map((img, i) => (
                   <div
                     key={i}
@@ -148,16 +151,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
               {product.name}
             </h1>
 
-            <div className="mb-6 flex items-center gap-4">
-              <span className="font-body text-3xl font-semibold text-white">
+            <div className="mb-6 flex flex-wrap items-center gap-3 sm:gap-4">
+              <span className="font-body text-2xl font-semibold text-white sm:text-3xl">
                 {formatPrice(product.price)}
               </span>
               {inStock ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-green-mid/20 px-3 py-1 text-xs font-medium text-green-light">
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-green-mid/20 px-3 py-1 text-xs font-medium text-green-light">
                   <Check className="h-3.5 w-3.5" /> In Stock
                 </span>
               ) : (
-                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/60">
+                <span className="rounded-lg bg-white/10 px-3 py-1 text-xs font-medium text-white/60">
                   Out of Stock
                 </span>
               )}
@@ -223,7 +226,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <h2 className="mb-8 font-body text-2xl font-medium text-white">
               You may also like
             </h2>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 lg:grid-cols-3 lg:gap-5">
               {related.map((item) => (
                 <ProductCard key={item.id} product={item} />
               ))}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import ProductImage from "@/components/shop/ProductImage";
 import AddToCartButton from "@/components/shop/AddToCartButton";
-import { cn, getBadgeClass, numeric } from "@/lib/classes";
+import { cn, getBadgeClass, numeric, productBadgeScrim } from "@/lib/classes";
 import { formatPrice } from "@/utils";
 import type { ProductWithCategory } from "@/types/db";
 
@@ -25,18 +25,24 @@ export default function ProductCard({
     <article
       className={cn(
         "group flex overflow-hidden rounded-lg border border-glass-border bg-glass-bg transition-all duration-300 hover:border-gold/30",
-        isList ? "flex-row" : "flex-col hover:-translate-y-1",
+        isList ? "flex-col sm:flex-row" : "flex-col hover:-translate-y-1",
       )}
     >
       <Link
         href={`/shop/${product.slug}`}
-        className={cn("relative block shrink-0", isList && "w-32 sm:w-44")}
+        className={cn(
+          "relative block shrink-0",
+          isList ? "w-full sm:w-36 md:w-44" : "w-full",
+        )}
         aria-label={`View ${product.name}`}
       >
         {product.badge && (
-          <span className={getBadgeClass(product.badge_variant)}>
-            {product.badge}
-          </span>
+          <>
+            <span className={productBadgeScrim} aria-hidden="true" />
+            <span className={getBadgeClass(product.badge_variant)}>
+              {product.badge}
+            </span>
+          </>
         )}
         <ProductImage
           src={image}
@@ -44,19 +50,19 @@ export default function ProductCard({
           priority={priority}
           sizes={
             isList
-              ? "176px"
-              : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              ? "(max-width: 639px) 100vw, 176px"
+              : "(max-width: 519px) 100vw, (max-width: 1024px) 50vw, 33vw"
           }
         />
       </Link>
 
-      <div className={cn("flex flex-1 flex-col", isList ? "p-4" : "p-4")}>
+      <div className={cn("flex min-w-0 flex-1 flex-col p-4 sm:p-5")}>
         {product.category && (
-          <span className="mb-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-gold/80">
+          <span className="mb-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-gold/80 sm:text-[0.65rem] sm:tracking-[0.16em]">
             {product.category.name}
           </span>
         )}
-        <h3 className="mb-1.5 font-body text-base font-medium leading-snug text-white sm:text-lg">
+        <h3 className="mb-1.5 min-w-0 font-body text-[0.9375rem] font-medium leading-snug text-white sm:text-base md:text-lg">
           <Link
             href={`/shop/${product.slug}`}
             className="transition-colors hover:text-gold"
@@ -64,17 +70,12 @@ export default function ProductCard({
             {product.name}
           </Link>
         </h3>
-        <p
-          className={cn(
-            "text-sm text-white/55",
-            isList ? "line-clamp-2" : "line-clamp-2",
-          )}
-        >
+        <p className="line-clamp-2 text-[0.8125rem] text-white/55 sm:text-sm">
           {product.description}
         </p>
 
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <span className={cn("text-lg font-semibold text-white sm:text-xl", numeric)}>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <span className={cn("text-base font-semibold text-white sm:text-lg md:text-xl", numeric)}>
             {formatPrice(product.price)}
           </span>
           {outOfStock ? (
@@ -96,7 +97,7 @@ export default function ProductCard({
               image,
               maxStock: product.stock,
             }}
-            className="w-full px-4 py-2.5 text-[0.82rem]"
+            className="w-full px-3 py-2 text-[0.78rem] sm:px-4 sm:py-2.5 sm:text-[0.82rem]"
           />
         </div>
       </div>

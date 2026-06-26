@@ -33,8 +33,8 @@ export default function FAQSection() {
                 "group px-5 py-4",
               )}
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left font-body text-lg text-white marker:content-none [&::-webkit-details-marker]:hidden">
-                {item.question}
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left font-body text-base text-white marker:content-none sm:text-lg [&::-webkit-details-marker]:hidden">
+                <span className="min-w-0 flex-1">{item.question}</span>
                 <span
                   className="shrink-0 text-2xl font-light leading-none text-gold transition-transform duration-300 group-open:rotate-45"
                   aria-hidden="true"

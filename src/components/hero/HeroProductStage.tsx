@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import HijamaCupIllustration from "@/components/hero/HijamaCupIllustration";
 import HijamaPumpIllustration from "@/components/hero/HijamaPumpIllustration";
 import { cn } from "@/lib/classes";
@@ -12,8 +11,6 @@ export interface StageItem {
   type: StageItemType;
   size?: "sm" | "md" | "lg";
   valveColor?: "green" | "gold";
-  imageSrc?: string;
-  imageAlt?: string;
   label?: string;
 }
 
@@ -53,22 +50,11 @@ function StageAsset({
   const size = sizeOverride ?? item.size ?? "md";
   return (
     <div className={cn("relative", CUP_SIZE[size])}>
-      {item.imageSrc ? (
-        <Image
-          src={item.imageSrc}
-          alt={item.imageAlt ?? "Hijama cup"}
-          fill
-          sizes={size === "lg" ? "200px" : "90px"}
-          priority={size === "lg"}
-          className="object-contain drop-shadow-[0_16px_32px_rgba(0,0,0,0.5)]"
-        />
-      ) : (
-        <HijamaCupIllustration
-          idSuffix={`s${index}`}
-          valveColor={item.valveColor ?? "green"}
-          className="drop-shadow-[0_16px_32px_rgba(0,0,0,0.5)]"
-        />
-      )}
+      <HijamaCupIllustration
+        idSuffix={`s${index}`}
+        valveColor={item.valveColor ?? "green"}
+        className="drop-shadow-[0_16px_32px_rgba(0,0,0,0.5)]"
+      />
     </div>
   );
 }

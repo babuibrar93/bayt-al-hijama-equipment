@@ -98,7 +98,7 @@ export default function CheckoutView() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]"
+      className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_340px] lg:gap-6"
     >
       <div className="flex flex-col gap-6">
         <section className="rounded-lg border border-glass-border bg-glass-bg p-5 sm:p-6">
@@ -225,7 +225,7 @@ export default function CheckoutView() {
         <ul className="mb-4 flex flex-col gap-3" role="list">
           {items.map((item) => (
             <li key={item.productId} className="flex justify-between gap-3 text-sm">
-              <span className="text-white/70">
+              <span className="min-w-0 text-white/70">
                 {item.name}
                 <span className="text-white/40"> x{item.quantity}</span>
               </span>

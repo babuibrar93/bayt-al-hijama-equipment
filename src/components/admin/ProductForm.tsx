@@ -293,11 +293,11 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
           />
         </div>
 
-        <div className="flex gap-3 pt-1">
-          <Button type="submit" loading={submitting} size="lg">
+        <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap">
+          <Button type="submit" loading={submitting} size="lg" className="w-full sm:w-auto">
             {isEdit ? "Save Changes" : "Create Product"}
           </Button>
-          <Button variant="ghost" size="lg" href="/admin/products">
+          <Button variant="ghost" size="lg" href="/admin/products" className="w-full sm:w-auto">
             Cancel
           </Button>
         </div>

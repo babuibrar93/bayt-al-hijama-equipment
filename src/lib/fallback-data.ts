@@ -1,122 +1,46 @@
 import type { Category, ProductWithCategory } from "@/types/db";
+import {
+  SEED_CATEGORIES,
+  SEED_PRODUCTS,
+  productImagePaths,
+} from "@/lib/seed-catalog";
 
 /**
- * Static fallback used when Supabase is not yet configured, so the shop and
- * landing page still render during local setup. Mirrors `supabase/seed.sql`.
+ * Static fallback when Supabase is not configured. Mirrors `src/lib/seed-catalog.ts`
+ * and `npm run seed` output in `public/products/`.
  */
-export const FALLBACK_CATEGORIES: Category[] = [
-  {
-    id: "cat-cups",
-    name: "Hijama Cups",
-    slug: "hijama-cups",
-    description:
-      "Glass, silicone, and plastic cups in all sizes for wet, dry, and massage cupping.",
-    sort_order: 1,
-    created_at: new Date(0).toISOString(),
-  },
-  {
-    id: "cat-kits",
-    name: "Complete Kits",
-    slug: "complete-kits",
-    description: "All-in-one kits for therapists and clinics. Ready to practise.",
-    sort_order: 2,
-    created_at: new Date(0).toISOString(),
-  },
-  {
-    id: "cat-accessories",
-    name: "Accessories",
-    slug: "accessories",
-    description: "Vacuum pumps, gauges, tubing, and storage cases.",
-    sort_order: 3,
-    created_at: new Date(0).toISOString(),
-  },
-  {
-    id: "cat-consumables",
-    name: "Consumables",
-    slug: "consumables",
-    description:
-      "Sterile lancets, disposable blades, gloves, and antiseptics in bulk.",
-    sort_order: 4,
-    created_at: new Date(0).toISOString(),
-  },
-];
 
-function category(slug: string) {
+export const FALLBACK_CATEGORIES: Category[] = SEED_CATEGORIES.map((cat) => ({
+  id: `cat-${cat.slug}`,
+  name: cat.name,
+  slug: cat.slug,
+  description: cat.description,
+  sort_order: cat.sort_order,
+  created_at: new Date(0).toISOString(),
+}));
+
+function categoryRef(slug: string) {
   const found = FALLBACK_CATEGORIES.find((c) => c.slug === slug);
   return found ? { id: found.id, name: found.name, slug: found.slug } : null;
 }
 
-export const FALLBACK_PRODUCTS: ProductWithCategory[] = [
-  {
-    id: "prod-vacuum-kit",
-    name: "Vacuum Pump Hijama Kit",
-    slug: "vacuum-pump-hijama-kit",
-    description:
-      "Complete professional set with 12 cups, precision pistol pump, and storage case. The therapist's first choice for controlled suction.",
-    price: 8500,
-    stock: 25,
-    images: [],
-    features: [
-      "12 graduated cup sizes",
-      "Precision vacuum pistol",
-      "Release valve system",
-      "Carry case included",
-    ],
-    badge: "Best Seller",
-    badge_variant: "default",
-    category_id: "cat-kits",
+export const FALLBACK_PRODUCTS: ProductWithCategory[] = SEED_PRODUCTS.map(
+  (p) => ({
+    id: `prod-${p.slug}`,
+    name: p.name,
+    slug: p.slug,
+    description: p.description,
+    price: p.price,
+    stock: p.stock,
+    images: productImagePaths(p.slug, p.imageSources.length),
+    features: p.features,
+    badge: p.badge ?? null,
+    badge_variant: p.badge_variant,
+    category_id: `cat-${p.categorySlug}`,
     is_active: true,
-    is_featured: true,
+    is_featured: p.is_featured,
     created_at: new Date(0).toISOString(),
     updated_at: new Date(0).toISOString(),
-    category: category("complete-kits"),
-  },
-  {
-    id: "prod-silicone-set",
-    name: "Premium Silicone Cup Set",
-    slug: "premium-silicone-cup-set",
-    description:
-      "Flexible medical-grade silicone cups in multiple sizes. Perfect for dry cupping, massage cupping, and moving cupping techniques.",
-    price: 3200,
-    stock: 40,
-    images: [],
-    features: [
-      "Medical-grade silicone",
-      "6 sizes in one set",
-      "Easy squeeze mechanism",
-      "Autoclave-safe",
-    ],
-    badge: "Popular",
-    badge_variant: "new",
-    category_id: "cat-cups",
-    is_active: true,
-    is_featured: true,
-    created_at: new Date(0).toISOString(),
-    updated_at: new Date(0).toISOString(),
-    category: category("hijama-cups"),
-  },
-  {
-    id: "prod-clinic-kit",
-    name: "Complete Clinic Starter Kit",
-    slug: "complete-clinic-starter-kit",
-    description:
-      "Everything a new clinic needs: cups, pump, lancets, disposable blades, gloves, and practitioner guide. Start practising from day one.",
-    price: 15500,
-    stock: 15,
-    images: [],
-    features: [
-      "Full equipment set",
-      "Consumables included",
-      "Instructional guide",
-      "Storage & carry bag",
-    ],
-    badge: "Clinic Kit",
-    badge_variant: "gold",
-    category_id: "cat-kits",
-    is_active: true,
-    is_featured: true,
-    created_at: new Date(0).toISOString(),
-    updated_at: new Date(0).toISOString(),
-    category: category("complete-kits"),
-  },
-];
+    category: categoryRef(p.categorySlug),
+  }),
+);

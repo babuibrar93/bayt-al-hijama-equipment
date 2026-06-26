@@ -7,10 +7,10 @@ import {
 } from "@/lib/products";
 import ProductCard from "@/components/shop/ProductCard";
 import ShopFilters from "@/components/shop/ShopFilters";
-import Breadcrumbs from "@/components/shop/Breadcrumbs";
+import PageHeader from "@/components/shop/PageHeader";
 import Pagination from "@/components/ui/Pagination";
 import JsonLd from "@/components/seo/JsonLd";
-import { cn } from "@/lib/classes";
+import { cn, pageInner, pageShell } from "@/lib/classes";
 import {
   getBreadcrumbSchema,
   getShopItemListSchema,
@@ -102,22 +102,16 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   };
 
   return (
-    <div className="px-4 pb-20 pt-nav sm:px-6">
-      <div className="mx-auto w-full max-w-container pt-8 sm:pt-10">
-        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Shop" }]} />
-
-        <header className="mb-7 max-w-2xl">
-          <span className="mb-3 inline-flex items-center gap-3 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-gold before:h-px before:w-6 before:bg-gold before:content-['']">
-            Online Store
-          </span>
-          <h1 className="mb-3 font-body text-[clamp(1.8rem,4vw,2.8rem)] font-normal leading-tight text-white">
-            {activeCategory ? activeCategory.name : "Shop Hijama Equipment"}
-          </h1>
-          <p className="text-sm text-white/60 sm:text-base">
-            {activeCategory?.description ??
-              "Professional-grade Hijama cups, kits, and accessories trusted by therapists across Pakistan. Nationwide delivery."}
-          </p>
-        </header>
+    <div className={pageShell}>
+      <div className={pageInner}>
+        <PageHeader
+          crumbs={[{ label: "Home", href: "/" }, { label: "Shop" }]}
+          eyebrow="Online Store"
+          description={
+            activeCategory?.description ??
+            "Professional-grade Hijama cups, kits, and accessories trusted by therapists across Pakistan. Nationwide delivery."
+          }
+        />
 
         <ShopFilters
           categories={categories}
@@ -146,7 +140,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
               className={cn(
                 view === "list"
                   ? "flex flex-col gap-4"
-                  : "grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3",
+                  : "grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 lg:grid-cols-3 lg:gap-5",
               )}
             >
               {products.map((product, index) => (

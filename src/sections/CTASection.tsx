@@ -56,7 +56,7 @@ export default function CTASection() {
             <a
               href={WHATSAPP.cta}
               data-magnetic
-              className={`${btnPrimary} ${btnLarge}`}
+              className={`${btnPrimary} ${btnLarge} w-full max-w-md justify-center sm:w-auto`}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -69,7 +69,7 @@ export default function CTASection() {
               <span className="text-[0.8rem] text-white/50">Or call / WhatsApp directly:</span>
               <a
                 href={`tel:${SITE.phoneRaw}`}
-                className="font-body text-[1.6rem] font-semibold tabular-nums tracking-[0.08em] text-gold transition-colors hover:text-gold-light"
+                className="font-body text-[clamp(1.35rem,5vw,1.6rem)] font-semibold tabular-nums tracking-[0.06em] text-gold transition-colors hover:text-gold-light sm:tracking-[0.08em]"
               >
                 {SITE.phone}
               </a>

@@ -42,12 +42,12 @@ export default function CartView() {
   const total = subtotal + shippingFee;
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
       <ul className="flex flex-col gap-4" role="list">
         {items.map((item) => (
           <li
             key={item.productId}
-            className="flex gap-4 rounded-lg border border-glass-border bg-glass-bg p-4"
+            className="flex flex-col gap-3 rounded-lg border border-glass-border bg-glass-bg p-4 sm:flex-row sm:gap-4"
           >
             <Link
               href={`/shop/${item.slug}`}
@@ -56,13 +56,13 @@ export default function CartView() {
               <ProductImage src={item.image} alt={item.name} sizes="112px" />
             </Link>
 
-            <div className="flex flex-1 flex-col">
-              <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 flex-1 flex-col">
+              <div className="flex items-start justify-between gap-2 sm:gap-3">
                 <Link
                   href={`/shop/${item.slug}`}
-                  className="font-body text-lg leading-snug text-white transition-colors hover:text-gold"
+                  className="min-w-0 font-body text-base leading-snug text-white transition-colors hover:text-gold sm:text-lg"
                 >
-                  {item.name}
+                  <span className="line-clamp-2">{item.name}</span>
                 </Link>
                 <button
                   type="button"

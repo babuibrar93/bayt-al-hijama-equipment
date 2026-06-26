@@ -57,7 +57,7 @@ export default function WhySection() {
                       : "lg:col-start-3 lg:row-start-1",
                   )}
                 >
-                  <h3 className="mb-1.5 font-body text-[1.15rem] font-semibold text-white">
+                  <h3 className="mb-1.5 font-body text-[clamp(1rem,3vw,1.15rem)] font-semibold text-white">
                     {item.title}
                   </h3>
                   <p className="text-[0.875rem] leading-[1.65] text-white/60">

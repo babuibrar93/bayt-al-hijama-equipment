@@ -12,7 +12,7 @@ export default function HeroSection() {
     <section
       id="hero"
       aria-label="Hero"
-      className="relative grid min-h-[90svh] grid-cols-1 items-center gap-8 overflow-hidden bg-black px-[60px] pb-14 pt-[96px] before:pointer-events-none before:absolute before:inset-0 before:bg-grad-hero max-md:px-8 max-md:pb-12 max-md:pt-[92px] max-md:text-center lg:min-h-svh lg:grid-cols-2 lg:gap-10 lg:pb-20"
+      className="relative grid min-h-[90svh] grid-cols-1 items-center gap-8 overflow-hidden bg-black px-4 pb-14 pt-[92px] before:pointer-events-none before:absolute before:inset-0 before:bg-grad-hero max-md:text-center sm:px-6 md:px-8 lg:min-h-svh lg:grid-cols-2 lg:gap-10 lg:px-10 lg:pb-20 lg:pt-[96px] xl:px-[60px]"
     >
       <Particles id="heroParticles" options={{ count: 40, goldRatio: 0.4 }} />
 
@@ -25,7 +25,7 @@ export default function HeroSection() {
         <div
           data-reveal
           className={cn(
-            "mb-5 inline-flex items-center gap-3 text-[0.75rem] font-medium uppercase tracking-[0.15em] text-gold max-md:justify-center is-visible",
+            "mb-5 flex max-w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.65rem] font-medium uppercase tracking-[0.12em] text-gold sm:text-[0.75rem] sm:tracking-[0.15em] lg:justify-start is-visible",
             getRevealClass("up"),
           )}
         >
@@ -80,7 +80,7 @@ export default function HeroSection() {
           <a
             href={WHATSAPP.hero}
             data-magnetic
-            className={btnPrimary}
+            className={cn(btnPrimary, "max-md:w-full max-md:justify-center")}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -89,7 +89,7 @@ export default function HeroSection() {
             </span>
             Order on WhatsApp
           </a>
-          <a href="#products" data-magnetic className={btnGhost}>
+          <a href="#products" data-magnetic className={cn(btnGhost, "max-md:w-full max-md:justify-center")}>
             Explore Products
             <svg
               viewBox="0 0 24 24"
@@ -108,7 +108,7 @@ export default function HeroSection() {
         <div
           data-reveal
           className={cn(
-            "flex items-center border-t border-glass-border py-4 max-md:justify-center is-visible",
+            "flex flex-wrap items-center justify-center gap-x-4 gap-y-3 border-t border-glass-border py-4 max-md:gap-x-2 lg:justify-start is-visible",
             getRevealClass("up", 4),
           )}
         >
@@ -116,7 +116,7 @@ export default function HeroSection() {
             <Fragment key={stat.label}>
               {index > 0 ? (
                 <div
-                  className="h-12 w-px shrink-0 bg-glass-border"
+                  className="hidden h-12 w-px shrink-0 bg-glass-border sm:block"
                   aria-hidden="true"
                 />
               ) : null}

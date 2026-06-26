@@ -61,7 +61,7 @@ export default function OrderControls({
         onChange={(value) => update({ status: value }, "Order status updated")}
         searchable={false}
         disabled={loading}
-        containerClassName="w-40"
+        containerClassName="w-full min-w-[8.5rem] sm:w-40"
       />
 
       {paymentStatus === "paid" ? (

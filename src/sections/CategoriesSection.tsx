@@ -8,7 +8,7 @@ import {
   featureCardIcon,
   featureCardIndex,
   getRevealClass,
-  section,
+  sectionBandSecond,
 } from "@/lib/classes";
 
 const ICON_BY_SLUG: Record<string, string> = {
@@ -30,11 +30,16 @@ export default async function CategoriesSection() {
   return (
     <section
       data-section
-      className={section}
+      className={sectionBandSecond}
       id="categories"
       aria-label="Product categories"
     >
       <div className={container}>
+        <div
+          className="mb-6 h-px w-full bg-gradient-to-r from-transparent via-glass-border to-transparent md:mb-8"
+          aria-hidden="true"
+        />
+
         <SectionHeader
           eyebrow="What We Offer"
           title={
@@ -45,7 +50,7 @@ export default async function CategoriesSection() {
           subtitle="Cups, kits, accessories, and consumables — all in one place."
         />
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <div className="mt-5 grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 xl:grid-cols-4">
           {categories.map((category, index) => (
             <Link
               key={category.id}
@@ -53,7 +58,7 @@ export default async function CategoriesSection() {
               data-reveal
               data-tilt
               aria-label={`Shop ${category.name}`}
-              className={`${featureCard} flex h-full flex-col p-4 sm:p-5 ${getRevealClass("up", ((index % 4) + 1) as 1 | 2 | 3 | 4)}`}
+              className={`${featureCard} flex h-full min-h-0 flex-col p-4 sm:p-5 ${getRevealClass("up", ((index % 4) + 1) as 1 | 2 | 3 | 4)}`}
             >
               <div className="pointer-events-none absolute inset-0 bg-trust-card-shine opacity-0 transition-opacity duration-[350ms] group-hover:opacity-100" />
               <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-0.5 origin-left scale-x-0 bg-grad-gold transition-transform duration-[400ms] ease-out group-hover:scale-x-100" />
@@ -67,12 +72,12 @@ export default async function CategoriesSection() {
                 </span>
               </div>
 
-              <h3 className="relative mb-1.5 font-body text-[0.95rem] font-semibold leading-snug text-white sm:text-[1.1rem]">
+              <h3 className="relative mb-1.5 font-body text-base font-semibold leading-snug text-white sm:text-[1.1rem]">
                 {category.name}
               </h3>
 
               {category.description && (
-                <p className="relative mb-3 line-clamp-2 flex-1 text-[0.78rem] leading-[1.55] text-white/60 sm:text-[0.82rem]">
+                <p className="relative mb-3 line-clamp-3 flex-1 text-[0.8125rem] leading-[1.55] text-white/60 sm:line-clamp-2 sm:text-[0.82rem]">
                   {category.description}
                 </p>
               )}

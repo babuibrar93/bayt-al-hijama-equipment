@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Search, LayoutGrid, List, X } from "lucide-react";
+import { Search, LayoutGrid, List, X, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/classes";
 import type { Category } from "@/types/db";
 import type { ProductSort } from "@/lib/products";
@@ -55,12 +55,23 @@ export default function ShopFilters({
     updateParams({ search: search.trim() || undefined });
   };
 
+  const fieldClass =
+    "h-10 rounded-lg border border-glass-border bg-black/20 text-sm text-white transition-colors focus:border-gold/45 focus:outline-none sm:h-11";
+
   return (
-    <div className="mb-8 flex flex-col gap-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <form onSubmit={onSearchSubmit} className="relative w-full sm:max-w-sm">
+    <div
+      className={cn(
+        "relative mb-5 overflow-hidden rounded-xl border border-glass-border bg-glass-bg sm:mb-6",
+        "before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-[1] before:w-[3px] before:bg-gradient-to-b before:from-gold before:via-green-mid/70 before:to-transparent",
+      )}
+    >
+      <div className="flex flex-col gap-3 border-b border-glass-border/50 px-4 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-5 sm:py-3.5">
+        <form
+          onSubmit={onSearchSubmit}
+          className="relative min-w-0 flex-1"
+        >
           <Search
-            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40"
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40"
             aria-hidden="true"
           />
           <input
@@ -69,9 +80,9 @@ export default function ShopFilters({
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search products..."
             aria-label="Search products"
-            className="h-11 w-full rounded-md border border-glass-border bg-glass-bg pl-10 pr-9 text-sm text-white placeholder:text-white/40 focus:border-gold/50 focus:outline-none"
+            className={cn(fieldClass, "w-full pl-9 pr-9 placeholder:text-white/35")}
           />
-          {search && (
+          {search ? (
             <button
               type="button"
               onClick={() => {
@@ -79,28 +90,41 @@ export default function ShopFilters({
                 updateParams({ search: undefined });
               }}
               aria-label="Clear search"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+              className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-white/5 hover:text-white"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </button>
-          )}
+          ) : null}
         </form>
 
-        <div className="flex items-center gap-2.5">
-          <select
-            value={activeSort}
-            onChange={(e) => updateParams({ sort: e.target.value })}
-            aria-label="Sort products"
-            className="h-11 rounded-md border border-glass-border bg-glass-bg px-3 text-sm text-white focus:border-gold/50 focus:outline-none [&>option]:bg-green-deep"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+        <div className="flex items-center gap-2 sm:shrink-0">
+          <div className="relative min-w-0 flex-1 sm:flex-none">
+            <SlidersHorizontal
+              className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/35 sm:hidden"
+              aria-hidden="true"
+            />
+            <select
+              value={activeSort}
+              onChange={(e) => updateParams({ sort: e.target.value })}
+              aria-label="Sort products"
+              className={cn(
+                fieldClass,
+                "w-full appearance-none pl-3 pr-8 sm:min-w-[11.5rem] sm:pl-3",
+              )}
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <div className="hidden items-center rounded-md border border-glass-border p-0.5 sm:flex">
+          <div
+            className="hidden items-center rounded-lg border border-glass-border bg-black/20 p-0.5 sm:flex"
+            role="group"
+            aria-label="Product view"
+          >
             <ViewButton
               active={activeView === "grid"}
               onClick={() => updateParams({ view: undefined }, false)}
@@ -119,20 +143,28 @@ export default function ShopFilters({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <FilterPill
-          label="All"
-          active={!activeCategory}
-          onClick={() => updateParams({ category: undefined })}
-        />
-        {categories.map((category) => (
+      <div className="px-4 py-3 sm:px-5 sm:py-3.5">
+        <div className="mb-2.5 flex items-center gap-2">
+          <span className="h-px w-4 shrink-0 bg-gold/80" aria-hidden="true" />
+          <span className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-gold sm:text-[0.68rem]">
+            Categories
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <FilterPill
-            key={category.id}
-            label={category.name}
-            active={activeCategory === category.slug}
-            onClick={() => router.push(`/shop/category/${category.slug}`)}
+            label="All"
+            active={!activeCategory}
+            onClick={() => updateParams({ category: undefined })}
           />
-        ))}
+          {categories.map((category) => (
+            <FilterPill
+              key={category.id}
+              label={category.name}
+              active={activeCategory === category.slug}
+              onClick={() => router.push(`/shop/category/${category.slug}`)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -156,8 +188,10 @@ function ViewButton({
       aria-label={label}
       aria-pressed={active}
       className={cn(
-        "inline-flex h-9 w-9 items-center justify-center rounded-sm transition-colors",
-        active ? "bg-gold/15 text-gold" : "text-white/50 hover:text-white",
+        "inline-flex h-9 w-9 items-center justify-center rounded-md transition-all duration-200",
+        active
+          ? "bg-gold/15 text-gold shadow-[inset_0_0_0_1px_rgba(201,168,76,0.25)]"
+          : "text-white/45 hover:text-white/80",
       )}
     >
       {children}
@@ -180,10 +214,10 @@ function FilterPill({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "rounded-full border px-3.5 py-1.5 text-[0.8rem] font-medium transition-all duration-200",
+        "rounded-lg border px-3 py-1.5 text-[0.78rem] font-medium transition-all duration-200 sm:px-3.5 sm:text-[0.8125rem]",
         active
-          ? "border-gold bg-gold/15 text-gold"
-          : "border-glass-border text-white/60 hover:border-white/30 hover:text-white",
+          ? "border-gold/40 bg-gold/12 text-gold shadow-[inset_0_0_0_1px_rgba(201,168,76,0.15)]"
+          : "border-glass-border bg-black/15 text-white/55 hover:border-white/20 hover:bg-white/[0.03] hover:text-white/85",
       )}
     >
       {label}
