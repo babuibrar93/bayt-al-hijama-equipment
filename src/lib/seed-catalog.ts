@@ -30,7 +30,7 @@ export interface SeedProduct {
   stock: number;
   features: string[];
   badge?: string;
-  badge_variant: "default" | "new" | "gold";
+  badge_variant?: "default" | "new" | "gold";
   categorySlug: string;
   is_featured: boolean;
   /** Remote URLs downloaded into `public/products/{slug}-{n}.jpg` by the seeder */
