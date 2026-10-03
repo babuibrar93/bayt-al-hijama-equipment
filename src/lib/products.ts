@@ -33,8 +33,32 @@ export interface PaginatedProducts {
   totalPages: number;
 }
 
-const PRODUCT_SELECT =
-  "*, category:categories(id, name, slug)";
+/** Public select — never includes cost_price. */
+const PRODUCT_SELECT = [
+  "id",
+  "name",
+  "slug",
+  "description",
+  "price",
+  "stock",
+  "images",
+  "features",
+  "badge",
+  "badge_variant",
+  "category_id",
+  "is_active",
+  "is_featured",
+  "created_at",
+  "updated_at",
+  "category:categories(id, name, slug)",
+].join(", ");
+
+function asShopProduct(row: Record<string, unknown>): ProductWithCategory {
+  return {
+    ...(row as unknown as Omit<ProductWithCategory, "cost_price">),
+    cost_price: null,
+  };
+}
 
 async function resolveCategoryId(slug: string): Promise<string | null> {
   const supabase = createStaticClient();
@@ -109,7 +133,7 @@ export async function getProducts(
 
   const { data, error } = await builder;
   if (error || !data) return [];
-  return data as unknown as ProductWithCategory[];
+  return (data as unknown as Record<string, unknown>[]).map(asShopProduct);
 }
 
 const SORT_MAP: Record<ProductSort, [string, boolean]> = {
@@ -188,7 +212,7 @@ export async function getProductsPage(
 
   const total = count ?? 0;
   return {
-    products: data as unknown as ProductWithCategory[],
+    products: (data as unknown as Record<string, unknown>[]).map(asShopProduct),
     total,
     page: safePage,
     perPage,
@@ -212,7 +236,7 @@ export async function getProductBySlug(
     .maybeSingle();
 
   if (error || !data) return null;
-  return data as unknown as ProductWithCategory;
+  return asShopProduct(data as unknown as Record<string, unknown>);
 }
 
 export async function getRelatedProducts(

@@ -31,6 +31,9 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
   const [slugTouched, setSlugTouched] = useState(isEdit);
   const [description, setDescription] = useState(product?.description ?? "");
   const [price, setPrice] = useState(product ? String(product.price) : "");
+  const [costPrice, setCostPrice] = useState(
+    product?.cost_price != null ? String(product.cost_price) : "",
+  );
   const [stock, setStock] = useState(product ? String(product.stock) : "0");
   const [categoryId, setCategoryId] = useState(product?.category_id ?? "");
   const [badge, setBadge] = useState(product?.badge ?? "");
@@ -92,6 +95,7 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
       slug,
       description,
       price: Number(price),
+      cost_price: costPrice === "" ? null : Number(costPrice),
       stock: Number(stock),
       images,
       features: features.map((f) => f.trim()).filter(Boolean),
@@ -123,20 +127,20 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
   };
 
   return (
-    <form onSubmit={onSubmit} className="max-w-3xl">
+    <form onSubmit={onSubmit} className="w-full max-w-3xl">
       <Link
         href="/admin/products"
-        className="mb-5 inline-flex items-center gap-2 text-sm text-white/50 transition-colors hover:text-white"
+        className="mb-4 inline-flex items-center gap-2 text-sm text-white/50 transition-colors hover:text-white sm:mb-5"
       >
         <ArrowLeft className="h-4 w-4" /> Back to products
       </Link>
 
-      <h1 className="mb-6 font-body text-2xl font-normal text-white sm:text-3xl">
+      <h1 className="mb-4 font-body text-xl font-normal text-white sm:mb-6 sm:text-2xl lg:text-3xl">
         {isEdit ? "Edit Product" : "Add Product"}
       </h1>
 
-      <div className="flex flex-col gap-5">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="flex flex-col gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
           <Input
             label="Name"
             required
@@ -162,15 +166,24 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
           onChange={(e) => setDescription(e.target.value)}
         />
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Input
-            label="Price (PKR)"
+            label="Sell price (PKR)"
             required
             type="number"
             min="0"
             step="1"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
+          />
+          <Input
+            label="Cost price (PKR)"
+            type="number"
+            min="0"
+            step="0.01"
+            value={costPrice}
+            onChange={(e) => setCostPrice(e.target.value)}
+            placeholder="Purchase cost"
           />
           <Input
             label="Stock"

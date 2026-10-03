@@ -11,6 +11,8 @@ export type OrderStatus =
   | "delivered"
   | "cancelled";
 
+export type PurchaseStatus = "draft" | "confirmed" | "cancelled";
+
 export interface Category {
   id: string;
   name: string;
@@ -26,6 +28,8 @@ export interface Product {
   slug: string;
   description: string;
   price: number;
+  /** Admin-only; never expose on storefront. */
+  cost_price: number | null;
   stock: number;
   images: string[];
   features: string[];
@@ -38,9 +42,16 @@ export interface Product {
   updated_at: string;
 }
 
+/** Public shop product — no cost_price. */
+export type PublicProduct = Omit<Product, "cost_price">;
+
 export interface ProductWithCategory extends Product {
   category: Pick<Category, "id" | "name" | "slug"> | null;
 }
+
+export type PublicProductWithCategory = PublicProduct & {
+  category: Pick<Category, "id" | "name" | "slug"> | null;
+};
 
 export interface Profile {
   id: string;
@@ -94,10 +105,44 @@ export interface OrderItem {
   product_id: string | null;
   product_name: string;
   unit_price: number;
+  unit_cost: number | null;
   quantity: number;
 }
 
 export interface OrderWithItems extends Order {
   items: OrderItem[];
   customer?: CustomerProfile | null;
+}
+
+export interface Purchase {
+  id: string;
+  purchase_number: string;
+  supplier_name: string;
+  supplier_phone: string | null;
+  status: PurchaseStatus;
+  subtotal: number;
+  notes: string | null;
+  purchased_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PurchaseItem {
+  id: string;
+  purchase_id: string;
+  product_id: string | null;
+  product_name: string;
+  unit_cost: number;
+  quantity: number;
+}
+
+export interface PurchaseWithItems extends Purchase {
+  items: PurchaseItem[];
+}
+
+export interface OrderProfit {
+  goodsRevenue: number;
+  cogs: number;
+  profit: number;
+  missingCostLines: number;
 }

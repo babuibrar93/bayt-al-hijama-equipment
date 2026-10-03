@@ -24,9 +24,24 @@ function iconForSlug(slug: string): string {
   return ICON_BY_SLUG[slug] ?? "vacuum-kit";
 }
 
+const HOME_PRODUCT_COUNT = 6;
+
 export default async function ProductsSection() {
-  const featured = await getProducts({ featuredOnly: true, limit: 3 });
-  const products = featured.length > 0 ? featured : await getProducts({ limit: 3 });
+  const featured = await getProducts({
+    featuredOnly: true,
+    limit: HOME_PRODUCT_COUNT,
+  });
+  let products = featured;
+  if (products.length < HOME_PRODUCT_COUNT) {
+    const extras = await getProducts({ limit: HOME_PRODUCT_COUNT });
+    const seen = new Set(products.map((p) => p.id));
+    for (const product of extras) {
+      if (seen.has(product.id)) continue;
+      products = [...products, product];
+      seen.add(product.id);
+      if (products.length >= HOME_PRODUCT_COUNT) break;
+    }
+  }
 
   return (
     <section
@@ -46,7 +61,7 @@ export default async function ProductsSection() {
           subtitle="Professional-grade tools, authentically sourced, delivered with care."
         />
 
-        <div className="mt-5 grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 xl:grid-cols-3 xl:[&>article:last-child:nth-child(odd)]:col-span-1">
+        <div className="mt-5 grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 xl:grid-cols-3">
           {products.map((product, index) => {
             const image = product.images[0];
             const whatsappUrl = `https://wa.me/${SITE.whatsappNumber}?text=${encodeURIComponent(
@@ -58,7 +73,7 @@ export default async function ProductsSection() {
                 data-reveal
                 data-tilt
                 aria-label={product.name}
-                className={`group relative overflow-hidden rounded-xl border border-glass-border bg-glass-bg transition-all duration-[400ms] ease-spring hover:-translate-y-2.5 hover:border-gold/25 min-[520px]:max-xl:[&:last-child:nth-child(odd)]:col-span-2 min-[520px]:max-xl:[&:last-child:nth-child(odd)]:mx-auto min-[520px]:max-xl:[&:last-child:nth-child(odd)]:max-w-[min(100%,28rem)] ${getRevealClass("up", (index + 1) as 1 | 2 | 3 | 4)}`}
+                className={`group relative overflow-hidden rounded-xl border border-glass-border bg-glass-bg transition-all duration-[400ms] ease-spring hover:-translate-y-2.5 hover:border-gold/25 ${getRevealClass("up", (Math.min(index + 1, 4)) as 1 | 2 | 3 | 4)}`}
               >
                 <div className="pointer-events-none absolute -inset-px z-0 animate-border-spin rounded-[inherit] bg-product-glow opacity-0 [animation-play-state:paused] group-hover:opacity-100 group-hover:[animation-play-state:running]" />
                 <div className="relative z-[1] flex h-full flex-col">

@@ -1,19 +1,7 @@
 /**
  * Single source of truth for shop seed data.
  * Used by `npm run seed` and static fallback when Supabase is not configured.
- *
- * Product photos: Pexels / Unsplash (free for commercial use). Downloaded locally
- * by `npm run seed` — not hotlinked in production.
  */
-
-/** Pexels CDN — stable direct download URLs for the seeder */
-export function pexelsPhoto(id: number): string {
-  return `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=960`;
-}
-
-export function unsplashPhoto(id: string): string {
-  return `https://images.unsplash.com/photo-${id}?w=960&q=80&auto=format&fit=crop`;
-}
 
 export interface SeedCategory {
   name: string;
@@ -27,13 +15,14 @@ export interface SeedProduct {
   slug: string;
   description: string;
   price: number;
+  cost_price: number | null;
   stock: number;
   features: string[];
   badge?: string;
   badge_variant?: "default" | "new" | "gold";
   categorySlug: string;
   is_featured: boolean;
-  /** Remote URLs downloaded into `public/products/{slug}-{n}.jpg` by the seeder */
+  /** Remote URLs; empty = no images (admin uploads later) */
   imageSources: string[];
 }
 
@@ -42,303 +31,543 @@ export const SEED_CATEGORIES: SeedCategory[] = [
     name: "Hijama Cups",
     slug: "hijama-cups",
     description:
-      "Glass, silicone, and polycarbonate cups in all sizes for wet, dry, and massage cupping.",
+      "Individual cup sizes and silicone massage cup sets for wet, dry, and massage cupping.",
     sort_order: 1,
   },
   {
-    name: "Complete Kits",
-    slug: "complete-kits",
+    name: "Pumps & Machines",
+    slug: "pumps-machines",
     description:
-      "All-in-one kits for therapists, clinics, and students — ready to practise.",
+      "Manual, disposable, rechargeable, and electric vacuum pumps for clinic and home use.",
     sort_order: 2,
-  },
-  {
-    name: "Accessories",
-    slug: "accessories",
-    description:
-      "Vacuum pumps, extension tubes, valves, gauges, and professional carry cases.",
-    sort_order: 3,
   },
   {
     name: "Consumables",
     slug: "consumables",
     description:
-      "Sterile lancets, disposable blades, gloves, and antiseptics in clinic-friendly packs.",
+      "Gloves, gowns, masks, bed sheets, blades, lancets, tape, and clinic disposables.",
+    sort_order: 3,
+  },
+  {
+    name: "Therapy Tools",
+    slug: "therapy-tools",
+    description:
+      "Hijama pens, massage rollers, foot massagers, and blade holders for practitioners.",
     sort_order: 4,
   },
 ];
 
-export const SEED_PRODUCTS: SeedProduct[] = [
-  {
-    name: "Vacuum Pump Hijama Kit",
-    slug: "vacuum-pump-hijama-kit",
-    description:
-      "Complete professional set with 12 polycarbonate cups, precision pistol pump, and hard-shell carry case. The therapist's first choice for controlled suction.",
-    price: 8500,
-    stock: 25,
+const STOCK = 20;
+
+function mfCup(n: string, cost: number): SeedProduct {
+  return {
+    name: `MF ${n}`,
+    slug: `mf-${n}`,
+    description: `Hijama cup size MF ${n}. Clinic-ready polycarbonate cup for controlled suction during wet and dry cupping sessions.`,
+    price: 27,
+    cost_price: cost,
+    stock: STOCK,
     features: [
-      "12 graduated cup sizes (No. 1–7)",
-      "Precision vacuum pistol with release valve",
-      "Extension tubing included",
-      "Hard-shell carry case",
+      `Size MF ${n}`,
+      "Compatible with standard Hijama pumps",
+      "Smooth rim for patient comfort",
+      "Easy to clean and reuse",
     ],
-    badge: "Best Seller",
-    badge_variant: "default",
-    categorySlug: "complete-kits",
-    is_featured: true,
-    imageSources: [pexelsPhoto(8313420), pexelsPhoto(8313234)],
+    categorySlug: "hijama-cups",
+    is_featured: n === "01" || n === "02",
+    imageSources: [],
+  };
+}
+
+export const SEED_PRODUCTS: SeedProduct[] = [
+  mfCup("01", 22.5),
+  mfCup("02", 21),
+  mfCup("03", 19),
+  mfCup("04", 18),
+  mfCup("05", 17),
+  mfCup("06", 17),
+  {
+    name: "Disposable Bed Sheet (10pcs Pack)",
+    slug: "disposable-bed-sheet-10pcs",
+    description:
+      "Pack of 10 disposable bed sheets for hygienic clinic and home Hijama sessions. Single-use coverage for treatment beds.",
+    price: 800,
+    cost_price: 680,
+    stock: STOCK,
+    features: [
+      "10 sheets per pack",
+      "Disposable single-use",
+      "Clinic hygiene standard",
+      "Fits standard treatment beds",
+    ],
+    categorySlug: "consumables",
+    is_featured: false,
+    imageSources: [],
   },
   {
-    name: "Premium Silicone Cup Set",
-    slug: "premium-silicone-cup-set",
+    name: "Electronic Hijama Pump (Rechargeable)",
+    slug: "electronic-hijama-pump-rechargeable",
     description:
-      "Flexible medical-grade silicone cups in six sizes. Ideal for dry cupping, massage cupping, and moving cupping techniques.",
-    price: 3200,
-    stock: 40,
+      "Rechargeable electronic Hijama vacuum pump for consistent suction without manual pumping. Ideal for busy clinics and home visits.",
+    price: 3500,
+    cost_price: 2900,
+    stock: STOCK,
     features: [
-      "Medical-grade silicone",
-      "6 sizes in one set",
-      "Easy squeeze mechanism",
-      "Autoclave-safe",
+      "Rechargeable battery",
+      "Consistent electronic suction",
+      "Portable for home visits",
+      "Compatible with standard cups",
     ],
     badge: "Popular",
     badge_variant: "new",
-    categorySlug: "hijama-cups",
+    categorySlug: "pumps-machines",
     is_featured: true,
-    imageSources: [pexelsPhoto(8312816)],
+    imageSources: [],
   },
   {
-    name: "Complete Clinic Starter Kit",
-    slug: "complete-clinic-starter-kit",
+    name: "Electric Hijama Vacuum Machine for Head",
+    slug: "electric-hijama-vacuum-machine-head",
     description:
-      "Everything a new clinic needs: cups, pump, lancets, blades, gloves, antiseptic, and a practitioner guide. Start practising from day one.",
-    price: 15500,
-    stock: 15,
+      "Electric Hijama vacuum machine designed for head and specialised cupping work. High-capacity clinic unit for professional practice.",
+    price: 16000,
+    cost_price: null,
+    stock: STOCK,
     features: [
-      "Full cup & pump set",
-      "Starter consumables pack",
-      "Printed practitioner guide",
-      "Clinic-grade storage bag",
-    ],
-    badge: "Clinic Kit",
-    badge_variant: "gold",
-    categorySlug: "complete-kits",
-    is_featured: true,
-    imageSources: [pexelsPhoto(8313420), pexelsPhoto(8313254)],
-  },
-  {
-    name: "Polycarbonate Cup Set (No. 1–7)",
-    slug: "polycarbonate-cup-set-7",
-    description:
-      "Crystal-clear clinic-grade polycarbonate cups numbered 1 through 7. Durable, easy to sterilise, and trusted in daily wet cupping practice.",
-    price: 4500,
-    stock: 35,
-    features: [
-      "7 numbered cup sizes",
-      "Clinic-grade polycarbonate",
-      "Smooth rim for patient comfort",
-      "Compatible with standard pumps",
-    ],
-    categorySlug: "hijama-cups",
-    is_featured: false,
-    imageSources: [pexelsPhoto(8313420)],
-  },
-  {
-    name: "Glass Hijama Cup Set (6 pcs)",
-    slug: "glass-hijama-cup-set-6",
-    description:
-      "Traditional fire-cupping glass set with six classic bell cups. Preferred by practitioners trained in classical Hijama techniques.",
-    price: 5800,
-    stock: 22,
-    features: [
-      "6 heat-resistant glass cups",
-      "Classic bell profile",
-      "Hand-finished rims",
-      "Wooden storage box",
-    ],
-    badge: "Classic",
-    badge_variant: "gold",
-    categorySlug: "hijama-cups",
-    is_featured: false,
-    imageSources: [pexelsPhoto(8312816)],
-  },
-  {
-    name: "Facial Mini Cup Set",
-    slug: "facial-mini-cup-set",
-    description:
-      "Small-diameter cups designed for facial, neck, and joint work. Lightweight set for precision dry and massage cupping.",
-    price: 2100,
-    stock: 30,
-    features: [
-      "4 mini cup sizes",
-      "Facial & joint work",
-      "Soft silicone squeeze cups",
-      "Travel pouch included",
-    ],
-    categorySlug: "hijama-cups",
-    is_featured: false,
-    imageSources: [unsplashPhoto("1579684385127-1ef15d508118")],
-  },
-  {
-    name: "Student Training Kit",
-    slug: "student-training-kit",
-    description:
-      "Affordable entry kit for Hijama courses and trainees. Includes essential cups, a manual pump, and a step-by-step practice guide.",
-    price: 6500,
-    stock: 20,
-    features: [
-      "8 essential cup sizes",
-      "Manual pistol pump",
-      "Trainee practice guide",
-      "Compact carry bag",
-    ],
-    badge: "New",
-    badge_variant: "new",
-    categorySlug: "complete-kits",
-    is_featured: false,
-    imageSources: [pexelsPhoto(8313234)],
-  },
-  {
-    name: "Professional Vacuum Pistol Pump",
-    slug: "professional-vacuum-pistol-pump",
-    description:
-      "Ergonomic pistol-grip pump with smooth trigger action and quick-release valve. Fits standard Hijama tubing and cup connectors.",
-    price: 2800,
-    stock: 45,
-    features: [
-      "Pistol-grip ergonomics",
-      "Quick-release valve",
-      "Standard tube connector",
-      "Replaceable seals",
-    ],
-    categorySlug: "accessories",
-    is_featured: false,
-    imageSources: [pexelsPhoto(8312816)],
-  },
-  {
-    name: "Electric Vacuum Pump Pro",
-    slug: "electric-vacuum-pump-pro",
-    description:
-      "Adjustable electric vacuum unit for busy clinics. Consistent suction levels, quiet motor, and hands-free operation during sessions.",
-    price: 12000,
-    stock: 12,
-    features: [
-      "Adjustable suction levels",
-      "Quiet clinic-grade motor",
-      "Digital pressure readout",
-      "Auto shut-off protection",
+      "Electric vacuum machine",
+      "Suitable for head cupping",
+      "Clinic-grade performance",
+      "Stable continuous suction",
     ],
     badge: "Pro",
     badge_variant: "gold",
-    categorySlug: "accessories",
+    categorySlug: "pumps-machines",
     is_featured: true,
-    imageSources: [pexelsPhoto(5473182)],
+    imageSources: [],
   },
   {
-    name: "Extension Tube & Valve Set",
-    slug: "extension-tube-valve-set",
+    name: "Disposable Small Pump",
+    slug: "disposable-small-pump",
     description:
-      "Replacement tubing, inline valves, and connectors for vacuum pumps. Keep spare parts on hand for uninterrupted clinic days.",
-    price: 950,
-    stock: 60,
+      "Compact disposable small vacuum pump for head and precision cupping. Hygienic single-use option for clinical sessions.",
+    price: 200,
+    cost_price: 160,
+    stock: STOCK,
     features: [
-      "Medical-grade tubing",
-      "Inline release valves",
-      "Universal connectors",
-      "Spare parts pack",
+      "Compact disposable design",
+      "Ideal for head/small cups",
+      "Single-use hygiene",
+      "Lightweight and portable",
     ],
-    categorySlug: "accessories",
+    categorySlug: "pumps-machines",
     is_featured: false,
-    imageSources: [pexelsPhoto(6628933)],
+    imageSources: [],
   },
   {
-    name: "Hijama Practitioner Carry Case",
-    slug: "hijama-practitioner-case",
+    name: "Regular White Pump",
+    slug: "regular-white-pump",
     description:
-      "Padded hard case with custom dividers for cups, pumps, and consumables. Professional look for home visits and clinic storage.",
-    price: 3400,
-    stock: 18,
+      "Standard white manual Hijama vacuum pump for everyday wet and dry cupping. Reliable trigger action for controlled suction.",
+    price: 400,
+    cost_price: 300,
+    stock: STOCK,
     features: [
-      "Shock-absorbing padding",
-      "Adjustable dividers",
-      "Lockable latches",
-      "Shoulder strap included",
+      "Manual pistol-style pump",
+      "White clinic finish",
+      "Quick-release valve",
+      "Fits standard tubing",
     ],
-    categorySlug: "accessories",
+    categorySlug: "pumps-machines",
     is_featured: false,
-    imageSources: [pexelsPhoto(8313221)],
+    imageSources: [],
   },
   {
-    name: "Sterile Lancets (Box of 100)",
-    slug: "sterile-lancets-100",
+    name: "Hijama Vacuum Pump (600)",
+    slug: "hijama-vacuum-pump-600",
     description:
-      "Single-use sterile lancets for controlled incisions during wet cupping. Individually packed for hygienic clinic practice.",
+      "Manual Hijama vacuum pump — standard grade. Smooth suction control for routine clinic and home cupping sessions.",
+    price: 600,
+    cost_price: 500,
+    stock: STOCK,
+    features: [
+      "Manual vacuum pump",
+      "Standard clinic grade",
+      "Release valve included",
+      "Compatible with MF cups",
+    ],
+    categorySlug: "pumps-machines",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Hijama Vacuum Pump (700)",
+    slug: "hijama-vacuum-pump-700",
+    description:
+      "Manual Hijama vacuum pump — higher grade build. Preferred when you need firmer, more durable daily clinic use.",
+    price: 700,
+    cost_price: 570,
+    stock: STOCK,
+    features: [
+      "Manual vacuum pump",
+      "Higher-grade build",
+      "Durable for daily use",
+      "Compatible with MF cups",
+    ],
+    categorySlug: "pumps-machines",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Polythene Gloves",
+    slug: "polythene-gloves",
+    description:
+      "Disposable polythene gloves for basic hygiene during preparation and cleanup. Affordable pack for high-volume clinic use.",
+    price: 80,
+    cost_price: 45,
+    stock: STOCK,
+    features: [
+      "Disposable polythene",
+      "Basic hygiene protection",
+      "Lightweight fit",
+      "Clinic bulk friendly",
+    ],
+    categorySlug: "consumables",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Disposable Surgical Gloves (Safety)",
+    slug: "disposable-surgical-gloves-safety",
+    description:
+      "Disposable surgical gloves — Safety brand. Powder-ready examination gloves for wet Hijama and clinical procedures.",
+    price: 1500,
+    cost_price: 1080,
+    stock: STOCK,
+    features: [
+      "Safety brand",
+      "Surgical / examination grade",
+      "Disposable single-use",
+      "Clinic pack sizing",
+    ],
+    categorySlug: "consumables",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Disposable Surgical Gloves (Life Care)",
+    slug: "disposable-surgical-gloves-life-care",
+    description:
+      "Disposable surgical gloves — Life Care brand. Reliable tactile grip for practitioners during wet cupping sessions.",
+    price: 1400,
+    cost_price: 1000,
+    stock: STOCK,
+    features: [
+      "Life Care brand",
+      "Surgical / examination grade",
+      "Disposable single-use",
+      "Good tactile feel",
+    ],
+    categorySlug: "consumables",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Surgical Blade (China)",
+    slug: "surgical-blade-china",
+    description:
+      "Surgical blades (China) for controlled incisions in wet Hijama. Sterile clinic stock for professional practitioners.",
+    price: 1050,
+    cost_price: 730,
+    stock: STOCK,
+    features: [
+      "China-origin blades",
+      "Sharp consistent edge",
+      "Clinic bulk pack",
+      "Use with standard holders",
+    ],
+    categorySlug: "consumables",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Surgical Blade Holder",
+    slug: "surgical-blade-holder",
+    description:
+      "Standard surgical blade holder for wet Hijama blades. Secure grip and easy blade change between sterile packs.",
+    price: 100,
+    cost_price: 70,
+    stock: STOCK,
+    features: [
+      "Standard blade compatibility",
+      "Secure locking grip",
+      "Reusable metal holder",
+      "Clinic essential",
+    ],
+    categorySlug: "therapy-tools",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Disposable Surgical Gown (10pcs Pack)",
+    slug: "disposable-surgical-gown-10pcs",
+    description:
+      "Pack of 10 disposable surgical gowns for practitioner and patient protection during clinical Hijama sessions.",
+    price: 1100,
+    cost_price: 850,
+    stock: STOCK,
+    features: [
+      "10 gowns per pack",
+      "Disposable protective wear",
+      "Lightweight non-woven",
+      "Clinic hygiene standard",
+    ],
+    categorySlug: "consumables",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Surgeon Cap (100 Pcs Pack)",
+    slug: "surgeon-cap-100pcs",
+    description:
+      "Pack of 100 disposable surgeon caps. Keep hair covered for hygienic clinic and procedure rooms.",
+    price: 350,
+    cost_price: 200,
+    stock: STOCK,
+    features: [
+      "100 caps per pack",
+      "Disposable bouffant style",
+      "Breathable material",
+      "Clinic bulk pack",
+    ],
+    categorySlug: "consumables",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Face Mask",
+    slug: "face-mask",
+    description:
+      "Disposable face masks for practitioner and clinic staff hygiene during Hijama and patient care.",
+    price: 250,
+    cost_price: 170,
+    stock: STOCK,
+    features: [
+      "Disposable face mask",
+      "Comfortable ear loops",
+      "Clinic hygiene use",
+      "Everyday restock item",
+    ],
+    categorySlug: "consumables",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Fix Tape Roll",
+    slug: "fix-tape-roll",
+    description:
+      "Medical fix tape roll for securing dressings and aftercare pads following wet cupping sessions.",
     price: 450,
-    stock: 80,
+    cost_price: 280,
+    stock: STOCK,
     features: [
-      "Individually sterile wrapped",
-      "Consistent sharp point",
-      "Box of 100 units",
-      "Clinic bulk pricing",
+      "Medical fix / micropore style",
+      "Secure dressing hold",
+      "Clinic aftercare essential",
+      "Easy tear application",
     ],
     categorySlug: "consumables",
     is_featured: false,
-    imageSources: [pexelsPhoto(8460156)],
+    imageSources: [],
   },
   {
-    name: "Disposable Scalpel Blades (50 pcs)",
-    slug: "disposable-scalpel-blades-50",
+    name: "Alcohol Pads",
+    slug: "alcohol-pads",
     description:
-      "Sterile disposable blades compatible with standard handles. Essential restock for wet Hijama and clinical cupping sessions.",
-    price: 380,
-    stock: 70,
+      "Alcohol prep pads for skin cleansing before and after Hijama. Individually wrapped for sterile clinic use.",
+    price: 450,
+    cost_price: 250,
+    stock: STOCK,
     features: [
-      "Sterile individually packed",
-      "Standard No. 11 blade",
-      "50 blades per box",
-      "ISO-certified production",
-    ],
-    categorySlug: "consumables",
-    is_featured: false,
-    imageSources: [pexelsPhoto(8460157)],
-  },
-  {
-    name: "Nitrile Gloves (Box of 100)",
-    slug: "nitrile-gloves-box-100",
-    description:
-      "Powder-free nitrile examination gloves. Latex-free, tactile, and suitable for long Hijama clinic sessions.",
-    price: 890,
-    stock: 55,
-    features: [
-      "Powder-free nitrile",
-      "Latex-free",
-      "Ambidextrous fit",
-      "Box of 100 gloves",
-    ],
-    categorySlug: "consumables",
-    is_featured: false,
-    imageSources: [pexelsPhoto(8418699)],
-  },
-  {
-    name: "Antiseptic Solution 500ml",
-    slug: "antiseptic-solution-500ml",
-    description:
-      "Clinic-size antiseptic for skin preparation before and after cupping. Gentle on skin, effective against common bacteria.",
-    price: 650,
-    stock: 40,
-    features: [
-      "500ml clinic bottle",
+      "Individually wrapped pads",
       "Pre & post-session prep",
-      "Skin-friendly formula",
-      "Pump dispenser cap",
+      "Quick evaporating formula",
+      "Clinic bulk pack",
     ],
     categorySlug: "consumables",
     is_featured: false,
-    imageSources: [pexelsPhoto(7659564)],
+    imageSources: [],
+  },
+  {
+    name: "Polythene Apron",
+    slug: "polythene-apron",
+    description:
+      "Disposable polythene apron for splash protection during wet Hijama and clinic cleaning tasks.",
+    price: 20,
+    cost_price: 13,
+    stock: STOCK,
+    features: [
+      "Disposable polythene",
+      "Splash protection",
+      "Lightweight tie-on",
+      "Low-cost clinic consumable",
+    ],
+    categorySlug: "consumables",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Hijama Pen Single Head",
+    slug: "hijama-pen-single-head",
+    description:
+      "Single-head Hijama pen for precise controlled punctures during wet cupping. Practitioner favourite for accuracy.",
+    price: 800,
+    cost_price: 750,
+    stock: STOCK,
+    features: [
+      "Single-head design",
+      "Precise puncture control",
+      "Ergonomic grip",
+      "Clinic / training use",
+    ],
+    categorySlug: "therapy-tools",
+    is_featured: true,
+    imageSources: [],
+  },
+  {
+    name: "Lancet Needle",
+    slug: "lancet-needle",
+    description:
+      "Sterile lancet needles for wet Hijama incisions. Single-use points for hygienic, controlled technique.",
+    price: 250,
+    cost_price: 220,
+    stock: STOCK,
+    features: [
+      "Sterile single-use lancets",
+      "Consistent sharp point",
+      "Wet cupping essential",
+      "Clinic restock pack",
+    ],
+    categorySlug: "consumables",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Wood Massage Roller Type A",
+    slug: "wood-massage-roller-type-a",
+    description:
+      "Wooden massage roller — Type A. Natural wood tool for body massage and post-cupping muscle relief.",
+    price: 1100,
+    cost_price: 850,
+    stock: STOCK,
+    features: [
+      "Type A wooden roller",
+      "Natural wood finish",
+      "Body massage use",
+      "Pairs with cupping therapy",
+    ],
+    categorySlug: "therapy-tools",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Wood Massage Roller Type B",
+    slug: "wood-massage-roller-type-b",
+    description:
+      "Wooden massage roller — Type B. Alternate profile for deeper tissue work alongside Hijama sessions.",
+    price: 1100,
+    cost_price: 900,
+    stock: STOCK,
+    features: [
+      "Type B wooden roller",
+      "Deeper massage profile",
+      "Natural wood finish",
+      "Clinic & home use",
+    ],
+    categorySlug: "therapy-tools",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Silicone Massage Cup Set (4pcs)",
+    slug: "silicone-massage-cup-set-4pcs",
+    description:
+      "Set of 4 silicone massage cups for dry and moving cupping. Soft, flexible cups for facial and body work.",
+    price: 1350,
+    cost_price: 900,
+    stock: STOCK,
+    features: [
+      "4 silicone cups",
+      "Massage / moving cupping",
+      "Soft flexible grip",
+      "Easy to clean",
+    ],
+    badge: "Popular",
+    badge_variant: "default",
+    categorySlug: "hijama-cups",
+    is_featured: true,
+    imageSources: [],
+  },
+  {
+    name: "Wood Foot Massager",
+    slug: "wood-foot-massager",
+    description:
+      "Wooden foot massager for reflexology-style relief. Pair with cupping aftercare; set your sell and cost prices in admin.",
+    price: 0,
+    cost_price: null,
+    stock: STOCK,
+    features: [
+      "Wooden foot massager",
+      "Reflexology-style relief",
+      "Natural wood construction",
+      "Price editable in admin",
+    ],
+    categorySlug: "therapy-tools",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Regular Black Pump",
+    slug: "regular-black-pump",
+    description:
+      "Standard black manual Hijama vacuum pump. Durable everyday pump for wet and dry cupping practice.",
+    price: 500,
+    cost_price: 350,
+    stock: STOCK,
+    features: [
+      "Manual black pump",
+      "Everyday clinic use",
+      "Quick-release valve",
+      "Standard cup connector",
+    ],
+    categorySlug: "pumps-machines",
+    is_featured: false,
+    imageSources: [],
+  },
+  {
+    name: "Rotary Massage Cup Kit (8pcs)",
+    slug: "rotary-massage-cup-kit-8pcs",
+    description:
+      "Rotary massage cup kit with 8 pieces for dynamic massage cupping. Complete set for therapists offering moving cupping.",
+    price: 3200,
+    cost_price: 2600,
+    stock: STOCK,
+    features: [
+      "8-piece rotary kit",
+      "Massage cupping set",
+      "Therapist-ready pack",
+      "Durable cup construction",
+    ],
+    badge: "Kit",
+    badge_variant: "gold",
+    categorySlug: "hijama-cups",
+    is_featured: true,
+    imageSources: [],
   },
 ];
 
 /** Local public paths after images are downloaded (see `npm run seed`). */
 export function productImagePaths(slug: string, count: number): string[] {
-  return Array.from({ length: count }, (_, i) => `/products/${slug}-${i + 1}.jpg`);
+  return Array.from(
+    { length: count },
+    (_, i) => `/products/${slug}-${i + 1}.jpg`,
+  );
 }

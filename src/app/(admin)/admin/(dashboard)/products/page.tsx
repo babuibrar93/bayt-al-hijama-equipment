@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Plus, Pencil } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/utils";
 import { cn, numeric } from "@/lib/classes";
 import ProductImage from "@/components/shop/ProductImage";
 import DeleteProductButton from "@/components/admin/DeleteProductButton";
+import AdminFilterBar from "@/components/admin/AdminFilterBar";
 import {
   Button,
   Badge,
@@ -15,39 +17,134 @@ import {
   Th,
   Td,
 } from "@/components/ui";
-import type { ProductWithCategory } from "@/types/db";
+import { ADMIN_PAGE_SIZE, parsePage, parsePerPage } from "@/lib/admin/list-href";
+import type { Category, ProductWithCategory } from "@/types/db";
 
-export default async function AdminProductsPage() {
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function param(v: string | string[] | undefined): string {
+  return typeof v === "string" ? v : "";
+}
+
+export default async function AdminProductsPage({ searchParams }: PageProps) {
+  const sp = await searchParams;
+  const q = param(sp.q).trim();
+  const category = param(sp.category);
+  const active = param(sp.active);
+  const stock = param(sp.stock);
+  const page = parsePage(param(sp.page));
+  const perPage = parsePerPage(param(sp.perPage), ADMIN_PAGE_SIZE);
+  const filters = { q, category, active, stock };
+
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("products")
-    .select("*, category:categories(id, name, slug)")
-    .order("created_at", { ascending: false });
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("id, name, slug")
+    .order("sort_order");
 
+  let query = supabase
+    .from("products")
+    .select(
+      "id, name, slug, price, cost_price, stock, images, is_active, created_at, category:categories(id, name, slug)",
+      { count: "exact" },
+    )
+    .order("created_at", { ascending: false })
+    .range((page - 1) * perPage, page * perPage - 1);
+
+  if (q) {
+    query = query.or(`name.ilike.%${q}%,slug.ilike.%${q}%`);
+  }
+  if (category) {
+    const cat = (categories as Category[] | null)?.find(
+      (c) => c.slug === category,
+    );
+    if (cat) query = query.eq("category_id", cat.id);
+  }
+  if (active === "active") query = query.eq("is_active", true);
+  if (active === "inactive") query = query.eq("is_active", false);
+  if (stock === "out") query = query.eq("stock", 0);
+  if (stock === "low") query = query.gt("stock", 0).lte("stock", 5);
+
+  const { data, count } = await query;
   const products = (data ?? []) as unknown as ProductWithCategory[];
+  const total = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-        <h1 className="font-body text-xl font-normal text-white sm:text-2xl md:text-3xl">
+      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <h1 className="font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
           Products
         </h1>
-        <Button href="/admin/products/new" leftIcon={<Plus className="h-4 w-4" />}>
-          Add Product
-        </Button>
+        <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-2 sm:w-auto">
+          <Suspense fallback={null}>
+            <AdminFilterBar
+              fields={[
+                { name: "q", label: "Search", placeholder: "Name or slug" },
+                {
+                  name: "category",
+                  label: "Category",
+                  type: "select",
+                  options: ((categories as Category[] | null) ?? []).map((c) => ({
+                    value: c.slug,
+                    label: c.name,
+                  })),
+                },
+                {
+                  name: "active",
+                  label: "Visibility",
+                  type: "select",
+                  options: [
+                    { value: "active", label: "Active" },
+                    { value: "inactive", label: "Hidden" },
+                  ],
+                },
+                {
+                  name: "stock",
+                  label: "Stock",
+                  type: "select",
+                  options: [
+                    { value: "low", label: "Low (1–5)" },
+                    { value: "out", label: "Out of stock" },
+                  ],
+                },
+              ]}
+            />
+          </Suspense>
+          <Button
+            href="/admin/products/new"
+            size="sm"
+            leftIcon={<Plus className="h-4 w-4" />}
+            className="whitespace-nowrap"
+          >
+            Add Product
+          </Button>
+        </div>
       </div>
 
       {products.length === 0 ? (
-        <div className="rounded-lg border border-glass-border bg-glass-bg p-10 text-center text-white/60">
-          No products yet. Add your first product to get started.
+        <div className="rounded-lg border border-glass-border bg-glass-bg px-4 py-8 text-center text-sm text-white/60 sm:p-10">
+          No products match these filters.
         </div>
       ) : (
-        <Table>
+        <Table
+          pagination={{
+            page,
+            totalPages,
+            totalItems: total,
+            perPage,
+            pathname: "/admin/products",
+            query: filters,
+          }}
+        >
           <THead>
             <Tr>
               <Th>Product</Th>
               <Th>Category</Th>
-              <Th align="right">Price</Th>
+              <Th align="right">Sell</Th>
+              <Th align="right">Cost</Th>
               <Th align="right">Stock</Th>
               <Th>Status</Th>
               <Th align="right">Actions</Th>
@@ -68,9 +165,16 @@ export default async function AdminProductsPage() {
                     <span className="font-medium text-white">{product.name}</span>
                   </div>
                 </Td>
-                <Td className="text-white/60">{product.category?.name ?? "—"}</Td>
+                <Td className="text-white/60">
+                  {product.category?.name ?? "—"}
+                </Td>
                 <Td align="right" className={numeric}>
                   {formatPrice(product.price)}
+                </Td>
+                <Td align="right" className={cn(numeric, "text-white/50")}>
+                  {product.cost_price == null
+                    ? "—"
+                    : formatPrice(Number(product.cost_price))}
                 </Td>
                 <Td
                   align="right"

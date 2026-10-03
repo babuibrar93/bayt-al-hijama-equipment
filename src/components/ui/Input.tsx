@@ -33,6 +33,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const [show, setShow] = useState(false);
 
   const isPassword = type === "password";
+  const isDate = type === "date" || type === "datetime-local" || type === "time";
   const resolvedType = isPassword ? (show ? "text" : "password") : type;
 
   return (
@@ -45,7 +46,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       )}
       <div className="relative">
         {leftIcon && (
-          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40">
+          <span className="pointer-events-none absolute left-3.5 top-1/2 z-[1] -translate-y-1/2 text-white/40">
             {leftIcon}
           </span>
         )}
@@ -59,6 +60,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
             "h-11 w-full rounded-md border bg-black/30 px-3.5 text-sm text-white placeholder:text-white/30 transition-colors focus:outline-none",
             leftIcon && "pl-10",
             isPassword && "pr-11",
+            isDate && "date-input pr-3 [color-scheme:dark]",
             error
               ? "border-red-500/50 focus:border-red-500/70"
               : "border-glass-border focus:border-gold/50",

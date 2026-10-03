@@ -5,6 +5,7 @@
 -- =============================================================
 
 create extension if not exists "pgcrypto";
+create extension if not exists "pg_trgm";
 
 -- -------------------------------------------------------------
 -- Categories
@@ -27,6 +28,7 @@ create table if not exists public.products (
   slug          text not null unique,
   description   text not null default '',
   price         numeric(10,2) not null default 0 check (price >= 0),
+  cost_price    numeric(10,2) check (cost_price is null or cost_price >= 0),
   stock         int not null default 0 check (stock >= 0),
   images        jsonb not null default '[]'::jsonb,
   features      jsonb not null default '[]'::jsonb,
@@ -40,8 +42,23 @@ create table if not exists public.products (
   updated_at    timestamptz not null default now()
 );
 
+-- Backfill for existing installs
+alter table public.products add column if not exists cost_price numeric(10,2);
+do $$ begin
+  alter table public.products
+    add constraint products_cost_price_check
+    check (cost_price is null or cost_price >= 0);
+exception when duplicate_object then null;
+end $$;
+
 create index if not exists products_category_idx on public.products(category_id);
 create index if not exists products_active_idx on public.products(is_active);
+create index if not exists products_created_at_idx on public.products(created_at desc);
+create index if not exists products_stock_idx on public.products(stock);
+create index if not exists products_active_created_idx on public.products(is_active, created_at desc);
+create index if not exists products_category_created_idx on public.products(category_id, created_at desc);
+create index if not exists products_name_trgm_idx on public.products using gin (name gin_trgm_ops);
+create index if not exists products_slug_trgm_idx on public.products using gin (slug gin_trgm_ops);
 
 -- -------------------------------------------------------------
 -- Profiles (1:1 with auth.users) - holds admin flag + contact info
@@ -115,6 +132,23 @@ create table if not exists public.orders (
 
 create index if not exists orders_user_idx on public.orders(user_id);
 create index if not exists orders_status_idx on public.orders(status);
+create index if not exists orders_created_at_idx on public.orders(created_at desc);
+create index if not exists orders_status_created_idx on public.orders(status, created_at desc);
+create index if not exists orders_payment_status_idx on public.orders(payment_status);
+create index if not exists orders_payment_status_created_idx on public.orders(payment_status, created_at desc);
+create index if not exists orders_created_not_cancelled_idx
+  on public.orders(created_at desc) where status <> 'cancelled';
+create index if not exists orders_unpaid_open_idx
+  on public.orders(created_at desc)
+  where payment_status = 'unpaid' and status <> 'cancelled';
+create index if not exists orders_order_number_trgm_idx
+  on public.orders using gin (order_number gin_trgm_ops);
+create index if not exists orders_customer_name_trgm_idx
+  on public.orders using gin (customer_name gin_trgm_ops);
+create index if not exists orders_customer_phone_trgm_idx
+  on public.orders using gin (customer_phone gin_trgm_ops);
+create index if not exists orders_customer_email_trgm_idx
+  on public.orders using gin (customer_email gin_trgm_ops);
 
 -- -------------------------------------------------------------
 -- Order items
@@ -125,10 +159,14 @@ create table if not exists public.order_items (
   product_id   uuid references public.products(id) on delete set null,
   product_name text not null,
   unit_price   numeric(10,2) not null,
+  unit_cost    numeric(10,2),
   quantity     int not null check (quantity > 0)
 );
 
+alter table public.order_items add column if not exists unit_cost numeric(10,2);
+
 create index if not exists order_items_order_idx on public.order_items(order_id);
+create index if not exists order_items_product_idx on public.order_items(product_id);
 
 -- Decrement product stock when an order item is created.
 create or replace function public.decrement_stock()
@@ -152,7 +190,76 @@ create trigger on_order_item_created
   after insert on public.order_items
   for each row execute function public.decrement_stock();
 
--- Keep products.updated_at fresh on update.
+-- Restock when an order is cancelled (only on transition into cancelled).
+create or replace function public.restock_on_order_cancel()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if new.status = 'cancelled' and old.status is distinct from 'cancelled' then
+    update public.products p
+      set stock = p.stock + oi.quantity,
+          updated_at = now()
+    from public.order_items oi
+    where oi.order_id = new.id
+      and oi.product_id is not null
+      and p.id = oi.product_id;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_order_cancelled on public.orders;
+create trigger on_order_cancelled
+  after update of status on public.orders
+  for each row execute function public.restock_on_order_cancel();
+
+-- -------------------------------------------------------------
+-- Purchases (supplier stock-in)
+-- -------------------------------------------------------------
+create table if not exists public.purchases (
+  id               uuid primary key default gen_random_uuid(),
+  purchase_number  text not null unique,
+  supplier_name    text not null,
+  supplier_phone   text,
+  status           text not null default 'draft'
+                   check (status in ('draft','confirmed','cancelled')),
+  subtotal         numeric(10,2) not null default 0,
+  notes            text,
+  purchased_at     timestamptz not null default now(),
+  created_at       timestamptz not null default now(),
+  updated_at       timestamptz not null default now()
+);
+
+create index if not exists purchases_status_idx on public.purchases(status);
+create index if not exists purchases_purchased_at_idx on public.purchases(purchased_at);
+create index if not exists purchases_status_purchased_at_idx
+  on public.purchases(status, purchased_at desc);
+create index if not exists purchases_purchase_number_trgm_idx
+  on public.purchases using gin (purchase_number gin_trgm_ops);
+create index if not exists purchases_supplier_name_trgm_idx
+  on public.purchases using gin (supplier_name gin_trgm_ops);
+create index if not exists purchases_supplier_phone_trgm_idx
+  on public.purchases using gin (supplier_phone gin_trgm_ops);
+
+create table if not exists public.purchase_items (
+  id           uuid primary key default gen_random_uuid(),
+  purchase_id  uuid not null references public.purchases(id) on delete cascade,
+  product_id   uuid references public.products(id) on delete set null,
+  product_name text not null,
+  unit_cost    numeric(10,2) not null check (unit_cost >= 0),
+  quantity     int not null check (quantity > 0)
+);
+
+create index if not exists purchase_items_purchase_idx on public.purchase_items(purchase_id);
+create index if not exists purchase_items_product_idx on public.purchase_items(product_id);
+
+create index if not exists categories_sort_order_idx on public.categories(sort_order);
+create index if not exists profiles_is_admin_idx
+  on public.profiles(id) where is_admin = true;
+
+-- Keep products/purchases.updated_at fresh on update.
 create or replace function public.touch_updated_at()
 returns trigger
 language plpgsql
@@ -166,6 +273,11 @@ $$;
 drop trigger if exists products_touch_updated_at on public.products;
 create trigger products_touch_updated_at
   before update on public.products
+  for each row execute function public.touch_updated_at();
+
+drop trigger if exists purchases_touch_updated_at on public.purchases;
+create trigger purchases_touch_updated_at
+  before update on public.purchases
   for each row execute function public.touch_updated_at();
 
 -- -------------------------------------------------------------
@@ -186,11 +298,13 @@ $$;
 -- =============================================================
 -- Row Level Security
 -- =============================================================
-alter table public.categories  enable row level security;
-alter table public.products    enable row level security;
-alter table public.profiles    enable row level security;
-alter table public.orders      enable row level security;
-alter table public.order_items enable row level security;
+alter table public.categories     enable row level security;
+alter table public.products       enable row level security;
+alter table public.profiles       enable row level security;
+alter table public.orders         enable row level security;
+alter table public.order_items    enable row level security;
+alter table public.purchases      enable row level security;
+alter table public.purchase_items enable row level security;
 
 -- Categories: public read, admin write
 drop policy if exists "categories_read" on public.categories;
@@ -236,3 +350,12 @@ create policy "order_items_owner_read" on public.order_items
         and ((o.user_id is not null and auth.uid() = o.user_id) or public.is_admin())
     )
   );
+
+-- Purchases: admin only (mutations also go through service-role API routes)
+drop policy if exists "purchases_admin_all" on public.purchases;
+create policy "purchases_admin_all" on public.purchases
+  for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "purchase_items_admin_all" on public.purchase_items;
+create policy "purchase_items_admin_all" on public.purchase_items
+  for all using (public.is_admin()) with check (public.is_admin());

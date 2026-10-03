@@ -90,15 +90,11 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
 
   const activeCategory = categories.find((c) => c.slug === categorySlug);
 
-  const buildHref = (targetPage: number) => {
-    const sp = new URLSearchParams();
-    if (categorySlug) sp.set("category", categorySlug);
-    if (search) sp.set("search", search);
-    if (sort !== "newest") sp.set("sort", sort);
-    if (view === "list") sp.set("view", "list");
-    if (targetPage > 1) sp.set("page", String(targetPage));
-    const qs = sp.toString();
-    return qs ? `/shop?${qs}` : "/shop";
+  const paginationQuery = {
+    category: categorySlug,
+    search: search || undefined,
+    sort: sort !== "newest" ? sort : undefined,
+    view: view === "list" ? "list" : undefined,
   };
 
   return (
@@ -155,7 +151,8 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
             <Pagination
               currentPage={page}
               totalPages={totalPages}
-              buildHref={buildHref}
+              pathname="/shop"
+              query={paginationQuery}
             />
           </>
         )}

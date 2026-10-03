@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getAdminUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { productSchema } from "@/lib/validation/product";
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
     .from("products")
     .insert({
       ...parsed.data,
+      cost_price: parsed.data.cost_price ?? null,
       badge: parsed.data.badge || null,
       category_id: parsed.data.category_id || null,
     })
@@ -40,5 +42,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
+  revalidatePath("/shop");
+  revalidatePath("/");
   return NextResponse.json({ id: data.id, slug: data.slug });
 }

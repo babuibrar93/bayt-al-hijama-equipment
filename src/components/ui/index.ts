@@ -10,4 +10,8 @@ export { default as ConfirmModal } from "./ConfirmModal";
 export { default as Badge } from "./Badge";
 export type { BadgeTone } from "./Badge";
 export { default as Pagination } from "./Pagination";
+export type { PaginationProps } from "./Pagination";
 export { Table, THead, TBody, Tr, Th, Td } from "./Table";
+export type { TablePaginationProps } from "./Table";
+export { default as StatCard, StatGrid } from "./StatCard";
+export type { StatCardProps } from "./StatCard";

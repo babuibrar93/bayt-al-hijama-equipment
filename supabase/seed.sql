@@ -2,22 +2,29 @@
 # Seed data for Bayt Al Hijama Equipment
 # =============================================================
 #
-# For the full catalog (15 products + real images), run from the project root:
+# For the full catalog, run from the project root:
 #
 #   npm run seed
 #
-# That script downloads images into `public/products/`, uploads them to the
-# `product-images` Supabase bucket, and upserts categories + products.
+# That script replaces products, upserts categories, and skips images
+# when the catalog has empty imageSources (upload photos in admin).
 #
-# This SQL file seeds categories only — useful if you prefer manual setup.
+# This SQL file seeds categories only.
 # =============================================================
 
 insert into public.categories (name, slug, description, sort_order) values
-  ('Hijama Cups', 'hijama-cups', 'Glass, silicone, and polycarbonate cups in all sizes for wet, dry, and massage cupping.', 1),
-  ('Complete Kits', 'complete-kits', 'All-in-one kits for therapists, clinics, and students — ready to practise.', 2),
-  ('Accessories', 'accessories', 'Vacuum pumps, extension tubes, valves, gauges, and professional carry cases.', 3),
-  ('Consumables', 'consumables', 'Sterile lancets, disposable blades, gloves, and antiseptics in clinic-friendly packs.', 4)
+  ('Hijama Cups', 'hijama-cups', 'Individual cup sizes and silicone massage cup sets for wet, dry, and massage cupping.', 1),
+  ('Pumps & Machines', 'pumps-machines', 'Manual, disposable, rechargeable, and electric vacuum pumps for clinic and home use.', 2),
+  ('Consumables', 'consumables', 'Gloves, gowns, masks, bed sheets, blades, lancets, tape, and clinic disposables.', 3),
+  ('Therapy Tools', 'therapy-tools', 'Hijama pens, massage rollers, foot massagers, and blade holders for practitioners.', 4)
 on conflict (slug) do update set
   name = excluded.name,
   description = excluded.description,
   sort_order = excluded.sort_order;
+
+-- Remove legacy category slugs no longer used by the catalog.
+delete from public.categories
+where slug in ('complete-kits', 'accessories')
+  and not exists (
+    select 1 from public.products p where p.category_id = categories.id
+  );

@@ -1,13 +1,13 @@
 #!/usr/bin/env npx tsx
 /**
- * Seeds categories + products with real images into Supabase.
+ * Seeds categories + products into Supabase.
  *
  * Usage:
- *   npm run seed              # download images + upsert DB
+ *   npm run seed              # replace catalog in DB (images if listed)
  *   npm run seed -- --images  # download images only (no DB)
  *
  * Requires `.env.local` with NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.
- * Images are saved to `public/products/` and uploaded to the `product-images` bucket.
+ * Empty imageSources skip download/upload (add photos later in admin).
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -73,6 +73,7 @@ async function downloadImage(url: string, dest: string): Promise<boolean> {
 }
 
 async function downloadProductImages(product: SeedProduct): Promise<string[]> {
+  if (product.imageSources.length === 0) return [];
   const paths: string[] = [];
   for (let i = 0; i < product.imageSources.length; i++) {
     const dest = join(PRODUCTS_DIR, `${product.slug}-${i + 1}.jpg`);
@@ -125,13 +126,25 @@ async function uploadToStorage(
 async function main() {
   mkdirSync(PRODUCTS_DIR, { recursive: true });
 
-  console.log("\n📷 Downloading product images…\n");
+  const needsImages = SEED_PRODUCTS.some((p) => p.imageSources.length > 0);
   const localImages = new Map<string, string[]>();
 
-  for (const product of SEED_PRODUCTS) {
-    console.log(product.name);
-    const files = await downloadProductImages(product);
-    localImages.set(product.slug, files);
+  if (needsImages || imagesOnly) {
+    console.log("\n📷 Downloading product images…\n");
+    for (const product of SEED_PRODUCTS) {
+      if (product.imageSources.length === 0) {
+        localImages.set(product.slug, []);
+        continue;
+      }
+      console.log(product.name);
+      const files = await downloadProductImages(product);
+      localImages.set(product.slug, files);
+    }
+  } else {
+    console.log("\n📷 No image sources in catalog — skipping downloads.\n");
+    for (const product of SEED_PRODUCTS) {
+      localImages.set(product.slug, []);
+    }
   }
 
   if (imagesOnly) {
@@ -145,9 +158,11 @@ async function main() {
 
   if (!url || !serviceKey) {
     console.log(
-      "\n⚠ Supabase credentials missing in .env.local — images saved locally only.",
+      "\n⚠ Supabase credentials missing in .env.local — nothing written to DB.",
     );
-    console.log("  Add NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY, then re-run.\n");
+    console.log(
+      "  Add NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY, then re-run.\n",
+    );
     return;
   }
 
@@ -156,9 +171,26 @@ async function main() {
   });
 
   console.log("\n🗄 Seeding Supabase…\n");
+
+  const { error: schemaCheck } = await supabase
+    .from("products")
+    .select("cost_price")
+    .limit(1);
+  if (schemaCheck) {
+    console.error(
+      "\n❌ Database is missing cost_price / purchases schema.\n" +
+        "   1. Open Supabase → SQL Editor\n" +
+        "   2. Run supabase/migrations/20261003_cost_purchases.sql\n" +
+        "   3. Or set DATABASE_URL in .env.local and run: npm run migrate\n" +
+        "   4. Re-run: npm run seed\n",
+    );
+    process.exit(1);
+  }
+
   await ensureBucket(supabase);
 
   const categoryIds = new Map<string, string>();
+  const keepCategorySlugs = new Set(SEED_CATEGORIES.map((c) => c.slug));
 
   for (const cat of SEED_CATEGORIES) {
     const { error } = await supabase.from("categories").upsert(
@@ -182,6 +214,16 @@ async function main() {
     console.log(`  category: ${cat.name}`);
   }
 
+  // Replace catalog: order_items.product_id is ON DELETE SET NULL.
+  const { error: deleteError } = await supabase
+    .from("products")
+    .delete()
+    .neq("id", "00000000-0000-0000-0000-000000000000");
+  if (deleteError) {
+    throw new Error(`Could not clear products: ${deleteError.message}`);
+  }
+  console.log("  cleared existing products");
+
   for (const product of SEED_PRODUCTS) {
     const files = localImages.get(product.slug) ?? [];
     const imageUrls: string[] = [];
@@ -194,26 +236,32 @@ async function main() {
 
     const categoryId = categoryIds.get(product.categorySlug) ?? null;
 
-    const { error } = await supabase.from("products").upsert(
-      {
-        name: product.name,
-        slug: product.slug,
-        description: product.description,
-        price: product.price,
-        stock: product.stock,
-        images: imageUrls,
-        features: product.features,
-        badge: product.badge ?? null,
-        badge_variant: product.badge_variant ?? "default",
-        category_id: categoryId,
-        is_active: true,
-        is_featured: product.is_featured,
-      },
-      { onConflict: "slug" },
-    );
+    const { error } = await supabase.from("products").insert({
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      price: product.price,
+      cost_price: product.cost_price,
+      stock: product.stock,
+      images: imageUrls,
+      features: product.features,
+      badge: product.badge ?? null,
+      badge_variant: product.badge_variant ?? "default",
+      category_id: categoryId,
+      is_active: true,
+      is_featured: product.is_featured,
+    });
 
     if (error) throw new Error(`Product ${product.slug}: ${error.message}`);
-    console.log(`  product: ${product.name} (${imageUrls.length} images)`);
+    console.log(`  product: ${product.name}`);
+  }
+
+  const { data: allCats } = await supabase.from("categories").select("id, slug");
+  for (const cat of allCats ?? []) {
+    if (!keepCategorySlugs.has(cat.slug)) {
+      await supabase.from("categories").delete().eq("id", cat.id);
+      console.log(`  removed legacy category: ${cat.slug}`);
+    }
   }
 
   console.log(

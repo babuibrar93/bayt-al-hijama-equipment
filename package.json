@@ -8,12 +8,15 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx scripts/seed.ts",
-    "seed:images": "tsx scripts/seed.ts -- --images"
+    "seed:images": "tsx scripts/seed.ts -- --images",
+    "migrate": "tsx scripts/apply-migration.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.21.0",
     "next": "^15.5.3",
     "react": "^19.1.1",
@@ -24,12 +27,14 @@
   },
   "devDependencies": {
     "@types/node": "^22.17.2",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "autoprefixer": "^10.5.0",
     "clsx": "^2.1.1",
     "eslint": "^9.33.0",
     "eslint-config-next": "^15.5.3",
+    "pg": "^8.23.1",
     "postcss": "^8.5.15",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^3.4.17",

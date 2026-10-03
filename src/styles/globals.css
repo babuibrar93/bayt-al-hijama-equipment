@@ -50,14 +50,31 @@
 
   ::-webkit-scrollbar {
     width: 4px;
+    height: 4px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-black;
+    @apply bg-transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply rounded-sm bg-green-mid;
+    @apply rounded-full bg-white/20;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/35;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.2) transparent;
+  }
+
+  /* Keep native date picker icon visible on dark inputs */
+  input.date-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 1;
+    filter: invert(0.75);
   }
 }
 
@@ -68,5 +85,29 @@
       black 0%,
       transparent 100%
     );
+  }
+
+  /* Thin horizontal scrollbar for admin tables */
+  .admin-table-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.18) transparent;
+  }
+
+  .admin-table-scroll::-webkit-scrollbar {
+    height: 3px;
+    width: 3px;
+  }
+
+  .admin-table-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .admin-table-scroll::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.18);
+  }
+
+  .admin-table-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgb(255 255 255 / 0.3);
   }
 }

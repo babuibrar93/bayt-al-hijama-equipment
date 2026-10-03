@@ -1,8 +1,8 @@
+import Image from "next/image";
 import { Fragment } from "react";
 import Particles from "@/components/ui/Particles";
 import CounterStat from "@/components/ui/CounterStat";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
-import HeroVisual from "@/components/hero/HeroVisual";
 import { HERO_STATS } from "@/constants/site";
 import { WHATSAPP } from "@/constants/whatsapp";
 import { btnGhost, btnPrimary, cn, getRevealClass } from "@/lib/classes";
@@ -12,16 +12,34 @@ export default function HeroSection() {
     <section
       id="hero"
       aria-label="Hero"
-      className="relative grid min-h-[90svh] grid-cols-1 items-center gap-8 overflow-hidden bg-black px-4 pb-14 pt-[92px] before:pointer-events-none before:absolute before:inset-0 before:bg-grad-hero max-md:text-center sm:px-6 md:px-8 lg:min-h-svh lg:grid-cols-2 lg:gap-10 lg:px-10 lg:pb-20 lg:pt-[96px] xl:px-[60px]"
+      className="relative flex min-h-[90svh] items-center overflow-hidden bg-black px-4 pb-14 pt-[92px] sm:px-6 md:px-8 lg:min-h-svh lg:px-10 lg:pb-20 lg:pt-[96px] xl:px-[60px]"
     >
-      <Particles id="heroParticles" options={{ count: 40, goldRatio: 0.4 }} />
-
-      <div
-        aria-hidden="true"
-        className="hero-grid-mask pointer-events-none absolute inset-0 bg-hero-grid bg-[length:60px_60px]"
+      <Image
+        src="/hero-hijama.jpg"
+        alt="Professional Hijama cupping equipment"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-[68%_center] sm:object-[72%_center]"
       />
 
-      <div className="relative z-[2] max-w-[620px] max-md:max-w-full">
+      {/* Keep cups/pump visible on the right; darken left for copy */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/35 sm:via-black/80 sm:to-black/25"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/50"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-grad-hero opacity-70"
+      />
+
+      <Particles id="heroParticles" options={{ count: 24, goldRatio: 0.35 }} />
+
+      <div className="relative z-[2] w-full max-w-[620px] max-md:mx-auto max-md:text-center">
         <div
           data-reveal
           className={cn(
@@ -53,7 +71,7 @@ export default function HeroSection() {
               Hijama Practice
             </span>
           </span>
-          <span className="block font-light italic text-white/60">
+          <span className="block font-light italic text-white/70">
             With Professional <br /> Grade Equipment
           </span>
         </h1>
@@ -61,7 +79,7 @@ export default function HeroSection() {
         <p
           data-reveal
           className={cn(
-            "mb-8 max-w-[500px] text-[1rem] leading-[1.7] text-white/60 max-md:mx-auto is-visible",
+            "mb-8 max-w-[500px] text-[1rem] leading-[1.7] text-white/70 max-md:mx-auto is-visible",
             getRevealClass("up", 2),
           )}
         >
@@ -89,7 +107,11 @@ export default function HeroSection() {
             </span>
             Order on WhatsApp
           </a>
-          <a href="#products" data-magnetic className={cn(btnGhost, "max-md:w-full max-md:justify-center")}>
+          <a
+            href="#products"
+            data-magnetic
+            className={cn(btnGhost, "max-md:w-full max-md:justify-center")}
+          >
             Explore Products
             <svg
               viewBox="0 0 24 24"
@@ -130,11 +152,9 @@ export default function HeroSection() {
         </div>
       </div>
 
-      <HeroVisual />
-
       <div
         aria-hidden="true"
-        className="absolute bottom-10 left-[60px] z-[2] flex items-center gap-3 text-[0.7rem] uppercase tracking-[0.15em] text-white/30 max-md:hidden"
+        className="absolute bottom-10 left-4 z-[2] flex items-center gap-3 text-[0.7rem] uppercase tracking-[0.15em] text-white/30 sm:left-6 md:left-8 lg:left-10 xl:left-[60px] max-md:hidden"
       >
         <span>Scroll</span>
         <div className="relative h-px w-10 overflow-hidden bg-white/30 after:absolute after:inset-0 after:animate-scroll-line after:bg-gold" />

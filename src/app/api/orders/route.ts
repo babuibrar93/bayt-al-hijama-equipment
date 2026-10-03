@@ -9,13 +9,7 @@ import {
   type OrderEmailData,
 } from "@/lib/email/brevo";
 import type { ShippingAddress } from "@/types/db";
-
-function generateOrderNumber(): string {
-  const date = new Date();
-  const ymd = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
-  const random = Math.floor(1000 + Math.random() * 9000);
-  return `BAH-${ymd}-${random}`;
-}
+import { generateOrderNumber } from "@/lib/admin/order-number";
 
 export async function POST(request: Request) {
   if (!isSupabaseConfigured() || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -47,7 +41,7 @@ export async function POST(request: Request) {
   const productIds = data.items.map((i) => i.productId);
   const { data: products, error: productError } = await admin
     .from("products")
-    .select("id, name, price, stock, is_active")
+    .select("id, name, price, cost_price, stock, is_active")
     .in("id", productIds);
 
   if (productError || !products) {
@@ -62,6 +56,7 @@ export async function POST(request: Request) {
     product_id: string;
     product_name: string;
     unit_price: number;
+    unit_cost: number | null;
     quantity: number;
   }[] = [];
 
@@ -83,6 +78,8 @@ export async function POST(request: Request) {
       product_id: product.id,
       product_name: product.name,
       unit_price: Number(product.price),
+      unit_cost:
+        product.cost_price == null ? null : Number(product.cost_price),
       quantity: item.quantity,
     });
   }

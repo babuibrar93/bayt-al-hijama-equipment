@@ -21,26 +21,38 @@ values from **Supabase > Project Settings > API**:
 
 In **Supabase > SQL Editor**, paste and run the contents of:
 
-1. [`schema.sql`](./schema.sql) — tables, triggers, RLS policies
+1. [`schema.sql`](./schema.sql) — tables, triggers, RLS policies, indexes  
+   (or, for an existing project, run migrations in order:
+   [`migrations/20261003_cost_purchases.sql`](./migrations/20261003_cost_purchases.sql),
+   then [`migrations/20261004_admin_indexes.sql`](./migrations/20261004_admin_indexes.sql);
+   keep `schema.sql` as the full source of truth)
+
+   To apply all migrations from the CLI (needs `DATABASE_URL` in `.env.local`):
+
+   ```bash
+   npm run migrate
+   # or only the latest indexes:
+   npm run migrate -- 20261004_admin_indexes
+   ```
 2. [`seed.sql`](./seed.sql) — categories only (optional)
 
-For the **full catalog** (15 products with real Hijama/cupping photos), run from the project root:
+For the **full product catalog** (cost + sell prices, no images by default), run from the project root:
 
 ```bash
 npm install
 npm run seed
 ```
 
-This downloads images into `public/products/`, uploads them to the `product-images` bucket, and upserts all categories and products. Re-run safely anytime — it uses upserts.
+This **deletes existing products**, upserts categories, and inserts the current catalog. Upload product photos later in admin. Re-run anytime after confirming you want to replace the catalog.
 
-To download images only (no database):
+To download images only when a product lists `imageSources`:
 
 ```bash
 npm run seed:images
 ```
 
-> Re-running `schema.sql` is safe and will add the newer profile columns
-> (`email`, `avatar_url`, address fields) to existing installations.
+> Re-running `schema.sql` is safe and will add newer columns (`cost_price`,
+> `order_items.unit_cost`, `purchases`, profile address fields) to existing installs.
 
 ## 4. Create the image storage bucket
 

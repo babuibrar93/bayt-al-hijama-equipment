@@ -59,19 +59,23 @@ export default function Modal({
       />
       <div
         className={cn(
-          "relative w-full overflow-hidden rounded-lg border border-glass-border bg-black-3 shadow-2xl",
+          "relative flex w-full max-h-[min(90vh,40rem)] flex-col rounded-lg border border-glass-border bg-black-3 shadow-2xl",
           SIZES[size],
           className,
         )}
       >
         {(title || description) && (
-          <div className="flex items-start justify-between gap-4 border-b border-glass-border p-5">
-            <div>
+          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-glass-border p-4 sm:gap-4 sm:p-5">
+            <div className="min-w-0">
               {title && (
-                <h2 className="font-body text-xl text-white">{title}</h2>
+                <h2 className="font-body text-lg text-white sm:text-xl">
+                  {title}
+                </h2>
               )}
               {description && (
-                <p className="mt-1 text-sm text-white/60">{description}</p>
+                <p className="mt-1 text-xs text-white/60 sm:text-sm">
+                  {description}
+                </p>
               )}
             </div>
             <button
@@ -84,9 +88,13 @@ export default function Modal({
             </button>
           </div>
         )}
-        {children && <div className="p-5">{children}</div>}
+        {children && (
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-5">
+            {children}
+          </div>
+        )}
         {footer && (
-          <div className="flex justify-end gap-3 border-t border-glass-border p-5">
+          <div className="flex shrink-0 flex-wrap justify-end gap-2 border-t border-glass-border p-4 sm:gap-3 sm:p-5">
             {footer}
           </div>
         )}

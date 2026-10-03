@@ -1,134 +1,230 @@
+import Link from "next/link";
+import { Suspense } from "react";
+import { Pencil, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/utils";
-import { getPaymentOption } from "@/constants/payment";
-import { cn, numeric } from "@/lib/classes";
-import OrderControls from "@/components/admin/OrderControls";
-import CustomerCell from "@/components/admin/CustomerCell";
-import type { OrderWithItems, CustomerProfile } from "@/types/db";
+import { numeric } from "@/lib/classes";
+import {
+  Button,
+  Badge,
+  Table,
+  THead,
+  TBody,
+  Tr,
+  Th,
+  Td,
+} from "@/components/ui";
+import AdminFilterBar from "@/components/admin/AdminFilterBar";
+import type { FilterField } from "@/components/admin/AdminFilterBar";
+import DeleteOrderButton from "@/components/admin/DeleteOrderButton";
+import { computeOrderProfit } from "@/lib/admin/profit";
+import {
+  karachiDayEndExclusiveIso,
+  karachiDayStartIso,
+} from "@/lib/admin/dates";
+import { ADMIN_PAGE_SIZE, parsePage, parsePerPage } from "@/lib/admin/list-href";
+import type { OrderWithItems } from "@/types/db";
 
-export default async function AdminOrdersPage() {
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function param(v: string | string[] | undefined): string {
+  return typeof v === "string" ? v : "";
+}
+
+export default async function AdminOrdersPage({ searchParams }: PageProps) {
+  const sp = await searchParams;
+  const q = param(sp.q).trim();
+  const status = param(sp.status);
+  const paymentStatus = param(sp.payment_status);
+  const from = param(sp.from);
+  const to = param(sp.to);
+  const page = parsePage(param(sp.page));
+  const perPage = parsePerPage(param(sp.perPage), ADMIN_PAGE_SIZE);
+
+  const filters = {
+    q,
+    status,
+    payment_status: paymentStatus,
+    from,
+    to,
+  };
+
   const supabase = await createClient();
-  const { data } = await supabase
+  let query = supabase
     .from("orders")
-    .select("*, items:order_items(*)")
-    .order("created_at", { ascending: false });
+    .select(
+      "id, order_number, customer_name, customer_phone, total, status, payment_status, created_at, items:order_items(unit_price, unit_cost, quantity)",
+      { count: "exact" },
+    )
+    .order("created_at", { ascending: false })
+    .range((page - 1) * perPage, page * perPage - 1);
 
-  const orders = (data ?? []) as unknown as OrderWithItems[];
-
-  const userIds = [
-    ...new Set(orders.map((o) => o.user_id).filter(Boolean)),
-  ] as string[];
-  const customerMap = new Map<string, CustomerProfile>();
-  if (userIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, full_name, avatar_url, email")
-      .in("id", userIds);
-    (profiles ?? []).forEach((p) =>
-      customerMap.set(p.id, p as CustomerProfile),
+  if (status) query = query.eq("status", status);
+  if (paymentStatus) query = query.eq("payment_status", paymentStatus);
+  if (from) query = query.gte("created_at", karachiDayStartIso(from));
+  if (to) query = query.lt("created_at", karachiDayEndExclusiveIso(to));
+  if (q) {
+    query = query.or(
+      `order_number.ilike.%${q}%,customer_name.ilike.%${q}%,customer_phone.ilike.%${q}%,customer_email.ilike.%${q}%`,
     );
   }
 
+  const { data, count } = await query;
+  const orders = (data ?? []) as unknown as OrderWithItems[];
+  const total = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+
+  const filterFields = [
+    {
+      name: "q",
+      label: "Search",
+      placeholder: "Order #, name, phone",
+    },
+    {
+      name: "status",
+      label: "Status",
+      type: "select",
+      options: [
+        { value: "pending", label: "Pending" },
+        { value: "confirmed", label: "Confirmed" },
+        { value: "shipped", label: "Shipped" },
+        { value: "delivered", label: "Delivered" },
+        { value: "cancelled", label: "Cancelled" },
+      ],
+    },
+    {
+      name: "payment_status",
+      label: "Payment",
+      type: "select",
+      options: [
+        { value: "unpaid", label: "Unpaid" },
+        { value: "paid", label: "Paid" },
+        { value: "refunded", label: "Refunded" },
+      ],
+    },
+    { name: "from", label: "From", type: "date" },
+    { name: "to", label: "To", type: "date" },
+  ] satisfies FilterField[];
+
   return (
     <div>
-      <h1 className="mb-6 font-body text-2xl font-normal text-white sm:text-3xl">
-        Orders
-      </h1>
+      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
+            Orders
+          </h1>
+          <p className="mt-1 text-xs text-white/50 sm:mt-1.5 sm:text-sm">
+            Newest orders first. Open an order for full details.
+          </p>
+        </div>
+        <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-2 sm:w-auto">
+          <Suspense fallback={null}>
+            <AdminFilterBar fields={filterFields} />
+          </Suspense>
+          <Button
+            href="/admin/orders/new"
+            size="sm"
+            leftIcon={<Plus className="h-4 w-4" />}
+            className="whitespace-nowrap"
+          >
+            Create order
+          </Button>
+        </div>
+      </div>
 
       {orders.length === 0 ? (
-        <div className="rounded-lg border border-glass-border bg-glass-bg p-10 text-center text-white/60">
-          No orders yet.
+        <div className="rounded-lg border border-glass-border bg-glass-bg px-4 py-8 text-center text-sm text-white/60 sm:p-10">
+          No orders match these filters.
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
-          {orders.map((order) => (
-            <article
-              key={order.id}
-              className="rounded-lg border border-glass-border bg-glass-bg p-4 sm:p-5"
-            >
-              <div className="flex flex-col gap-3 border-b border-glass-border pb-4 lg:flex-row lg:items-start lg:justify-between">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-3">
-                    <span className={cn("text-base font-semibold text-gold", numeric)}>
+        <Table
+          minWidth="min-w-[760px]"
+          pagination={{
+            page,
+            totalPages,
+            totalItems: total,
+            perPage,
+            pathname: "/admin/orders",
+            query: filters,
+          }}
+        >
+          <THead>
+            <Tr>
+              <Th>Order</Th>
+              <Th>Customer</Th>
+              <Th>Status</Th>
+              <Th align="right">Total</Th>
+              <Th align="right">Profit</Th>
+              <Th align="right">Actions</Th>
+            </Tr>
+          </THead>
+          <TBody>
+            {orders.map((order) => {
+              const profit = computeOrderProfit(order.items);
+              return (
+                <Tr key={order.id}>
+                  <Td>
+                    <Link
+                      href={`/admin/orders/${order.id}`}
+                      className={`font-medium text-gold hover:text-gold-light ${numeric}`}
+                    >
                       {order.order_number}
-                    </span>
-                    <span className="text-xs text-white/40">
-                      {new Date(order.created_at).toLocaleString("en-PK")}
-                    </span>
-                  </div>
-                  <CustomerCell
-                    name={order.customer_name}
-                    email={order.customer_email}
-                    phone={order.customer_phone}
-                    customer={
-                      order.user_id
-                        ? customerMap.get(order.user_id) ?? null
-                        : null
-                    }
-                  />
-                </div>
-                <OrderControls
-                  orderId={order.id}
-                  status={order.status}
-                  paymentStatus={order.payment_status}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 pt-4 lg:grid-cols-[1fr_280px]">
-                <div>
-                  <ul className="flex flex-col gap-2" role="list">
-                    {order.items.map((item) => (
-                      <li
-                        key={item.id}
-                        className="flex justify-between gap-3 text-sm text-white/75"
-                      >
-                        <span>
-                          {item.product_name}
-                          <span className="text-white/40"> x{item.quantity}</span>
-                        </span>
-                        <span className={cn("shrink-0", numeric)}>
-                          {formatPrice(item.unit_price * item.quantity)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  {order.notes && (
-                    <p className="mt-3 rounded-md bg-black/30 p-3 text-sm text-white/60">
-                      Note: {order.notes}
+                    </Link>
+                    <p className="text-xs text-white/40">
+                      {new Date(order.created_at).toLocaleString("en-PK", {
+                        timeZone: "Asia/Karachi",
+                      })}
                     </p>
-                  )}
-                </div>
-
-                <div className="rounded-md bg-black/20 p-4 text-sm">
-                  <p className="mb-2 font-medium text-white/80">Shipping</p>
-                  <address className="not-italic text-white/60">
-                    {order.shipping_address.line1}
-                    {order.shipping_address.line2 && (
-                      <>
-                        <br />
-                        {order.shipping_address.line2}
-                      </>
-                    )}
-                    <br />
-                    {order.shipping_address.city}, {order.shipping_address.province}
-                    {order.shipping_address.postalCode
-                      ? ` ${order.shipping_address.postalCode}`
-                      : ""}
-                  </address>
-                  <div className="mt-3 flex justify-between border-t border-glass-border pt-3 text-white/70">
-                    <span>
-                      {getPaymentOption(order.payment_method)?.label ??
-                        order.payment_method}
-                    </span>
-                    <span className={cn("text-base font-semibold text-white", numeric)}>
-                      {formatPrice(order.total)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
+                  </Td>
+                  <Td>
+                    <p className="text-white/80">{order.customer_name}</p>
+                    <p className="text-xs text-white/40">
+                      {order.customer_phone}
+                    </p>
+                  </Td>
+                  <Td>
+                    <div className="flex flex-wrap gap-1.5">
+                      <Badge tone="neutral">{order.status}</Badge>
+                      <Badge
+                        tone={
+                          order.payment_status === "paid" ? "green" : "neutral"
+                        }
+                      >
+                        {order.payment_status}
+                      </Badge>
+                    </div>
+                  </Td>
+                  <Td align="right" className={numeric}>
+                    {formatPrice(Number(order.total))}
+                  </Td>
+                  <Td align="right" className={`text-gold ${numeric}`}>
+                    {formatPrice(profit.profit)}
+                  </Td>
+                  <Td align="right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Button
+                        href={`/admin/orders/${order.id}/edit`}
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 px-0"
+                        aria-label={`Edit ${order.order_number}`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <DeleteOrderButton
+                        id={order.id}
+                        orderNumber={order.order_number}
+                        variant="icon"
+                      />
+                    </div>
+                  </Td>
+                </Tr>
+              );
+            })}
+          </TBody>
+        </Table>
       )}
     </div>
   );

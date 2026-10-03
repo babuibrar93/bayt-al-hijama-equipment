@@ -31,6 +31,7 @@ export const FALLBACK_PRODUCTS: ProductWithCategory[] = SEED_PRODUCTS.map(
     slug: p.slug,
     description: p.description,
     price: p.price,
+    cost_price: p.cost_price,
     stock: p.stock,
     images: productImagePaths(p.slug, p.imageSources.length),
     features: p.features,

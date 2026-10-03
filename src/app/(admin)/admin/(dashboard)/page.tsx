@@ -1,9 +1,15 @@
 import Link from "next/link";
 import {
-  DollarSign,
-  ShoppingCart,
-  Clock,
   AlertTriangle,
+  Boxes,
+  Clock,
+  DollarSign,
+  Package,
+  Plus,
+  ShoppingBag,
+  TrendingUp,
+  Truck,
+  Wallet,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/utils";
@@ -13,8 +19,24 @@ import {
   PaymentStatusBadge,
 } from "@/components/shop/StatusBadge";
 import CustomerCell from "@/components/admin/CustomerCell";
-import { Table, THead, TBody, Tr, Th, Td } from "@/components/ui";
-import type { Order, CustomerProfile } from "@/types/db";
+import {
+  Button,
+  Table,
+  THead,
+  TBody,
+  Tr,
+  Th,
+  Td,
+  StatCard,
+  StatGrid,
+} from "@/components/ui";
+import { computeOrderProfit } from "@/lib/admin/profit";
+import {
+  currentKarachiYearMonth,
+  karachiMonthBounds,
+  monthLabelLong,
+} from "@/lib/admin/dates";
+import type { CustomerProfile, Order, OrderWithItems } from "@/types/db";
 
 type RecentOrder = Pick<
   Order,
@@ -30,20 +52,81 @@ type RecentOrder = Pick<
   | "created_at"
 >;
 
+const LOW_STOCK_THRESHOLD = 5;
+
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
+  const { year, month } = currentKarachiYearMonth();
+  const mtd = karachiMonthBounds(year, month);
+  const monthName = monthLabelLong(month);
+  const todayLabel = new Date().toLocaleDateString("en-PK", {
+    timeZone: "Asia/Karachi",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
-  const [{ data: orders }, { data: products }] = await Promise.all([
+  const [
+    { data: recentOrders },
+    { data: mtdOrders },
+    { count: productCount },
+    { count: lowStockCount },
+    { count: outOfStockCount },
+    { count: pendingCount },
+    { count: unpaidCount },
+    { data: mtdPurchases },
+    { count: draftPurchaseCount },
+  ] = await Promise.all([
     supabase
       .from("orders")
       .select(
         "id, user_id, order_number, customer_name, customer_email, customer_phone, total, status, payment_status, created_at",
       )
-      .order("created_at", { ascending: false }),
-    supabase.from("products").select("id, stock"),
+      .order("created_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("orders")
+      .select(
+        "total, payment_status, status, items:order_items(unit_price, unit_cost, quantity)",
+      )
+      .gte("created_at", mtd.from)
+      .lt("created_at", mtd.to)
+      .neq("status", "cancelled"),
+    supabase.from("products").select("id", { count: "exact", head: true }),
+    supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .gt("stock", 0)
+      .lte("stock", LOW_STOCK_THRESHOLD),
+    supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("stock", 0),
+    supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+    supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("payment_status", "unpaid")
+      .neq("status", "cancelled"),
+    supabase
+      .from("purchases")
+      .select("subtotal")
+      .eq("status", "confirmed")
+      .gte("purchased_at", mtd.from)
+      .lt("purchased_at", mtd.to),
+    supabase
+      .from("purchases")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "draft"),
   ]);
 
-  const orderList = (orders ?? []) as RecentOrder[];
+  const orderList = (recentOrders ?? []) as RecentOrder[];
+  const lowStock = lowStockCount ?? 0;
+  const outOfStock = outOfStockCount ?? 0;
 
   const userIds = [
     ...new Set(orderList.map((o) => o.user_id).filter(Boolean)),
@@ -59,101 +142,306 @@ export default async function AdminDashboardPage() {
     );
   }
 
-  const revenue = orderList
-    .filter((o) => o.payment_status === "paid")
-    .reduce((sum, o) => sum + Number(o.total), 0);
-  const pendingCount = orderList.filter((o) => o.status === "pending").length;
-  const lowStockCount = (products ?? []).filter((p) => p.stock <= 5).length;
-  const recent = orderList.slice(0, 6);
+  const mtdList = (mtdOrders ?? []) as unknown as OrderWithItems[];
+  const paidMtd = mtdList.filter((o) => o.payment_status === "paid");
+  const mtdRevenue = paidMtd.reduce((sum, o) => sum + Number(o.total), 0);
+  const mtdProfit = paidMtd.reduce(
+    (sum, o) => sum + computeOrderProfit(o.items ?? []).profit,
+    0,
+  );
+  const mtdOrderCount = mtdList.length;
+  const mtdPurchaseSpend = (mtdPurchases ?? []).reduce(
+    (sum, p) => sum + Number(p.subtotal),
+    0,
+  );
 
-  const stats = [
-    { label: "Revenue (paid)", value: formatPrice(revenue), icon: DollarSign },
-    { label: "Total Orders", value: String(orderList.length), icon: ShoppingCart },
-    { label: "Pending Orders", value: String(pendingCount), icon: Clock },
-    { label: "Low Stock Items", value: String(lowStockCount), icon: AlertTriangle },
-  ];
+  const attention = [
+    {
+      label: "Pending orders",
+      value: pendingCount ?? 0,
+      href: "/admin/orders?status=pending",
+      tone: "amber" as const,
+    },
+    {
+      label: "Unpaid orders",
+      value: unpaidCount ?? 0,
+      href: "/admin/orders?payment_status=unpaid",
+      tone: "amber" as const,
+    },
+    {
+      label: "Low stock",
+      value: lowStock,
+      href: "/admin/inventory?stock=low",
+      tone: "amber" as const,
+    },
+    {
+      label: "Out of stock",
+      value: outOfStock,
+      href: "/admin/inventory?stock=out",
+      tone: "red" as const,
+    },
+    {
+      label: "Draft purchases",
+      value: draftPurchaseCount ?? 0,
+      href: "/admin/purchases?status=draft",
+      tone: "neutral" as const,
+    },
+  ].filter((item) => item.value > 0);
 
   return (
-    <div>
-      <div className="mb-6 grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4 xl:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={stat.label}
-              className="rounded-lg border border-glass-border bg-glass-bg p-4"
+    <div className="space-y-5 sm:space-y-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
+            Dashboard
+          </h1>
+          <p className="mt-1 text-xs text-white/50 sm:mt-1.5 sm:text-sm">
+            {todayLabel}
+          </p>
+        </div>
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+          <Button
+            href="/admin/orders/new"
+            size="sm"
+            leftIcon={<Plus className="h-4 w-4" />}
+          >
+            Create order
+          </Button>
+          <Button
+            href="/admin/purchases/new"
+            size="sm"
+            variant="subtle"
+            leftIcon={<Truck className="h-4 w-4" />}
+          >
+            New purchase
+          </Button>
+          <Button href="/admin/reports" size="sm" variant="ghost">
+            Reports
+          </Button>
+        </div>
+      </div>
+
+      <section>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-white/40">
+            {monthName} {year} overview
+          </h2>
+          <Link
+            href="/admin/reports"
+            className="text-sm text-gold transition-colors hover:text-gold-light"
+          >
+            View reports
+          </Link>
+        </div>
+        <StatGrid className="mb-0">
+          <StatCard
+            label="Revenue (paid)"
+            value={formatPrice(mtdRevenue)}
+            icon={DollarSign}
+            hint="Month to date · paid orders"
+          />
+          <StatCard
+            label="Gross profit"
+            value={formatPrice(mtdProfit)}
+            icon={TrendingUp}
+            hint="Paid sales − COGS"
+          />
+          <StatCard
+            label="Orders"
+            value={String(mtdOrderCount)}
+            icon={ShoppingBag}
+            hint="Non-cancelled this month"
+          />
+          <StatCard
+            label="Purchase spend"
+            value={formatPrice(mtdPurchaseSpend)}
+            icon={Wallet}
+            hint="Confirmed supplier bills"
+          />
+        </StatGrid>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-white/40">
+          Operations
+        </h2>
+        <StatGrid className="mb-0">
+          <StatCard
+            label="Pending orders"
+            value={String(pendingCount ?? 0)}
+            icon={Clock}
+          />
+          <StatCard
+            label="Unpaid orders"
+            value={String(unpaidCount ?? 0)}
+            icon={AlertTriangle}
+          />
+          <StatCard
+            label="Products"
+            value={String(productCount ?? 0)}
+            icon={Package}
+          />
+          <StatCard
+            label="Low stock"
+            value={String(lowStock)}
+            icon={Boxes}
+            hint={`≤ ${LOW_STOCK_THRESHOLD} units`}
+          />
+        </StatGrid>
+      </section>
+
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <section className="min-w-0">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="font-body text-base text-white sm:text-lg">
+              Recent orders
+            </h2>
+            <Link
+              href="/admin/orders"
+              className="text-sm text-gold transition-colors hover:text-gold-light"
             >
-              <div className="mb-2.5 inline-flex h-9 w-9 items-center justify-center rounded-md bg-gold/15 text-gold">
-                <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
-              </div>
-              <div className={cn("text-xl font-semibold text-white sm:text-2xl", numeric)}>
-                {stat.value}
-              </div>
-              <div className="text-xs text-white/50 sm:text-sm">{stat.label}</div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="flex items-center justify-between">
-        <h2 className="font-body text-lg text-white">Recent Orders</h2>
-        <Link
-          href="/admin/orders"
-          className="text-sm text-gold transition-colors hover:text-gold-light"
-        >
-          View all
-        </Link>
-      </div>
-
-      <div className="mt-3">
-        {recent.length === 0 ? (
-          <div className="rounded-lg border border-glass-border p-8 text-center text-white/50">
-            No orders yet.
+              View all
+            </Link>
           </div>
-        ) : (
-          <Table minWidth="min-w-[560px]">
-            <THead>
-              <Tr>
-                <Th>Order</Th>
-                <Th>Customer</Th>
-                <Th className="hidden sm:table-cell">Date</Th>
-                <Th>Status</Th>
-                <Th align="right">Total</Th>
-              </Tr>
-            </THead>
-            <TBody>
-              {recent.map((order) => (
-                <Tr key={order.id}>
-                  <Td className="font-medium text-gold">{order.order_number}</Td>
-                  <Td>
-                    <CustomerCell
-                      name={order.customer_name}
-                      email={order.customer_email}
-                      phone={order.customer_phone}
-                      customer={
-                        order.user_id
-                          ? customerMap.get(order.user_id) ?? null
-                          : null
-                      }
-                    />
-                  </Td>
-                  <Td className="hidden text-white/50 sm:table-cell">
-                    {new Date(order.created_at).toLocaleDateString("en-PK")}
-                  </Td>
-                  <Td>
-                    <div className="flex flex-wrap gap-1.5">
-                      <OrderStatusBadge status={order.status} />
-                      <PaymentStatusBadge status={order.payment_status} />
-                    </div>
-                  </Td>
-                  <Td align="right" className={cn("font-medium text-white", numeric)}>
-                    {formatPrice(order.total)}
-                  </Td>
+
+          {orderList.length === 0 ? (
+            <div className="rounded-lg border border-glass-border bg-glass-bg px-4 py-8 text-center text-sm text-white/50 sm:p-10">
+              No orders yet.{" "}
+              <Link href="/admin/orders/new" className="text-gold hover:text-gold-light">
+                Create your first order
+              </Link>
+            </div>
+          ) : (
+            <Table minWidth="min-w-[560px]">
+              <THead>
+                <Tr>
+                  <Th>Order</Th>
+                  <Th>Customer</Th>
+                  <Th className="hidden sm:table-cell">Date</Th>
+                  <Th>Status</Th>
+                  <Th align="right">Total</Th>
                 </Tr>
-              ))}
-            </TBody>
-          </Table>
-        )}
+              </THead>
+              <TBody>
+                {orderList.map((order) => (
+                  <Tr key={order.id}>
+                    <Td className="font-medium text-gold">
+                      <Link href={`/admin/orders/${order.id}`}>
+                        {order.order_number}
+                      </Link>
+                    </Td>
+                    <Td>
+                      <CustomerCell
+                        name={order.customer_name}
+                        email={order.customer_email}
+                        phone={order.customer_phone}
+                        customer={
+                          order.user_id
+                            ? (customerMap.get(order.user_id) ?? null)
+                            : null
+                        }
+                      />
+                    </Td>
+                    <Td className="hidden text-white/50 sm:table-cell">
+                      {new Date(order.created_at).toLocaleDateString("en-PK", {
+                        timeZone: "Asia/Karachi",
+                      })}
+                    </Td>
+                    <Td>
+                      <div className="flex flex-wrap gap-1.5">
+                        <OrderStatusBadge status={order.status} />
+                        <PaymentStatusBadge status={order.payment_status} />
+                      </div>
+                    </Td>
+                    <Td
+                      align="right"
+                      className={cn("font-medium text-white", numeric)}
+                    >
+                      {formatPrice(order.total)}
+                    </Td>
+                  </Tr>
+                ))}
+              </TBody>
+            </Table>
+          )}
+        </section>
+
+        <aside className="space-y-3 sm:space-y-4">
+          <section className="overflow-hidden rounded-lg border border-glass-border bg-glass-bg">
+            <h2 className="bg-green-mid px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white sm:px-4 sm:py-2.5">
+              Needs attention
+            </h2>
+            <div className="p-2 sm:p-3">
+              {attention.length === 0 ? (
+                <p className="px-1 py-3 text-xs text-white/50 sm:text-sm">
+                  Nothing urgent right now.
+                </p>
+              ) : (
+                <ul className="space-y-1">
+                  {attention.map((item) => (
+                    <li key={item.label}>
+                      <Link
+                        href={item.href}
+                        className="flex items-center justify-between gap-3 rounded-md px-2 py-2 text-xs transition-colors hover:bg-white/5 sm:py-2.5 sm:text-sm"
+                      >
+                        <span className="text-white/70">{item.label}</span>
+                        <span
+                          className={cn(
+                            "rounded-full px-2 py-0.5 text-xs font-semibold",
+                            numeric,
+                            item.tone === "red" &&
+                              "bg-red-500/15 text-red-300",
+                            item.tone === "amber" &&
+                              "bg-amber-500/15 text-amber-200",
+                            item.tone === "neutral" &&
+                              "bg-white/10 text-white/80",
+                          )}
+                        >
+                          {item.value}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+
+          <section className="overflow-hidden rounded-lg border border-glass-border bg-glass-bg">
+            <h2 className="bg-green-mid px-3 py-2 text-xs font-semibold uppercase tracking-wide text-white sm:px-4 sm:py-2.5">
+              Quick links
+            </h2>
+            <div className="flex flex-col gap-2 p-2 sm:p-3">
+              <Button href="/admin/orders" fullWidth variant="subtle" size="sm">
+                All orders
+              </Button>
+              <Button
+                href="/admin/inventory"
+                fullWidth
+                variant="subtle"
+                size="sm"
+              >
+                Inventory
+              </Button>
+              <Button
+                href="/admin/products"
+                fullWidth
+                variant="subtle"
+                size="sm"
+              >
+                Products
+              </Button>
+              <Button
+                href="/admin/purchases"
+                fullWidth
+                variant="subtle"
+                size="sm"
+              >
+                Purchases
+              </Button>
+            </div>
+          </section>
+        </aside>
       </div>
     </div>
   );
