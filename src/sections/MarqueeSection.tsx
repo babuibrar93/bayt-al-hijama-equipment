@@ -1,18 +1,19 @@
 import { MARQUEE_ITEMS } from "@/constants/site";
+import { typeMeta } from "@/lib/classes";
 
 export default function MarqueeSection() {
   const items = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
 
   return (
     <div
-      className="overflow-hidden border-y border-glass-border bg-green-mid/5 py-[18px]"
+      className="overflow-hidden border-y border-glass-border bg-green-mid/5 py-2"
       aria-hidden="true"
     >
-      <div className="flex w-max animate-marquee items-center gap-8 whitespace-nowrap">
+      <div className="flex w-max animate-marquee items-center gap-8 whitespace-nowrap motion-reduce:animate-none">
         {items.flatMap((item, index) => [
           <span
             key={`text-${item}-${index}`}
-            className="text-[0.78rem] font-medium uppercase tracking-[0.12em] text-white/50"
+            className={`${typeMeta} font-medium uppercase tracking-[0.12em] text-white/50`}
           >
             {item}
           </span>,

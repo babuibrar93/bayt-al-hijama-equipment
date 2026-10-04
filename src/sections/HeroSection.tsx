@@ -1,24 +1,37 @@
 import Image from "next/image";
 import { Fragment } from "react";
-import Particles from "@/components/ui/Particles";
+import IdleParticles from "@/components/ui/IdleParticles";
 import CounterStat from "@/components/ui/CounterStat";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { HERO_STATS } from "@/constants/site";
 import { WHATSAPP } from "@/constants/whatsapp";
-import { btnGhost, btnPrimary, cn, getRevealClass } from "@/lib/classes";
+import {
+  btnGhost,
+  btnPrimary,
+  cn,
+  getRevealClass,
+  pageGutter,
+  typeBody,
+  typeDisplay,
+  typeEyebrow,
+} from "@/lib/classes";
 
 export default function HeroSection() {
   return (
     <section
       id="hero"
       aria-label="Hero"
-      className="relative flex min-h-[90svh] items-center overflow-hidden bg-black px-4 pb-14 pt-[92px] sm:px-6 md:px-8 lg:min-h-svh lg:px-10 lg:pb-20 lg:pt-[96px] xl:px-[60px]"
+      className={cn(
+        "relative flex min-h-[90svh] items-center overflow-hidden bg-black pb-8 pt-[92px] lg:min-h-svh lg:pb-10 lg:pt-[96px]",
+        pageGutter,
+      )}
     >
       <Image
         src="/hero-hijama.jpg"
         alt="Professional Hijama cupping equipment"
         fill
         priority
+        quality={62}
         sizes="100vw"
         className="object-cover object-[68%_center] sm:object-[72%_center]"
       />
@@ -37,13 +50,14 @@ export default function HeroSection() {
         className="pointer-events-none absolute inset-0 bg-grad-hero opacity-70"
       />
 
-      <Particles id="heroParticles" options={{ count: 24, goldRatio: 0.35 }} />
+      <IdleParticles id="heroParticles" options={{ count: 10, goldRatio: 0.35 }} />
 
       <div className="relative z-[2] w-full max-w-[620px] max-md:mx-auto max-md:text-center">
         <div
           data-reveal
           className={cn(
-            "mb-5 flex max-w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.65rem] font-medium uppercase tracking-[0.12em] text-gold sm:text-[0.75rem] sm:tracking-[0.15em] lg:justify-start is-visible",
+            "mb-5 flex max-w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 font-medium uppercase tracking-[0.12em] text-gold sm:tracking-[0.15em] lg:justify-start is-visible",
+            typeEyebrow,
             getRevealClass("up"),
           )}
         >
@@ -61,17 +75,18 @@ export default function HeroSection() {
         <h1
           data-reveal
           className={cn(
-            "mb-5 font-display text-[clamp(2.5rem,4.5vw,4.5rem)] font-normal leading-[1.08] tracking-[-0.01em] text-white is-visible",
+            "mb-5 font-display font-normal leading-[0.95] tracking-[-0.01em] text-white is-visible",
+            typeDisplay,
             getRevealClass("up", 1),
           )}
         >
-          <span className="block">
+          <span className="block leading-[0.88]">
             Elevate Your <br />
-            <span className="text-transparent [-webkit-text-stroke:1px_#c9a84c]">
+            <span className="-mt-1 block text-transparent [-webkit-text-stroke:1px_#c9a84c]">
               Hijama Practice
             </span>
           </span>
-          <span className="block font-light italic text-white/70">
+          <span className="block italic leading-[0.95] text-white/70">
             With Professional <br /> Grade Equipment
           </span>
         </h1>
@@ -79,7 +94,8 @@ export default function HeroSection() {
         <p
           data-reveal
           className={cn(
-            "mb-8 max-w-[500px] text-[1rem] leading-[1.7] text-white/70 max-md:mx-auto is-visible",
+            "mb-8 max-w-[500px] leading-[1.7] text-white/70 max-md:mx-auto is-visible",
+            typeBody,
             getRevealClass("up", 2),
           )}
         >
@@ -150,14 +166,6 @@ export default function HeroSection() {
             </Fragment>
           ))}
         </div>
-      </div>
-
-      <div
-        aria-hidden="true"
-        className="absolute bottom-10 left-4 z-[2] flex items-center gap-3 text-[0.7rem] uppercase tracking-[0.15em] text-white/30 sm:left-6 md:left-8 lg:left-10 xl:left-[60px] max-md:hidden"
-      >
-        <span>Scroll</span>
-        <div className="relative h-px w-10 overflow-hidden bg-white/30 after:absolute after:inset-0 after:animate-scroll-line after:bg-gold" />
       </div>
     </section>
   );

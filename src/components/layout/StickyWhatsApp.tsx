@@ -35,7 +35,7 @@ export default function StickyWhatsApp() {
       data-magnetic
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Chat on WhatsApp"
+      aria-label="Order Now on WhatsApp"
       className="fixed bottom-8 right-8 z-50 flex items-center gap-2.5 overflow-visible rounded-lg bg-whatsapp px-5 py-3.5 text-[0.82rem] font-bold tracking-[0.04em] text-white shadow-[0_8px_32px_rgba(37,211,102,0.4)] transition-all duration-300 ease-spring hover:-translate-y-[3px] hover:scale-[1.06] hover:shadow-[0_12px_40px_rgba(37,211,102,0.55)] max-sm:bottom-6 max-sm:right-5 max-sm:px-4 max-sm:py-3"
     >
       <div

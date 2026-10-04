@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 import { FALLBACK_CATEGORIES, FALLBACK_PRODUCTS } from "@/lib/fallback-data";
@@ -43,8 +44,6 @@ const PRODUCT_SELECT = [
   "stock",
   "images",
   "features",
-  "badge",
-  "badge_variant",
   "category_id",
   "is_active",
   "is_featured",
@@ -145,10 +144,11 @@ const SORT_MAP: Record<ProductSort, [string, boolean]> = {
 
 /**
  * Paginated, server-side filtered product listing for the shop page.
+ * Cached so repeat storefront views skip a Supabase round trip.
  */
-export async function getProductsPage(
+const fetchProductsPage = async (
   query: ProductQuery & { page?: number; perPage?: number } = {},
-): Promise<PaginatedProducts> {
+): Promise<PaginatedProducts> => {
   const {
     categorySlug,
     search,
@@ -218,7 +218,13 @@ export async function getProductsPage(
     perPage,
     totalPages: Math.max(1, Math.ceil(total / perPage)),
   };
-}
+};
+
+export const getProductsPage = unstable_cache(
+  fetchProductsPage,
+  ["shop-products-page"],
+  { revalidate: 300 },
+);
 
 export async function getProductBySlug(
   slug: string,
@@ -272,20 +278,24 @@ export async function getAllCategorySlugs(): Promise<string[]> {
   return categories.map((c) => c.slug);
 }
 
-export async function getCategories(): Promise<Category[]> {
-  if (!isSupabaseConfigured()) {
-    return FALLBACK_CATEGORIES;
-  }
+export const getCategories = unstable_cache(
+  async (): Promise<Category[]> => {
+    if (!isSupabaseConfigured()) {
+      return FALLBACK_CATEGORIES;
+    }
 
-  const supabase = createStaticClient();
-  const { data, error } = await supabase
-    .from("categories")
-    .select("*")
-    .order("sort_order", { ascending: true });
+    const supabase = createStaticClient();
+    const { data, error } = await supabase
+      .from("categories")
+      .select("*")
+      .order("sort_order", { ascending: true });
 
-  if (error || !data) return [];
-  return data as Category[];
-}
+    if (error || !data) return [];
+    return data as Category[];
+  },
+  ["shop-categories"],
+  { revalidate: 300 },
+);
 
 export async function getAllProductSlugs(): Promise<string[]> {
   if (!isSupabaseConfigured()) {

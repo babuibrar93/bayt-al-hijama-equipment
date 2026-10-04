@@ -8,6 +8,8 @@ import {
   featureCardIndex,
   getRevealClass,
   sectionBandFirst,
+  typeBodySm,
+  typeCardTitle,
 } from "@/lib/classes";
 
 export default function TrustSection() {
@@ -49,10 +51,14 @@ export default function TrustSection() {
                 </span>
               </div>
 
-              <h3 className="relative mb-1.5 font-body text-base font-semibold leading-snug text-white sm:text-[1.05rem]">
+              <h3
+                className={`relative mb-1.5 font-body font-semibold leading-snug text-white ${typeCardTitle}`}
+              >
                 {card.title}
               </h3>
-              <p className="relative text-[0.8125rem] leading-[1.65] text-white/60 sm:text-[0.85rem]">
+              <p
+                className={`relative leading-[1.65] text-white/60 ${typeBodySm}`}
+              >
                 {card.description}
               </p>
             </div>

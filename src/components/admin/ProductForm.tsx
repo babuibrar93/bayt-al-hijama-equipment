@@ -8,18 +8,12 @@ import { toast } from "sonner";
 import { slugify } from "@/utils";
 import { cn } from "@/lib/classes";
 import { Button, Input, Textarea, Select, Checkbox } from "@/components/ui";
-import type { Category, ProductWithCategory, BadgeVariant } from "@/types/db";
+import type { Category, ProductWithCategory } from "@/types/db";
 
 interface ProductFormProps {
   categories: Category[];
   product?: ProductWithCategory;
 }
-
-const BADGE_OPTIONS = [
-  { value: "default", label: "Green" },
-  { value: "new", label: "Gold (soft)" },
-  { value: "gold", label: "Gold (outline)" },
-];
 
 export default function ProductForm({ categories, product }: ProductFormProps) {
   const router = useRouter();
@@ -33,10 +27,6 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
   );
   const [stock, setStock] = useState(product ? String(product.stock) : "0");
   const [categoryId, setCategoryId] = useState(product?.category_id ?? "");
-  const [badge, setBadge] = useState(product?.badge ?? "");
-  const [badgeVariant, setBadgeVariant] = useState<BadgeVariant>(
-    product?.badge_variant ?? "default",
-  );
   const [features, setFeatures] = useState<string[]>(
     product?.features.length ? product.features : [""],
   );
@@ -97,8 +87,6 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
       stock: Number(stock),
       images,
       features: features.map((f) => f.trim()).filter(Boolean),
-      badge,
-      badge_variant: badgeVariant,
       category_id: categoryId || null,
       is_active: isActive,
       is_featured: isFeatured,
@@ -206,27 +194,6 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
                 value={categoryId ?? ""}
                 onChange={setCategoryId}
                 placeholder="Select category"
-              />
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4 lg:p-5">
-            <h2 className="mb-3 text-sm font-medium text-white/80 sm:mb-4">
-              Badge
-            </h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-              <Input
-                label="Badge text (optional)"
-                value={badge}
-                onChange={(e) => setBadge(e.target.value)}
-                placeholder="e.g. Best Seller"
-              />
-              <Select
-                label="Badge style"
-                options={BADGE_OPTIONS}
-                value={badgeVariant}
-                onChange={(v) => setBadgeVariant(v as BadgeVariant)}
-                searchable={false}
               />
             </div>
           </section>

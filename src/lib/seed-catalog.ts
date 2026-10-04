@@ -18,8 +18,6 @@ export interface SeedProduct {
   cost_price: number | null;
   stock: number;
   features: string[];
-  badge?: string;
-  badge_variant?: "default" | "new" | "gold";
   categorySlug: string;
   is_featured: boolean;
   /** Remote URLs; empty = no images (admin uploads later) */
@@ -118,8 +116,6 @@ export const SEED_PRODUCTS: SeedProduct[] = [
       "Portable for home visits",
       "Compatible with standard cups",
     ],
-    badge: "Popular",
-    badge_variant: "new",
     categorySlug: "pumps-machines",
     is_featured: true,
     imageSources: [],
@@ -138,8 +134,6 @@ export const SEED_PRODUCTS: SeedProduct[] = [
       "Clinic-grade performance",
       "Stable continuous suction",
     ],
-    badge: "Pro",
-    badge_variant: "gold",
     categorySlug: "pumps-machines",
     is_featured: true,
     imageSources: [],
@@ -500,8 +494,6 @@ export const SEED_PRODUCTS: SeedProduct[] = [
       "Soft flexible grip",
       "Easy to clean",
     ],
-    badge: "Popular",
-    badge_variant: "default",
     categorySlug: "hijama-cups",
     is_featured: true,
     imageSources: [],
@@ -556,8 +548,6 @@ export const SEED_PRODUCTS: SeedProduct[] = [
       "Therapist-ready pack",
       "Durable cup construction",
     ],
-    badge: "Kit",
-    badge_variant: "gold",
     categorySlug: "hijama-cups",
     is_featured: true,
     imageSources: [],

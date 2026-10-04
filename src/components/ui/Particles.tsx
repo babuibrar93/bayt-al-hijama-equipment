@@ -67,8 +67,8 @@ export default function Particles({ id, options, className }: ParticlesProps) {
     // competes with hydration or the LCP paint.
     const hasIdle = typeof window.requestIdleCallback === "function";
     const handle = hasIdle
-      ? window.requestIdleCallback(build, { timeout: 1500 })
-      : window.setTimeout(build, 600);
+      ? window.requestIdleCallback(build, { timeout: 3000 })
+      : window.setTimeout(build, 1500);
 
     return () => {
       if (hasIdle && typeof window.cancelIdleCallback === "function") {

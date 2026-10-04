@@ -157,7 +157,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
             {products.map((product) => (
               <Tr key={product.id}>
                 <Td>
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-center gap-3">
                     <div className="h-11 w-11 shrink-0 overflow-hidden rounded-md">
                       <ProductImage
                         src={product.images[0] ?? null}

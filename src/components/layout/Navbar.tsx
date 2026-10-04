@@ -7,7 +7,7 @@ import { ShoppingBag, User } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 import { NAV_LINKS } from "@/constants/navigation";
 import { useCart } from "@/context/CartContext";
-import { cn, navLink } from "@/lib/classes";
+import { cn, navLink, pageGutter } from "@/lib/classes";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -41,13 +41,14 @@ export default function Navbar() {
         role="navigation"
         aria-label="Main navigation"
         className={cn(
-          "fixed inset-x-0 top-0 z-[100] flex h-nav items-center gap-4 border-b px-4 transition-all duration-300 ease-out sm:px-6 lg:gap-6 lg:px-8",
+          "fixed inset-x-0 top-0 z-[100] flex h-nav items-center gap-4 border-b transition-all duration-300 ease-out lg:gap-6",
+          pageGutter,
           scrolled
-            ? "border-glass-border bg-[rgba(5,12,8,0.94)] shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl"
-            : "border-transparent bg-[rgba(5,12,8,0.55)] backdrop-blur-md",
+            ? "border-glass-border bg-[rgba(5,12,8,0.94)] shadow-[0_8px_32px_rgba(0,0,0,0.35)]"
+            : "border-transparent bg-[rgba(5,12,8,0.88)]",
         )}
       >
-        <Logo size="sm" priority className="min-w-0" />
+        <Logo size="sm" priority={pathname !== "/"} className="min-w-0" />
 
         <ul className="mx-auto hidden items-center gap-7 lg:flex" role="list">
           <li>
@@ -68,7 +69,7 @@ export default function Navbar() {
           <Link
             href="/account"
             aria-label="My account"
-            className="inline-flex items-center justify-center rounded-full p-2 text-white/75 transition-colors hover:text-gold"
+            className="inline-flex h-12 w-12 items-center justify-center rounded-full text-white/75 transition-colors hover:text-gold"
           >
             <User className="h-[18px] w-[18px]" aria-hidden="true" />
           </Link>
@@ -91,7 +92,7 @@ export default function Navbar() {
             aria-expanded={menuOpen}
             aria-controls="mobileMenu"
             onClick={() => setMenuOpen((open) => !open)}
-            className="flex flex-col gap-[5px] p-1"
+            className="flex h-12 w-12 flex-col items-center justify-center gap-[5px]"
           >
             <span
               className={cn(
@@ -183,7 +184,7 @@ function CartLink({
     <Link
       href="/cart"
       aria-label={`Cart${isHydrated && itemCount > 0 ? `, ${itemCount} items` : ""}`}
-      className="relative inline-flex items-center justify-center rounded-full p-2 text-white/75 transition-colors hover:text-gold"
+      className="relative inline-flex h-12 w-12 items-center justify-center rounded-full text-white/75 transition-colors hover:text-gold"
     >
       <ShoppingBag className="h-[18px] w-[18px]" aria-hidden="true" />
       {isHydrated && itemCount > 0 && (

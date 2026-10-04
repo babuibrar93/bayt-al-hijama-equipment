@@ -7,7 +7,7 @@ export function scrollToSection(hash: string, offset = 80): void {
   window.scrollTo({ top, behavior: "smooth" });
 }
 
-export { cn, getBadgeClass, getRevealClass } from "@/lib/classes";
+export { cn, getRevealClass } from "@/lib/classes";
 
 const priceFormatter = new Intl.NumberFormat("en-PK", {
   maximumFractionDigits: 0,

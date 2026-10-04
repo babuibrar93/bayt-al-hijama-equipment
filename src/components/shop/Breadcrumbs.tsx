@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { cn } from "@/lib/classes";
+import { cn, typeBodySm, typeMeta } from "@/lib/classes";
 
 export interface Crumb {
   label: string;
@@ -15,24 +15,23 @@ const variantStyles: Record<
 > = {
   default: {
     nav: "mb-8",
-    list: "gap-1.5 text-sm text-white/50",
+    list: `gap-1.5 text-white/50 ${typeBodySm}`,
     chevron: "h-3.5 w-3.5 text-white/30",
     current: "text-white/80",
   },
   header: {
     nav: "mb-0",
-    list: "gap-2 text-sm font-medium text-white/55 sm:text-[0.9375rem]",
+    list: `gap-2 font-medium text-white/55 ${typeBodySm}`,
     chevron: "h-4 w-4 text-white/35",
     current: "text-white/90",
   },
   compact: {
     nav: "mb-0",
-    list: "gap-1.5 text-xs text-white/45",
+    list: `gap-1.5 text-white/45 ${typeMeta}`,
     chevron: "h-3.5 w-3.5 text-white/30",
     current: "text-white/80",
   },
 };
-
 export default function Breadcrumbs({
   items,
   variant = "default",
@@ -57,7 +56,7 @@ export default function Breadcrumbs({
               {item.href && !isLast ? (
                 <Link
                   href={item.href}
-                  className="transition-colors hover:text-gold"
+                  className="inline-flex min-h-12 items-center transition-colors hover:text-gold"
                 >
                   {item.label}
                 </Link>

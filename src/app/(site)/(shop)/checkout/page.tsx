@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import CheckoutView from "@/components/shop/CheckoutView";
 import PageHeader from "@/components/shop/PageHeader";
 import { pageInner, pageShell } from "@/lib/classes";
@@ -20,9 +21,15 @@ export default function CheckoutPage() {
             { label: "Checkout" },
           ]}
           eyebrow="Secure Checkout"
-          description="Enter shipping details and choose your payment method. We'll confirm your order shortly."
+          description="Enter shipping details and choose payment. For bank / JazzCash / Easypaisa you'll see payment details before the order is placed."
         />
-        <CheckoutView />
+        <Suspense
+          fallback={
+            <div className="py-20 text-center text-white/50">Loading...</div>
+          }
+        >
+          <CheckoutView />
+        </Suspense>
       </div>
     </div>
   );

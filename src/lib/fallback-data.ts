@@ -35,8 +35,6 @@ export const FALLBACK_PRODUCTS: ProductWithCategory[] = SEED_PRODUCTS.map(
     stock: p.stock,
     images: productImagePaths(p.slug, p.imageSources.length),
     features: p.features,
-    badge: p.badge ?? null,
-    badge_variant: p.badge_variant ?? "default",
     category_id: `cat-${p.categorySlug}`,
     is_active: true,
     is_featured: p.is_featured,

@@ -1,6 +1,14 @@
 import SectionHeader from "@/components/ui/SectionHeader";
 import { TIMELINE_ITEMS } from "@/constants/why";
-import { cn, container, getRevealClass, section } from "@/lib/classes";
+import {
+  cn,
+  container,
+  getRevealClass,
+  section,
+  typeBodySm,
+  typeCardTitle,
+  typeEyebrow,
+} from "@/lib/classes";
 
 export default function WhySection() {
   return (
@@ -44,7 +52,9 @@ export default function WhySection() {
                     "lg:col-start-2 lg:row-start-1",
                   )}
                 >
-                  <span className="text-[0.65rem] font-bold tracking-[0.05em] text-gold">
+                  <span
+                    className={`${typeEyebrow} font-bold tracking-[0.05em] text-gold`}
+                  >
                     {item.number}
                   </span>
                 </div>
@@ -57,10 +67,12 @@ export default function WhySection() {
                       : "lg:col-start-3 lg:row-start-1",
                   )}
                 >
-                  <h3 className="mb-1.5 font-body text-[clamp(1rem,3vw,1.15rem)] font-semibold text-white">
+                  <h3
+                    className={`mb-1.5 font-body font-semibold text-white ${typeCardTitle}`}
+                  >
                     {item.title}
                   </h3>
-                  <p className="text-[0.875rem] leading-[1.65] text-white/60">
+                  <p className={`leading-[1.65] text-white/60 ${typeBodySm}`}>
                     {item.description}
                   </p>
                 </div>

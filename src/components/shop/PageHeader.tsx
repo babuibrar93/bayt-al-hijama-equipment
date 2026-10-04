@@ -1,4 +1,4 @@
-import { cn } from "@/lib/classes";
+import { cn, typeBodySm, typeEyebrow } from "@/lib/classes";
 import Breadcrumbs, { type Crumb } from "@/components/shop/Breadcrumbs";
 
 interface PageHeaderProps {
@@ -38,13 +38,23 @@ export default function PageHeader({
             className="h-px w-5 shrink-0 bg-gold sm:w-6"
             aria-hidden="true"
           />
-          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-gold sm:text-[0.72rem] sm:tracking-[0.18em]">
+          <p
+            className={cn(
+              "font-semibold uppercase tracking-[0.16em] text-gold sm:tracking-[0.18em]",
+              typeEyebrow,
+            )}
+          >
             {eyebrow}
           </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <p className="min-w-0 flex-1 text-[0.8125rem] leading-relaxed text-white/55 sm:text-sm sm:leading-[1.65]">
+          <p
+            className={cn(
+              "min-w-0 flex-1 leading-relaxed text-white/55 sm:leading-[1.65]",
+              typeBodySm,
+            )}
+          >
             {description}
           </p>
 

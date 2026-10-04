@@ -14,8 +14,6 @@ export interface Product {
   title: string;
   description: string;
   features: string[];
-  badge: string;
-  badgeVariant: "default" | "new" | "gold";
   whatsappUrl: string;
   iconId: string;
 }

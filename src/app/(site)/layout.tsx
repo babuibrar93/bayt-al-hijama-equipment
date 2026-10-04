@@ -1,4 +1,3 @@
-import Loader from "@/components/layout/Loader";
 import CursorGlow from "@/components/layout/CursorGlow";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -12,7 +11,6 @@ export default function SiteLayout({
 }) {
   return (
     <>
-      <Loader />
       <CursorGlow />
       <Navbar />
       <main>{children}</main>

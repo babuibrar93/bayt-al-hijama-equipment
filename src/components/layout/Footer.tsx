@@ -1,4 +1,5 @@
 import Logo from "@/components/ui/Logo";
+import ArabicName from "@/components/layout/ArabicName";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
 import { SITE } from "@/constants/site";
 import {
@@ -27,7 +28,7 @@ export default function Footer() {
                 href={WHATSAPP.mobile}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-glass-border bg-glass-bg text-white/60 transition-all duration-[250ms] hover:border-green-mid hover:bg-green-mid hover:text-white"
+                className="flex h-12 w-12 items-center justify-center rounded-full border border-glass-border bg-glass-bg text-white/60 transition-all duration-[250ms] hover:border-green-mid hover:bg-green-mid hover:text-white"
                 aria-label="WhatsApp"
               >
                 <WhatsAppIcon size={16} />
@@ -37,9 +38,9 @@ export default function Footer() {
 
           {[FOOTER_PRODUCT_LINKS, FOOTER_PROFESSIONAL_LINKS].map((group) => (
             <div key={group.title}>
-              <h4 className="mb-3 text-[0.72rem] font-bold uppercase tracking-[0.15em] text-white">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.15em] text-white">
                 {group.title}
-              </h4>
+              </p>
               <ul className="flex flex-col gap-2.5" role="list">
                 {group.links.map((link) => (
                   <li key={link.label}>
@@ -58,9 +59,9 @@ export default function Footer() {
           ))}
 
           <div>
-            <h4 className="mb-3 text-[0.72rem] font-bold uppercase tracking-[0.15em] text-white">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.15em] text-white">
               Contact
-            </h4>
+            </p>
             <ul className="flex flex-col gap-2.5" role="list">
               <li className="flex items-center gap-2.5 text-[0.85rem] text-white/60">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16" aria-hidden="true">
@@ -96,9 +97,7 @@ export default function Footer() {
       <div className="border-t border-glass-border py-4">
         <div className={`${container} flex flex-col items-center justify-between gap-2 sm:flex-row`}>
           <p className="text-[0.78rem] text-white/50">{SITE.copyright}</p>
-          <p className="font-urdu text-[1.1rem] text-gold/70" lang="ar" dir="rtl">
-            {SITE.arabicName}
-          </p>
+          <ArabicName>{SITE.arabicName}</ArabicName>
         </div>
       </div>
     </footer>

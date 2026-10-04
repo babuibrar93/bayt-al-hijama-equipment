@@ -17,8 +17,6 @@ export const productSchema = z.object({
   stock: z.number().int().nonnegative("Stock must be 0 or more"),
   images: z.array(z.string().url()).default([]),
   features: z.array(z.string().min(1)).default([]),
-  badge: z.string().max(40).optional().or(z.literal("")),
-  badge_variant: z.enum(["default", "new", "gold"]).default("default"),
   category_id: z.string().uuid().nullable().optional(),
   is_active: z.boolean().default(true),
   is_featured: z.boolean().default(false),

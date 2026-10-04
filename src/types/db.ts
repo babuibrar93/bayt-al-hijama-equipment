@@ -1,5 +1,3 @@
-export type BadgeVariant = "default" | "new" | "gold";
-
 export type PaymentMethod = "cod" | "bank_transfer" | "jazzcash" | "easypaisa";
 
 export type PaymentStatus = "unpaid" | "paid" | "refunded";
@@ -31,8 +29,6 @@ export interface Product {
   stock: number;
   images: string[];
   features: string[];
-  badge: string | null;
-  badge_variant: BadgeVariant;
   category_id: string | null;
   is_active: boolean;
   is_featured: boolean;

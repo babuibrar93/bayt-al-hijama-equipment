@@ -245,8 +245,6 @@ async function main() {
       stock: product.stock,
       images: imageUrls,
       features: product.features,
-      badge: product.badge ?? null,
-      badge_variant: product.badge_variant ?? "default",
       category_id: categoryId,
       is_active: true,
       is_featured: product.is_featured,

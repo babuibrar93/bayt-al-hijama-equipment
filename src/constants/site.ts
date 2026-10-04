@@ -5,14 +5,15 @@ export const SITE = {
   logo: {
     src: "/bayt-logo.png",
     alt: "Bayt Al Hijama",
-    width: 512,
-    height: 512,
+    width: 256,
+    height: 256,
   },
   favicon: "/favicon.ico",
   /** Cropped from bayt-logo.png — emblem fills the frame (favicon only). */
   faviconPng: "/favicon.png",
   url: "https://baytalhijama.com",
   locale: "en_PK",
+  email: "info@baytalhijama.com",
   phone: "+92 329 3561309",
   phoneRaw: "+923293561309",
   whatsappNumber: "923293561309",
@@ -20,6 +21,14 @@ export const SITE = {
   delivery: "All Over Pakistan",
   copyright: "© 2025 Bayt Al Hijama Equipment. All rights reserved.",
   arabicName: "بَيْتُ الْحِجَامَة",
+} as const;
+
+/** Copy used on customer-facing invoice PDFs. */
+export const INVOICE_COPY = {
+  terms:
+    "Damage to goods during transportation and travelling or cargo, courier bookings, etc. will be the responsibility of the customer.",
+  payByQr: "Pay your bill by scanning the QR code below.",
+  thanks: "THANKS FOR BUYING THE PRODUCT OF BAYT AL HIJAMA EQUIPMENT",
 } as const;
 
 export const SEO = {

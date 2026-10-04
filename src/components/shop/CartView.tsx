@@ -42,25 +42,25 @@ export default function CartView() {
   const total = subtotal + shippingFee;
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
-      <ul className="flex flex-col gap-4" role="list">
+    <div className="grid grid-cols-1 gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)]">
+      <ul className="flex min-w-0 flex-col gap-3 sm:gap-4" role="list">
         {items.map((item) => (
           <li
             key={item.productId}
-            className="flex flex-col gap-3 rounded-lg border border-glass-border bg-glass-bg p-4 sm:flex-row sm:gap-4"
+            className="flex min-w-0 gap-3 rounded-lg border border-glass-border bg-glass-bg p-3 sm:gap-4 sm:p-4"
           >
             <Link
               href={`/shop/${item.slug}`}
-              className="w-24 shrink-0 overflow-hidden rounded-sm sm:w-28"
+              className="h-20 w-20 shrink-0 overflow-hidden rounded-sm sm:h-28 sm:w-28"
             >
               <ProductImage src={item.image} alt={item.name} sizes="112px" />
             </Link>
 
             <div className="flex min-w-0 flex-1 flex-col">
-              <div className="flex items-start justify-between gap-2 sm:gap-3">
+              <div className="flex items-start justify-between gap-2">
                 <Link
                   href={`/shop/${item.slug}`}
-                  className="min-w-0 font-body text-base leading-snug text-white transition-colors hover:text-gold sm:text-lg"
+                  className="min-w-0 font-body text-sm leading-snug text-white transition-colors hover:text-gold sm:text-lg"
                 >
                   <span className="line-clamp-2">{item.name}</span>
                 </Link>
@@ -68,17 +68,17 @@ export default function CartView() {
                   type="button"
                   onClick={() => removeItem(item.productId)}
                   aria-label={`Remove ${item.name} from cart`}
-                  className="text-white/40 transition-colors hover:text-red-400"
+                  className="shrink-0 p-1 text-white/40 transition-colors hover:text-red-400"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
 
-              <span className="mt-1 text-sm text-white/50">
+              <span className="mt-1 text-xs text-white/50 sm:text-sm">
                 {formatPrice(item.price)} each
               </span>
 
-              <div className="mt-auto flex items-center justify-between pt-3">
+              <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3">
                 <div className="inline-flex items-center rounded-sm border border-glass-border">
                   <button
                     type="button"
@@ -105,7 +105,7 @@ export default function CartView() {
                     <Plus className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <span className="font-body text-lg font-semibold text-white">
+                <span className="font-body text-base font-semibold text-white sm:text-lg">
                   {formatPrice(item.price * item.quantity)}
                 </span>
               </div>
@@ -114,8 +114,10 @@ export default function CartView() {
         ))}
       </ul>
 
-      <aside className="h-fit rounded-lg border border-glass-border bg-glass-bg p-6 lg:sticky lg:top-24">
-        <h2 className="mb-5 font-body text-xl text-white">Order Summary</h2>
+      <aside className="h-fit rounded-lg border border-glass-border bg-glass-bg p-4 sm:p-6 lg:sticky lg:top-24">
+        <h2 className="mb-4 font-body text-lg text-white sm:mb-5 sm:text-xl">
+          Order Summary
+        </h2>
         <dl className="flex flex-col gap-3 text-sm">
           <div className="flex justify-between text-white/70">
             <dt>Subtotal</dt>

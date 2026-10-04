@@ -12,24 +12,28 @@ const SIZE = {
     zoom: "h-[185%] w-[185%]",
     title: "text-sm",
     gap: "gap-2.5",
+    imageSize: "72px",
   },
   sm: {
     wrap: "h-10 w-10",
     zoom: "h-[185%] w-[185%]",
     title: "text-[1.05rem] sm:text-[1.125rem]",
     gap: "gap-2.5",
+    imageSize: "80px",
   },
   md: {
     wrap: "h-11 w-11",
     zoom: "h-[185%] w-[185%]",
     title: "text-[1.125rem]",
     gap: "gap-3",
+    imageSize: "88px",
   },
   lg: {
     wrap: "h-14 w-14",
     zoom: "h-[185%] w-[185%]",
     title: "text-xl",
     gap: "gap-3.5",
+    imageSize: "112px",
   },
 } as const;
 
@@ -91,8 +95,9 @@ export default function Logo({
         <Image
           src={SITE.logo.src}
           alt={showText ? "" : SITE.logo.alt}
-          width={SITE.logo.width}
-          height={SITE.logo.height}
+          width={64}
+          height={64}
+          sizes={tokens.imageSize}
           priority={priority}
           className={cn(
             "absolute left-[60%] top-[80%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain",

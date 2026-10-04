@@ -31,7 +31,6 @@ export async function POST(request: Request) {
     .insert({
       ...parsed.data,
       cost_price: parsed.data.cost_price ?? null,
-      badge: parsed.data.badge || null,
       category_id: parsed.data.category_id || null,
     })
     .select("id, slug")

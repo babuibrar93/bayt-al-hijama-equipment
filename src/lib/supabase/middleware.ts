@@ -13,6 +13,25 @@ export async function updateSession(request: NextRequest) {
   // If Supabase isn't configured yet, skip auth handling.
   if (!url || !anonKey) return response;
 
+  const path = request.nextUrl.pathname;
+  const authRequired =
+    path.startsWith("/admin") ||
+    path.startsWith("/account") ||
+    path === "/login" ||
+    path === "/signup" ||
+    path === "/forgot-password" ||
+    path === "/reset-password";
+  // Anonymous storefront traffic has nothing to refresh. Skipping getUser()
+  // avoids a Supabase round trip on every landing, shop, and product view.
+  const hasSession = request.cookies
+    .getAll()
+    .some(
+      (cookie) =>
+        cookie.name.startsWith("sb-") && cookie.name.includes("auth-token"),
+    );
+
+  if (!authRequired && !hasSession) return response;
+
   const supabase = createServerClient(url, anonKey, {
     cookies: {
       getAll() {
@@ -34,7 +53,6 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const path = request.nextUrl.pathname;
   const isAdminArea = path.startsWith("/admin") && path !== "/admin/login";
 
   // Protect the admin area: must be signed in AND an admin.

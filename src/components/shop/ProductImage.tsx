@@ -35,6 +35,7 @@ export default function ProductImage({
           fill
           sizes={sizes}
           priority={priority}
+          quality={70}
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
       ) : (

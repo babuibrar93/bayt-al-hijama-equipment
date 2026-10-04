@@ -1,11 +1,25 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Search, LayoutGrid, List, X, SlidersHorizontal } from "lucide-react";
-import { cn } from "@/lib/classes";
+import { Search, X } from "lucide-react";
+import { Select } from "@/components/ui";
+import { cn, typeBodySm, typeEyebrow, typeMeta } from "@/lib/classes";
 import type { Category } from "@/types/db";
 import type { ProductSort } from "@/lib/products";
+
+function listingHref(
+  pathname: string,
+  search: string,
+  sort: ProductSort,
+) {
+  const params = new URLSearchParams();
+  if (search) params.set("search", search);
+  if (sort !== "newest") params.set("sort", sort);
+  const query = params.toString();
+  return query ? `${pathname}?${query}` : pathname;
+}
 
 const SORT_OPTIONS: { value: ProductSort; label: string }[] = [
   { value: "newest", label: "Newest" },
@@ -19,7 +33,6 @@ interface ShopFiltersProps {
   activeCategory?: string;
   activeSort: ProductSort;
   activeSearch: string;
-  activeView: "grid" | "list";
 }
 
 export default function ShopFilters({
@@ -27,7 +40,6 @@ export default function ShopFilters({
   activeCategory,
   activeSort,
   activeSearch,
-  activeView,
 }: ShopFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -55,8 +67,10 @@ export default function ShopFilters({
     updateParams({ search: search.trim() || undefined });
   };
 
-  const fieldClass =
-    "h-10 rounded-lg border border-glass-border bg-black/20 text-sm text-white transition-colors focus:border-gold/45 focus:outline-none sm:h-11";
+  const fieldClass = cn(
+    "h-10 rounded-lg border border-glass-border bg-black/20 text-white transition-colors focus:border-gold/45 focus:outline-none sm:h-11",
+    typeBodySm,
+  );
 
   return (
     <div
@@ -68,7 +82,7 @@ export default function ShopFilters({
       <div className="flex flex-col gap-3 border-b border-glass-border/50 px-4 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-5 sm:py-3.5">
         <form
           onSubmit={onSearchSubmit}
-          className="relative min-w-0 flex-1"
+          className="relative w-full max-w-md min-w-0"
         >
           <Search
             className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40"
@@ -80,7 +94,10 @@ export default function ShopFilters({
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search products..."
             aria-label="Search products"
-            className={cn(fieldClass, "w-full pl-9 pr-9 placeholder:text-white/35")}
+            className={cn(
+              fieldClass,
+              "w-full pl-9 pr-9 placeholder:text-white/35",
+            )}
           />
           {search ? (
             <button
@@ -97,71 +114,46 @@ export default function ShopFilters({
           ) : null}
         </form>
 
-        <div className="flex items-center gap-2 sm:shrink-0">
-          <div className="relative min-w-0 flex-1 sm:flex-none">
-            <SlidersHorizontal
-              className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/35 sm:hidden"
-              aria-hidden="true"
-            />
-            <select
-              value={activeSort}
-              onChange={(e) => updateParams({ sort: e.target.value })}
-              aria-label="Sort products"
-              className={cn(
-                fieldClass,
-                "w-full appearance-none pl-3 pr-8 sm:min-w-[11.5rem] sm:pl-3",
-              )}
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div
-            className="hidden items-center rounded-lg border border-glass-border bg-black/20 p-0.5 sm:flex"
-            role="group"
-            aria-label="Product view"
-          >
-            <ViewButton
-              active={activeView === "grid"}
-              onClick={() => updateParams({ view: undefined }, false)}
-              label="Grid view"
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </ViewButton>
-            <ViewButton
-              active={activeView === "list"}
-              onClick={() => updateParams({ view: "list" }, false)}
-              label="List view"
-            >
-              <List className="h-4 w-4" />
-            </ViewButton>
-          </div>
+        <div className="w-full sm:w-auto sm:min-w-[13.5rem] sm:shrink-0">
+          <Select
+            options={SORT_OPTIONS}
+            value={activeSort}
+            onChange={(value) =>
+              updateParams({
+                sort: value === "newest" ? undefined : value,
+              })
+            }
+            placeholder="Sort by"
+            searchable={false}
+            containerClassName="w-full"
+          />
         </div>
       </div>
 
       <div className="px-4 py-3 sm:px-5 sm:py-3.5">
         <div className="mb-2.5 flex items-center gap-2">
           <span className="h-px w-4 shrink-0 bg-gold/80" aria-hidden="true" />
-          <span className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-gold sm:text-[0.68rem]">
+          <span
+            className={cn(
+              "font-semibold uppercase tracking-[0.14em] text-gold",
+              typeEyebrow,
+            )}
+          >
             Categories
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
           <FilterPill
+            href={listingHref("/shop", activeSearch, activeSort)}
             label="All"
             active={!activeCategory}
-            onClick={() => updateParams({ category: undefined })}
           />
           {categories.map((category) => (
             <FilterPill
               key={category.id}
+              href={`/shop/category/${category.slug}`}
               label={category.name}
               active={activeCategory === category.slug}
-              onClick={() => router.push(`/shop/category/${category.slug}`)}
             />
           ))}
         </div>
@@ -170,57 +162,28 @@ export default function ShopFilters({
   );
 }
 
-function ViewButton({
-  active,
-  onClick,
-  label,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      aria-pressed={active}
-      className={cn(
-        "inline-flex h-9 w-9 items-center justify-center rounded-md transition-all duration-200",
-        active
-          ? "bg-gold/15 text-gold shadow-[inset_0_0_0_1px_rgba(201,168,76,0.25)]"
-          : "text-white/45 hover:text-white/80",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
 function FilterPill({
+  href,
   label,
   active,
-  onClick,
 }: {
+  href: string;
   label: string;
   active: boolean;
-  onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
       className={cn(
-        "rounded-lg border px-3 py-1.5 text-[0.78rem] font-medium transition-all duration-200 sm:px-3.5 sm:text-[0.8125rem]",
+        "inline-flex min-h-12 items-center rounded-lg border px-4 font-medium transition-all duration-200",
+        typeMeta,
         active
           ? "border-gold/40 bg-gold/12 text-gold shadow-[inset_0_0_0_1px_rgba(201,168,76,0.15)]"
           : "border-glass-border bg-black/15 text-white/55 hover:border-white/20 hover:bg-white/[0.03] hover:text-white/85",
       )}
     >
       {label}
-    </button>
+    </Link>
   );
 }

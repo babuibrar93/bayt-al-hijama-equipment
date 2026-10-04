@@ -73,7 +73,6 @@ export async function PUT(request: Request, { params }: RouteParams) {
     .update({
       ...parsed.data,
       cost_price: parsed.data.cost_price ?? null,
-      badge: parsed.data.badge || null,
       category_id: parsed.data.category_id || null,
     })
     .eq("id", id);

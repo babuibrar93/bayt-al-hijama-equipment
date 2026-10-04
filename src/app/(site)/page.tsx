@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SEO } from "@/constants/site";
 import { siteUrl } from "@/lib/metadata";
 import StructuredData from "@/components/seo/StructuredData";
@@ -33,10 +34,18 @@ export default function HomePage() {
       <HeroSection />
       <MarqueeSection />
       <AnimatedSectionBand id="trustOfferParticles">
-        <TrustSection />
-        <CategoriesSection />
+        <Suspense fallback={null}>
+          <CategoriesSection />
+        </Suspense>
       </AnimatedSectionBand>
-      <ProductsSection />
+      <Suspense
+        fallback={
+          <div className="min-h-[28rem] bg-black-3" aria-hidden="true" />
+        }
+      >
+        <ProductsSection />
+      </Suspense>
+      <TrustSection />
       <WhySection />
       <TestimonialsSection />
       <FAQSection />

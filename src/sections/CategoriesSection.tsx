@@ -9,6 +9,9 @@ import {
   featureCardIndex,
   getRevealClass,
   sectionBandSecond,
+  typeBodySm,
+  typeCardTitle,
+  typeMeta,
 } from "@/lib/classes";
 
 const ICON_BY_SLUG: Record<string, string> = {
@@ -72,17 +75,23 @@ export default async function CategoriesSection() {
                 </span>
               </div>
 
-              <h3 className="relative mb-1.5 font-body text-base font-semibold leading-snug text-white sm:text-[1.1rem]">
+              <h3
+                className={`relative mb-1.5 font-body font-semibold leading-snug text-white ${typeCardTitle}`}
+              >
                 {category.name}
               </h3>
 
               {category.description && (
-                <p className="relative mb-3 line-clamp-3 flex-1 text-[0.8125rem] leading-[1.55] text-white/60 sm:line-clamp-2 sm:text-[0.82rem]">
+                <p
+                  className={`relative mb-3 line-clamp-3 flex-1 leading-[1.55] text-white/60 sm:line-clamp-2 ${typeBodySm}`}
+                >
                   {category.description}
                 </p>
               )}
 
-              <span className="relative mt-auto text-[0.75rem] font-semibold tracking-[0.06em] text-gold transition-all duration-[250ms] group-hover:tracking-[0.1em] sm:text-[0.8rem]">
+              <span
+                className={`relative mt-auto font-semibold tracking-[0.06em] text-gold transition-all duration-[250ms] group-hover:tracking-[0.1em] ${typeMeta}`}
+              >
                 Explore Range →
               </span>
             </Link>

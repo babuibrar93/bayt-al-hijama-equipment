@@ -9,7 +9,7 @@ import {
   getAllCategorySlugs,
   getProducts,
 } from "@/lib/products";
-import ProductCard from "@/components/shop/ProductCard";
+import ProductGrid from "@/components/shop/ProductGrid";
 import PageHeader from "@/components/shop/PageHeader";
 import JsonLd from "@/components/seo/JsonLd";
 import {
@@ -17,7 +17,15 @@ import {
   getShopItemListSchema,
   getWebPageSchema,
 } from "@/lib/structured-data";
-import { pageInner, pageShell } from "@/lib/classes";
+import {
+  pageInner,
+  pageShell,
+  typeBodySm,
+  typeCardTitle,
+  typeEyebrow,
+  typeMeta,
+  typeSectionTitle,
+} from "@/lib/classes";
 
 export const revalidate = 300;
 
@@ -99,33 +107,26 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
         {products.length === 0 ? (
           <div className="rounded-lg border border-glass-border bg-glass-bg p-10 text-center">
-            <p className="text-lg text-white/70">
+            <p className={`${typeCardTitle} text-white/70`}>
               No products in this category yet.
             </p>
             <Link
               href="/shop"
-              className="mt-3 inline-block text-sm text-gold hover:text-gold-light"
+              className={`mt-3 inline-block text-gold hover:text-gold-light ${typeBodySm}`}
             >
               Browse all products
             </Link>
           </div>
         ) : (
           <>
-            <p className="mb-4 text-sm text-white/45">
+            <h2 className="sr-only">Products</h2>
+            <p className={`mb-4 text-white/75 ${typeMeta}`}>
               <span className="tabular-nums text-white/70">
                 {products.length}
               </span>{" "}
               {products.length === 1 ? "product" : "products"}
             </p>
-            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 lg:grid-cols-3 lg:gap-5">
-              {products.map((product, index) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  priority={index < 3}
-                />
-              ))}
-            </div>
+            <ProductGrid products={products} priorityCount={2} />
           </>
         )}
 
@@ -133,10 +134,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           className="mt-16 border-t border-glass-border pt-10"
           aria-label="About this category"
         >
-          <h2 className="mb-3 font-body text-xl font-medium text-white">
+          <h2
+            className={`mb-3 font-body font-medium text-white ${typeSectionTitle}`}
+          >
             About {category.name}
           </h2>
-          <p className="max-w-3xl text-sm leading-relaxed text-white/55">
+          <p
+            className={`max-w-3xl leading-relaxed text-white/55 ${typeBodySm}`}
+          >
             {description} Every item is sourced for therapists, clinics, and
             students who need dependable, hygienic equipment. Order online with
             cash on delivery, bank transfer, JazzCash, or EasyPaisa, and have your{" "}
@@ -145,7 +150,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
           {otherCategories.length > 0 && (
             <div className="mt-8">
-              <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-white/40">
+              <h3
+                className={`mb-3 font-semibold uppercase tracking-[0.16em] text-white/40 ${typeEyebrow}`}
+              >
                 Explore other categories
               </h3>
               <ul className="flex flex-wrap gap-2.5">
@@ -153,7 +160,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                   <li key={c.id}>
                     <Link
                       href={`/shop/category/${c.slug}`}
-                      className="inline-block rounded-lg border border-glass-border bg-glass-bg px-4 py-1.5 text-sm text-white/70 transition-colors hover:border-gold/40 hover:text-gold"
+                      className={`inline-flex min-h-12 items-center rounded-lg border border-glass-border bg-glass-bg px-4 text-white/70 transition-colors hover:border-gold/40 hover:text-gold ${typeBodySm}`}
                     >
                       {c.name}
                     </Link>

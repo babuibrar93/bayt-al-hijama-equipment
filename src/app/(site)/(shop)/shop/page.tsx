@@ -5,12 +5,17 @@ import {
   getProductsPage,
   type ProductSort,
 } from "@/lib/products";
-import ProductCard from "@/components/shop/ProductCard";
+import ProductGrid from "@/components/shop/ProductGrid";
 import ShopFilters from "@/components/shop/ShopFilters";
-import PageHeader from "@/components/shop/PageHeader";
 import Pagination from "@/components/ui/Pagination";
 import JsonLd from "@/components/seo/JsonLd";
-import { cn, pageInner, pageShell } from "@/lib/classes";
+import {
+  pageInner,
+  pageShell,
+  typeBodySm,
+  typeCardTitle,
+  typeMeta,
+} from "@/lib/classes";
 import {
   getBreadcrumbSchema,
   getShopItemListSchema,
@@ -19,14 +24,13 @@ import {
 export const revalidate = 300;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || SITE.url;
-const PER_PAGE = 9;
+const PER_PAGE = 8;
 
 interface ShopPageProps {
   searchParams: Promise<{
     category?: string;
     sort?: string;
     search?: string;
-    view?: string;
     page?: string;
   }>;
 }
@@ -77,7 +81,6 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const params = await searchParams;
   const categorySlug = params.category;
   const search = params.search ?? "";
-  const view = params.view === "list" ? "list" : "grid";
   const page = Math.max(1, Number(params.page) || 1);
   const sort: ProductSort = VALID_SORTS.includes(params.sort as ProductSort)
     ? (params.sort as ProductSort)
@@ -88,66 +91,40 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     getCategories(),
   ]);
 
-  const activeCategory = categories.find((c) => c.slug === categorySlug);
-
   const paginationQuery = {
     category: categorySlug,
     search: search || undefined,
     sort: sort !== "newest" ? sort : undefined,
-    view: view === "list" ? "list" : undefined,
   };
 
   return (
     <div className={pageShell}>
       <div className={pageInner}>
-        <PageHeader
-          crumbs={[{ label: "Home", href: "/" }, { label: "Shop" }]}
-          eyebrow="Online Store"
-          description={
-            activeCategory?.description ??
-            "Professional-grade Hijama cups, kits, and accessories trusted by therapists across Pakistan. Nationwide delivery."
-          }
-        />
-
+        <h1 className="sr-only">Shop Hijama Equipment</h1>
         <ShopFilters
           categories={categories}
           activeCategory={categorySlug}
           activeSort={sort}
           activeSearch={search}
-          activeView={view}
         />
 
         {products.length === 0 ? (
           <div className="rounded-lg border border-glass-border bg-glass-bg p-10 text-center">
-            <p className="text-lg text-white/70">No products found.</p>
-            <p className="mt-2 text-sm text-white/50">
+            <p className={`${typeCardTitle} text-white/70`}>No products found.</p>
+            <p className={`mt-2 text-white/50 ${typeBodySm}`}>
               Try a different search or category.
             </p>
           </div>
         ) : (
           <>
-            <p className="mb-4 text-sm text-white/45">
+            <h2 className="sr-only">Products</h2>
+            <p className={`mb-4 text-white/75 ${typeMeta}`}>
               Showing{" "}
               <span className="tabular-nums text-white/70">{products.length}</span>{" "}
               of <span className="tabular-nums text-white/70">{total}</span>{" "}
               products
             </p>
-            <div
-              className={cn(
-                view === "list"
-                  ? "flex flex-col gap-4"
-                  : "grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 lg:grid-cols-3 lg:gap-5",
-              )}
-            >
-              {products.map((product, index) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  priority={index < 3}
-                  view={view}
-                />
-              ))}
-            </div>
+            <ProductGrid products={products} priorityCount={2} />
             <Pagination
               currentPage={page}
               totalPages={totalPages}

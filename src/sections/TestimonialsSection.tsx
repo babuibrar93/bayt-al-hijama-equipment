@@ -3,7 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { TESTIMONIALS } from "@/constants/testimonials";
-import { cn, container, section } from "@/lib/classes";
+import {
+  cn,
+  container,
+  section,
+  typeMeta,
+  typeQuote,
+} from "@/lib/classes";
 
 export default function TestimonialsSection() {
   const [current, setCurrent] = useState(0);
@@ -78,17 +84,19 @@ export default function TestimonialsSection() {
                 className="relative min-w-full rounded-xl border border-glass-border bg-glass-bg px-6 py-5 max-sm:px-4 max-sm:py-4"
               >
                 <div
-                  className="mb-2 font-body text-[2.25rem] font-normal leading-[0.8] text-gold/40 max-sm:text-[2rem]"
+                  className="mb-2 font-body text-[2rem] font-normal leading-[0.8] text-gold/40 sm:text-[2.25rem]"
                   aria-hidden="true"
                 >
                   &quot;
                 </div>
-                <p className="mb-4 max-w-[700px] font-body text-[1.05rem] font-normal italic leading-[1.55] text-white/80 max-sm:text-[0.95rem]">
+                <p
+                  className={`mb-4 max-w-[700px] font-body font-normal italic leading-[1.55] text-white/80 ${typeQuote}`}
+                >
                   {testimonial.text}
                 </p>
                 <div className="mb-3 flex items-center gap-3">
                   <div
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-mid to-gold text-[0.75rem] font-bold text-white"
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-mid to-gold font-bold text-white ${typeMeta}`}
                     aria-hidden="true"
                   >
                     {testimonial.initials}
@@ -97,10 +105,15 @@ export default function TestimonialsSection() {
                     <strong className="mb-0.5 block font-semibold text-white">
                       {testimonial.author}
                     </strong>
-                    <span className="text-[0.8rem] text-white/50">{testimonial.role}</span>
+                    <span className={`text-white/50 ${typeMeta}`}>
+                      {testimonial.role}
+                    </span>
                   </div>
                 </div>
-                <div className="text-[0.9rem] tracking-[3px] text-gold" aria-label="5 out of 5 stars">
+                <div
+                  className={`tracking-[3px] text-gold ${typeMeta}`}
+                  aria-label="5 out of 5 stars"
+                >
                   ★★★★★
                 </div>
               </div>
@@ -134,10 +147,16 @@ export default function TestimonialsSection() {
                   resetAuto();
                 }}
                 className={cn(
-                  "h-1.5 cursor-pointer rounded-[3px] border-none bg-white/30 transition-all duration-300 ease-out",
-                  index === current ? "w-6 bg-gold" : "w-1.5",
+                  "inline-flex h-6 min-w-6 items-center justify-center",
                 )}
-              />
+              >
+                <span
+                  className={cn(
+                    "h-1.5 rounded-[3px] bg-white/30 transition-all duration-300 ease-out",
+                    index === current ? "w-6 bg-gold" : "w-1.5",
+                  )}
+                />
+              </button>
             ))}
           </div>
 

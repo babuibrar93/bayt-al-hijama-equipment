@@ -10,9 +10,18 @@ import {
   getAllProductSlugs,
 } from "@/lib/products";
 import { formatPrice } from "@/utils";
-import { getBadgeClass, pageInner, pageShell, productBadgeScrim } from "@/lib/classes";
+import {
+  pageInner,
+  pageShell,
+  typeBody,
+  typeBodySm,
+  typeEyebrow,
+  typeMeta,
+  typeSectionTitle,
+  typeStat,
+} from "@/lib/classes";
 import ProductImage from "@/components/shop/ProductImage";
-import ProductCard from "@/components/shop/ProductCard";
+import ProductGrid from "@/components/shop/ProductGrid";
 import AddToCartButton from "@/components/shop/AddToCartButton";
 import Breadcrumbs from "@/components/shop/Breadcrumbs";
 import JsonLd from "@/components/seo/JsonLd";
@@ -75,7 +84,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
-  const related = await getRelatedProducts(product);
+  const related = await getRelatedProducts(product, 4);
   const mainImage = product.images[0] ?? null;
   const inStock = product.stock > 0;
 
@@ -104,15 +113,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
           <div className="relative">
-            {product.badge && (
-              <span className={getBadgeClass(product.badge_variant)}>
-                {product.badge}
-              </span>
-            )}
             <div className="relative overflow-hidden rounded-lg border border-glass-border bg-glass-bg">
-              {product.badge ? (
-                <span className={productBadgeScrim} aria-hidden="true" />
-              ) : null}
               <ProductImage
                 src={mainImage}
                 alt={product.name}
@@ -142,31 +143,41 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {product.category && (
               <Link
                 href={`/shop/category/${product.category.slug}`}
-                className="mb-3 inline-block text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-gold transition-colors hover:text-gold-light"
+                className={`mb-3 inline-flex min-h-12 items-center font-semibold uppercase tracking-[0.18em] text-gold transition-colors hover:text-gold-light ${typeEyebrow}`}
               >
                 {product.category.name}
               </Link>
             )}
-            <h1 className="mb-4 font-body text-[clamp(2rem,4vw,3rem)] font-normal leading-tight text-white">
+            <h1
+              className={`mb-4 font-body font-normal leading-tight text-white ${typeSectionTitle}`}
+            >
               {product.name}
             </h1>
 
             <div className="mb-6 flex flex-wrap items-center gap-3 sm:gap-4">
-              <span className="font-body text-2xl font-semibold text-white sm:text-3xl">
+              <span
+                className={`font-body font-semibold text-white ${typeStat}`}
+              >
                 {formatPrice(product.price)}
               </span>
               {inStock ? (
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-green-mid/20 px-3 py-1 text-xs font-medium text-green-light">
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-lg bg-green-mid/20 px-3 py-1 font-medium text-green-light ${typeMeta}`}
+                >
                   <Check className="h-3.5 w-3.5" /> In Stock
                 </span>
               ) : (
-                <span className="rounded-lg bg-white/10 px-3 py-1 text-xs font-medium text-white/60">
+                <span
+                  className={`rounded-lg bg-white/10 px-3 py-1 font-medium text-white/60 ${typeMeta}`}
+                >
                   Out of Stock
                 </span>
               )}
             </div>
 
-            <p className="mb-8 text-base leading-relaxed text-white/70">
+            <p
+              className={`mb-8 leading-relaxed text-white/70 ${typeBody}`}
+            >
               {product.description}
             </p>
 
@@ -175,7 +186,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 {product.features.map((feature) => (
                   <li
                     key={feature}
-                    className="flex items-start gap-2.5 text-sm text-white/75"
+                    className={`flex items-start gap-2.5 text-white/75 ${typeBodySm}`}
                   >
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-gold" aria-hidden="true" />
                     {feature}
@@ -202,13 +213,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-white/70 transition-colors hover:text-gold"
+              className={`mb-8 inline-flex items-center gap-2 font-medium text-white/70 transition-colors hover:text-gold ${typeBodySm}`}
             >
               <MessageCircle className="h-4 w-4" aria-hidden="true" />
               Prefer WhatsApp? Order directly
             </a>
 
-            <div className="flex flex-col gap-3 border-t border-glass-border pt-6 text-sm text-white/60">
+            <div
+              className={`flex flex-col gap-3 border-t border-glass-border pt-6 text-white/60 ${typeBodySm}`}
+            >
               <div className="flex items-center gap-3">
                 <Truck className="h-5 w-5 text-gold" aria-hidden="true" />
                 Nationwide delivery across Pakistan
@@ -223,14 +236,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         {related.length > 0 && (
           <section className="mt-20" aria-label="Related products">
-            <h2 className="mb-8 font-body text-2xl font-medium text-white">
+            <h2
+              className={`mb-8 font-body font-medium text-white ${typeSectionTitle}`}
+            >
               You may also like
             </h2>
-            <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 min-[520px]:gap-4 lg:grid-cols-3 lg:gap-5">
-              {related.map((item) => (
-                <ProductCard key={item.id} product={item} />
-              ))}
-            </div>
+            <ProductGrid products={related} priorityCount={0} />
           </section>
         )}
       </div>

@@ -32,9 +32,6 @@ create table if not exists public.products (
   stock         int not null default 0 check (stock >= 0),
   images        jsonb not null default '[]'::jsonb,
   features      jsonb not null default '[]'::jsonb,
-  badge         text,
-  badge_variant text not null default 'default'
-                check (badge_variant in ('default','new','gold')),
   category_id   uuid references public.categories(id) on delete set null,
   is_active     boolean not null default true,
   is_featured   boolean not null default false,

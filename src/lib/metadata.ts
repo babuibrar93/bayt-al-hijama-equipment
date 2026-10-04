@@ -55,7 +55,7 @@ export const siteMetadata: Metadata = {
   icons: {
     icon: [
       { url: SITE.favicon, sizes: "32x32" },
-      { url: SITE.faviconPng, sizes: "512x512", type: "image/png" },
+      { url: SITE.faviconPng, sizes: "192x192", type: "image/png" },
     ],
     shortcut: SITE.favicon,
     apple: SITE.faviconPng,

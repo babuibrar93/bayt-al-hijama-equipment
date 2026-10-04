@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Lock } from "lucide-react";
+import { ArrowLeft, Lock } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/utils";
 import { cn, numeric } from "@/lib/classes";
 import { Button, Input, Textarea, Select } from "@/components/ui";
+import PaymentInstructions, {
+  isPrepaidMethod,
+} from "@/components/shop/PaymentInstructions";
 import {
   checkoutSchema,
   type CheckoutFormValues,
@@ -20,31 +23,108 @@ import {
   PAYMENT_OPTIONS,
   SHIPPING_FEE,
   FREE_SHIPPING_THRESHOLD,
+  getPaymentOption,
 } from "@/constants/payment";
 
 const PROVINCE_OPTIONS = PROVINCES.map((p) => ({ value: p, label: p }));
+/** Persists shipping / payment-method form only (not the checkout step). */
+const DRAFT_KEY = "bah-checkout-draft";
+
+type CheckoutStep = "details" | "payment";
+
+const EMPTY_VALUES: CheckoutFormValues = {
+  customerName: "",
+  customerPhone: "",
+  customerEmail: "",
+  paymentMethod: "cod",
+  notes: "",
+  address: {
+    line1: "",
+    line2: "",
+    city: "",
+    province: "Punjab",
+    postalCode: "",
+  },
+};
+
+function readDraftValues(): CheckoutFormValues | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { values?: unknown } | CheckoutFormValues;
+    const candidate =
+      parsed && typeof parsed === "object" && "values" in parsed
+        ? parsed.values
+        : parsed;
+    const values = checkoutSchema.safeParse(candidate);
+    return values.success ? values.data : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeDraftValues(values: CheckoutFormValues) {
+  try {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ values }));
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
 
 export default function CheckoutView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { items, subtotal, isHydrated, clear } = useCart();
   const [submitting, setSubmitting] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [step, setStep] = useState<CheckoutStep>("details");
+  const [pendingValues, setPendingValues] =
+    useState<CheckoutFormValues | null>(null);
+  const persistEnabled = useRef(true);
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    reset,
     control,
     formState: { errors },
   } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
-    defaultValues: {
-      paymentMethod: "cod",
-      address: { province: "Punjab" },
-    },
+    defaultValues: EMPTY_VALUES,
   });
 
-  const selectedMethod = watch("paymentMethod");
+  const formValues = watch();
+  const selectedMethod = formValues.paymentMethod;
+
+  useEffect(() => {
+    const draft = readDraftValues();
+    const openPayment = searchParams.get("step") === "payment";
+
+    if (draft) {
+      reset(draft);
+      setPendingValues(draft);
+      // Only reopen payment step when URL explicitly asks (e.g. reload on step 2).
+      // Fresh visits to /checkout always start on step 1 with saved details.
+      if (openPayment && isPrepaidMethod(draft.paymentMethod)) {
+        setStep("payment");
+      } else {
+        setStep("details");
+      }
+    } else {
+      setStep("details");
+    }
+    setReady(true);
+  }, [reset, searchParams]);
+
+  useEffect(() => {
+    if (!ready || submitting || !persistEnabled.current) return;
+    const values =
+      step === "payment" && pendingValues ? pendingValues : formValues;
+    writeDraftValues(values);
+  }, [ready, step, pendingValues, formValues, submitting]);
 
   useEffect(() => {
     if (isHydrated && items.length === 0 && !submitting) {
@@ -52,15 +132,17 @@ export default function CheckoutView() {
     }
   }, [isHydrated, items.length, submitting, router]);
 
-  if (!isHydrated || items.length === 0) {
+  if (!isHydrated || !ready || items.length === 0) {
     return <div className="py-20 text-center text-white/50">Loading...</div>;
   }
 
   const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
   const total = subtotal + shippingFee;
+  const paymentOption = getPaymentOption(selectedMethod);
 
-  const onSubmit = async (values: CheckoutFormValues) => {
+  const placeOrder = async (values: CheckoutFormValues) => {
     setSubmitting(true);
+    persistEnabled.current = false;
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -77,11 +159,15 @@ export default function CheckoutView() {
       const result = await res.json();
 
       if (!res.ok) {
+        persistEnabled.current = true;
         toast.error(result.error || "Could not place your order");
         setSubmitting(false);
         return;
       }
 
+      // Keep shipping details for the next checkout; never reopen step 2
+      // unless the URL is /checkout?step=payment.
+      writeDraftValues(values);
       clear();
       const query = new URLSearchParams({
         order: result.orderNumber,
@@ -90,22 +176,103 @@ export default function CheckoutView() {
       });
       router.push(`/checkout/success?${query.toString()}`);
     } catch {
+      persistEnabled.current = true;
       toast.error("Something went wrong. Please try again.");
       setSubmitting(false);
     }
   };
 
+  const onDetailsSubmit = async (values: CheckoutFormValues) => {
+    if (isPrepaidMethod(values.paymentMethod)) {
+      setPendingValues(values);
+      writeDraftValues(values);
+      setStep("payment");
+      router.replace("/checkout?step=payment");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    await placeOrder(values);
+  };
+
+  const onConfirmPrepaid = async () => {
+    if (!pendingValues) return;
+    await placeOrder(pendingValues);
+  };
+
+  const goBackToDetails = () => {
+    setStep("details");
+    if (pendingValues) {
+      reset(pendingValues);
+      writeDraftValues(pendingValues);
+    }
+    router.replace("/checkout");
+  };
+
+  if (step === "payment" && pendingValues) {
+    const method = pendingValues.paymentMethod;
+    const option = getPaymentOption(method);
+
+    return (
+      <div className="mx-auto grid w-full max-w-3xl grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(240px,280px)] lg:gap-6">
+        <section className="min-w-0 rounded-lg border border-glass-border bg-glass-bg p-4 sm:p-5 lg:p-6">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-gold/80">
+            Step 2 of 2
+          </p>
+          <h2 className="mb-2 font-body text-lg text-white sm:text-xl">
+            Pay via {option?.label ?? "selected method"}
+          </h2>
+          <p className="mb-4 text-sm text-white/55 sm:mb-5">
+            Complete payment using the details below, then confirm your order.
+          </p>
+          <PaymentInstructions method={method} total={total} />
+        </section>
+
+        <aside className="h-fit rounded-lg border border-glass-border bg-glass-bg p-4 sm:p-5 lg:sticky lg:top-24 lg:p-6">
+          <h2 className="mb-3 font-body text-lg text-white">Order total</h2>
+          <p className={cn("mb-3 text-xl font-semibold text-gold sm:mb-4 sm:text-2xl", numeric)}>
+            {formatPrice(total)}
+          </p>
+          <p className="mb-4 break-words text-xs text-white/45">
+            Shipping to {pendingValues.customerName}, {pendingValues.address.city}
+          </p>
+          <Button
+            type="button"
+            loading={submitting}
+            fullWidth
+            size="lg"
+            leftIcon={<Lock className="h-4 w-4" />}
+            className="whitespace-nowrap"
+            onClick={onConfirmPrepaid}
+          >
+            {submitting ? "Placing Order..." : "Confirm Order"}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            fullWidth
+            className="mt-2"
+            disabled={submitting}
+            leftIcon={<ArrowLeft className="h-4 w-4" />}
+            onClick={goBackToDetails}
+          >
+            Back to details
+          </Button>
+        </aside>
+      </div>
+    );
+  }
+
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_340px] lg:gap-6"
+      onSubmit={handleSubmit(onDetailsSubmit)}
+      className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,340px)] lg:gap-6"
     >
-      <div className="flex flex-col gap-6">
-        <section className="rounded-lg border border-glass-border bg-glass-bg p-5 sm:p-6">
+      <div className="flex min-w-0 flex-col gap-4 sm:gap-6">
+        <section className="rounded-lg border border-glass-border bg-glass-bg p-4 sm:p-5 lg:p-6">
           <h2 className="mb-4 font-body text-lg text-white">
             Shipping Details
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             <Input
               label="Full Name"
               required
@@ -176,7 +343,7 @@ export default function CheckoutView() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-glass-border bg-glass-bg p-5 sm:p-6">
+        <section className="rounded-lg border border-glass-border bg-glass-bg p-4 sm:p-5 lg:p-6">
           <h2 className="mb-4 font-body text-lg text-white">Payment Method</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {PAYMENT_OPTIONS.map((option) => (
@@ -208,9 +375,16 @@ export default function CheckoutView() {
               </label>
             ))}
           </div>
+          {isPrepaidMethod(selectedMethod) && (
+            <p className="mt-3 text-xs text-white/50">
+              Next you&apos;ll see{" "}
+              {paymentOption?.label ?? "payment"} details and QR code before
+              the order is placed.
+            </p>
+          )}
         </section>
 
-        <section className="rounded-lg border border-glass-border bg-glass-bg p-5 sm:p-6">
+        <section className="rounded-lg border border-glass-border bg-glass-bg p-4 sm:p-5 lg:p-6">
           <Textarea
             label="Order Notes (optional)"
             rows={3}
@@ -220,7 +394,7 @@ export default function CheckoutView() {
         </section>
       </div>
 
-      <aside className="h-fit rounded-lg border border-glass-border bg-glass-bg p-5 sm:p-6 lg:sticky lg:top-24">
+      <aside className="h-fit rounded-lg border border-glass-border bg-glass-bg p-4 sm:p-5 lg:sticky lg:top-24 lg:p-6">
         <h2 className="mb-4 font-body text-lg text-white">Your Order</h2>
         <ul className="mb-4 flex flex-col gap-3" role="list">
           {items.map((item) => (
@@ -260,7 +434,11 @@ export default function CheckoutView() {
           leftIcon={<Lock className="h-4 w-4" />}
           className="mt-5"
         >
-          {submitting ? "Placing Order..." : "Place Order"}
+          {submitting
+            ? "Placing Order..."
+            : isPrepaidMethod(selectedMethod)
+              ? "Continue to Payment"
+              : "Place Order"}
         </Button>
         <Link
           href="/cart"
