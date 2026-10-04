@@ -50,6 +50,8 @@ type ButtonAsLink = BaseProps & {
   href: string;
   target?: string;
   rel?: string;
+  title?: string;
+  "aria-label"?: string;
 };
 
 export type ButtonProps = ButtonAsButton | ButtonAsLink;
@@ -94,9 +96,17 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   );
 
   if ("href" in props && props.href) {
-    const { href, target, rel } = props as ButtonAsLink;
+    const { href, target, rel, title, "aria-label": ariaLabel } =
+      props as ButtonAsLink;
     return (
-      <Link href={href} target={target} rel={rel} className={classes}>
+      <Link
+        href={href}
+        target={target}
+        rel={rel}
+        title={title}
+        aria-label={ariaLabel}
+        className={classes}
+      >
         {content}
       </Link>
     );
