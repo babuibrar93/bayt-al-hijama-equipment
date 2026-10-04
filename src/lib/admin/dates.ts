@@ -51,6 +51,31 @@ export function currentKarachiYearMonth(): { year: number; month: number } {
   return { year, month };
 }
 
+/** Calendar date key (YYYY-MM-DD) for “now” in Asia/Karachi. */
+export function currentKarachiDateKey(date = new Date()): string {
+  const { year, month, day } = karachiParts(date);
+  return `${year}-${String(month).padStart(2, "0")}-${padDay(day)}`;
+}
+
+/**
+ * Build a timestamptz ISO for a Karachi calendar day, keeping the clock time
+ * from `from` (also interpreted in Karachi). Used when admin sets order date.
+ */
+export function karachiDateWithTimeIso(
+  yyyyMmDd: string,
+  from = new Date(),
+): string {
+  const [y, m, d] = yyyyMmDd.split("-").map(Number);
+  const shifted = new Date(from.getTime() + KARACHI_OFFSET_MS);
+  const hh = shifted.getUTCHours();
+  const mm = shifted.getUTCMinutes();
+  const ss = shifted.getUTCSeconds();
+  const ms = shifted.getUTCMilliseconds();
+  const utc =
+    Date.UTC(y, m - 1, d, hh, mm, ss, ms) - KARACHI_OFFSET_MS;
+  return new Date(utc).toISOString();
+}
+
 export function monthLabel(month: number): string {
   return new Date(Date.UTC(2000, month - 1, 1)).toLocaleString("en", {
     month: "short",

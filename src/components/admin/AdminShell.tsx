@@ -109,23 +109,23 @@ export default function AdminShell({ admin, children }: AdminShellProps) {
   return (
     <div
       className={cn(
-        "grid min-h-dvh min-h-screen grid-cols-1 overflow-x-hidden transition-[grid-template-columns] duration-200",
+        "grid h-dvh grid-cols-1 overflow-hidden transition-[grid-template-columns] duration-200",
         collapsed
           ? "md:grid-cols-[72px_minmax(0,1fr)]"
           : "md:grid-cols-[220px_minmax(0,1fr)] lg:grid-cols-[240px_minmax(0,1fr)]",
       )}
     >
-      <aside className="sticky top-0 hidden h-dvh h-screen flex-col border-r border-glass-border bg-black-2 p-3 md:flex lg:p-4">
+      <aside className="hidden h-full min-h-0 flex-col border-r border-glass-border bg-black-2 p-3 md:flex lg:p-4">
         <div
           className={cn(
-            "mb-4 px-1 lg:mb-6",
+            "mb-4 shrink-0 px-1 lg:mb-6",
             collapsed && "flex justify-center px-0",
           )}
         >
           <Logo size="xs" href="/admin" showText={!collapsed} />
         </div>
         <NavLinks showLabels={!collapsed} />
-        <div className="mt-auto flex flex-col gap-2 border-t border-glass-border pt-3 lg:gap-3 lg:pt-4">
+        <div className="mt-auto flex shrink-0 flex-col gap-2 border-t border-glass-border pt-3 lg:gap-3 lg:pt-4">
           <Link
             href="/"
             title="View store"
@@ -174,8 +174,8 @@ export default function AdminShell({ admin, children }: AdminShellProps) {
         </div>
       )}
 
-      <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-[100] flex items-center justify-between gap-2 border-b border-glass-border bg-black-2/95 px-3 py-2.5 backdrop-blur-md sm:gap-4 sm:px-5 sm:py-3 lg:px-8">
+      <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
+        <header className="z-[100] flex shrink-0 items-center justify-between gap-2 border-b border-glass-border bg-black-2/95 px-3 py-2.5 backdrop-blur-md sm:gap-4 sm:px-5 sm:py-3 lg:px-8">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
@@ -220,7 +220,7 @@ export default function AdminShell({ admin, children }: AdminShellProps) {
           </div>
         </header>
 
-        <main className="min-w-0 flex-1 overflow-x-hidden px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-8">
+        <main className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-8">
           {children}
         </main>
       </div>

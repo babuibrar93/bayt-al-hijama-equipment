@@ -146,3 +146,18 @@ export interface OrderProfit {
   profit: number;
   missingCostLines: number;
 }
+
+/** Manual day totals for reports (Asia/Karachi calendar day). */
+export interface ReportManualEntry {
+  id: string;
+  year: number;
+  month: number;
+  day: number;
+  revenue: number;
+  purchase_spend: number;
+  gross_profit: number;
+  order_count: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}

@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button, Input, Select, Textarea } from "@/components/ui";
 import { formatPrice } from "@/utils";
 import { PROVINCES } from "@/lib/validation/order";
+import { currentKarachiDateKey } from "@/lib/admin/dates";
 import { numeric } from "@/lib/classes";
 import type { OrderStatus, PaymentMethod, PaymentStatus, Product } from "@/types/db";
 
@@ -38,6 +38,8 @@ interface OrderFormProps {
     status: OrderStatus;
     notes: string;
     shippingFee: string;
+    /** Asia/Karachi YYYY-MM-DD */
+    orderDate?: string;
     items: {
       productId: string;
       quantity: number;
@@ -83,7 +85,10 @@ export default function OrderForm({
   const [customerEmail, setCustomerEmail] = useState(
     initial?.customerEmail ?? "",
   );
-  const [line1, setLine1] = useState(initial?.line1 ?? "Walk-in / WhatsApp");
+  const [line1, setLine1] = useState(() => {
+    const raw = initial?.line1?.trim() ?? "";
+    return raw === "Walk-in / WhatsApp" ? "" : raw;
+  });
   const [city, setCity] = useState(initial?.city ?? "");
   const [province, setProvince] = useState(initial?.province ?? "Punjab");
   const [paymentMethod, setPaymentMethod] = useState(
@@ -95,6 +100,9 @@ export default function OrderForm({
   const [status, setStatus] = useState(initial?.status ?? "pending");
   const [notes, setNotes] = useState(initial?.notes ?? "");
   const [shippingFee, setShippingFee] = useState(initial?.shippingFee ?? "");
+  const [orderDate, setOrderDate] = useState(
+    initial?.orderDate ?? currentKarachiDateKey(),
+  );
   const [lines, setLines] = useState<LineState[]>(() => {
     if (initial?.items.length) {
       return initial.items.map((item) => ({
@@ -117,7 +125,7 @@ export default function OrderForm({
     [products],
   );
 
-  const subtotal = lines.reduce((sum, line) => {
+  const lineAmounts = lines.map((line) => {
     const product = products.find((p) => p.id === line.productId);
     const price =
       line.unitPrice !== ""
@@ -125,8 +133,13 @@ export default function OrderForm({
         : product
           ? Number(product.price)
           : 0;
-    return sum + price * (Number(line.quantity) || 0);
-  }, 0);
+    const qty = Number(line.quantity) || 0;
+    return { price, qty, total: price * qty };
+  });
+
+  const subtotal = lineAmounts.reduce((sum, line) => sum + line.total, 0);
+  const shippingN = shippingFee === "" ? null : Number(shippingFee) || 0;
+  const estimatedTotal = subtotal + (shippingN ?? 0);
 
   const onProductChange = (index: number, productId: string) => {
     const product = products.find((p) => p.id === productId);
@@ -167,6 +180,7 @@ export default function OrderForm({
         paymentStatus,
         status,
         notes,
+        orderDate,
         shippingFee: shippingFee === "" ? undefined : Number(shippingFee),
         address: {
           line1,
@@ -209,197 +223,266 @@ export default function OrderForm({
     mode === "edit" && orderId ? `/admin/orders/${orderId}` : "/admin/orders";
 
   return (
-    <form onSubmit={onSubmit} className="w-full max-w-4xl">
-      <Link
-        href={backHref}
-        className="mb-4 inline-flex items-center gap-2 text-sm text-white/50 hover:text-white sm:mb-5"
-      >
-        <ArrowLeft className="h-4 w-4" />{" "}
-        {mode === "edit" ? "Back to order" : "Back to orders"}
-      </Link>
-      <h1 className="mb-4 font-body text-xl font-normal text-white sm:mb-6 sm:text-2xl lg:text-3xl">
-        {mode === "edit"
-          ? `Edit order${orderNumber ? ` ${orderNumber}` : ""}`
-          : "Create order / bill"}
-      </h1>
-
-      <div className="flex flex-col gap-4 sm:gap-5">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-          <Input
-            label="Customer name"
-            required
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-          />
-          <Input
-            label="Phone (WhatsApp)"
-            required
-            value={customerPhone}
-            onChange={(e) => setCustomerPhone(e.target.value)}
-            placeholder="03xxxxxxxxx"
-          />
-          <Input
-            label="Email (optional)"
-            type="email"
-            value={customerEmail}
-            onChange={(e) => setCustomerEmail(e.target.value)}
-          />
-          <Input
-            label="Address line"
-            required
-            value={line1}
-            onChange={(e) => setLine1(e.target.value)}
-          />
-          <Input
-            label="City"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-          />
-          <Select
-            label="Province"
-            options={PROVINCES.map((p) => ({ value: p, label: p }))}
-            value={province}
-            onChange={setProvince}
-            searchable={false}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-          <Select
-            label="Payment method"
-            options={PAYMENT_OPTIONS}
-            value={paymentMethod}
-            onChange={(v) => setPaymentMethod(v as PaymentMethod)}
-            searchable={false}
-          />
-          <Select
-            label="Payment status"
-            options={[
-              { value: "unpaid", label: "Unpaid" },
-              { value: "paid", label: "Paid" },
-              { value: "refunded", label: "Refunded" },
-            ]}
-            value={paymentStatus}
-            onChange={(v) => setPaymentStatus(v as PaymentStatus)}
-            searchable={false}
-          />
-          <Select
-            label="Order status"
-            options={
-              mode === "edit" ? EDIT_STATUS_OPTIONS : CREATE_STATUS_OPTIONS
-            }
-            value={status}
-            onChange={(v) => setStatus(v as OrderStatus)}
-            searchable={false}
-          />
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <span className="text-sm font-medium text-white/70">Line items</span>
-          {lockItems && (
-            <p className="text-xs text-amber-200/80 sm:text-sm">
-              Line items are locked after the order is shipped or delivered.
-              Customer details and status can still be updated.
-            </p>
-          )}
-          {lines.map((line, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 rounded-md border border-glass-border p-3 sm:grid-cols-[minmax(0,1fr)_5.5rem_6.5rem_2.75rem]"
-            >
-              <div className="col-span-3 sm:col-span-1">
-                <Select
-                  options={productOptions}
-                  value={line.productId}
-                  onChange={(v) => onProductChange(index, v)}
-                  searchable
-                  disabled={lockItems}
-                />
-              </div>
-              <Input
-                type="number"
-                min="1"
-                value={line.quantity}
-                disabled={lockItems}
-                onChange={(e) =>
-                  setLines((curr) =>
-                    curr.map((l, i) =>
-                      i === index ? { ...l, quantity: e.target.value } : l,
-                    ),
-                  )
-                }
-                placeholder="Qty"
-              />
-              <Input
-                type="number"
-                min="0"
-                value={line.unitPrice}
-                disabled={lockItems}
-                onChange={(e) =>
-                  setLines((curr) =>
-                    curr.map((l, i) =>
-                      i === index ? { ...l, unitPrice: e.target.value } : l,
-                    ),
-                  )
-                }
-                placeholder="Unit price"
-              />
-              <button
-                type="button"
-                aria-label="Remove line"
-                disabled={lockItems}
-                onClick={() =>
-                  setLines((curr) => curr.filter((_, i) => i !== index))
-                }
-                className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-glass-border text-white/50 hover:text-red-400 disabled:opacity-40"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          ))}
-          {!lockItems && (
-            <button
-              type="button"
-              onClick={() =>
-                setLines((curr) => [
-                  ...curr,
-                  { productId: "", quantity: "1", unitPrice: "" },
-                ])
-              }
-              className="inline-flex w-fit items-center gap-1.5 text-sm text-gold"
-            >
-              <Plus className="h-4 w-4" /> Add line
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input
-            label="Shipping fee (optional)"
-            type="number"
-            min="0"
-            value={shippingFee}
-            onChange={(e) => setShippingFee(e.target.value)}
-            placeholder="Auto if empty"
-          />
-          <div className="flex flex-col justify-end text-sm text-white/70">
-            <span>
-              Goods subtotal:{" "}
-              <span className={numeric}>{formatPrice(subtotal)}</span>
-            </span>
-          </div>
-        </div>
-
-        <Textarea
-          label="Notes"
-          rows={3}
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
-
-        <Button type="submit" loading={submitting} size="lg">
-          {mode === "edit" ? "Save changes" : "Create order"}
+    <form onSubmit={onSubmit} className="w-full">
+      <div className="mb-4 flex flex-wrap items-center gap-2 sm:mb-6 sm:gap-3">
+        <Button
+          href={backHref}
+          variant="subtle"
+          size="sm"
+          leftIcon={<ArrowLeft className="h-4 w-4" />}
+          className="shrink-0"
+        >
+          Back
         </Button>
+        <div className="min-w-0">
+          <h1 className="truncate font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
+            {mode === "edit"
+              ? `Edit order${orderNumber ? ` ${orderNumber}` : ""}`
+              : "Create order / bill"}
+          </h1>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 space-y-4 sm:space-y-5">
+          <section className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4 lg:p-5">
+            <h2 className="mb-3 text-sm font-medium text-white/80 sm:mb-4">
+              Customer
+            </h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+              <Input
+                label="Customer name"
+                required
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+              />
+              <Input
+                label="Phone (WhatsApp)"
+                required
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                placeholder="03xxxxxxxxx"
+              />
+              <Input
+                label="Email (optional)"
+                type="email"
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+              />
+              <Input
+                label="City"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+              />
+              <Select
+                label="Province"
+                options={PROVINCES.map((p) => ({ value: p, label: p }))}
+                value={province}
+                onChange={setProvince}
+                searchable={false}
+              />
+            </div>
+            <Textarea
+              label="Address"
+              required
+              rows={2}
+              autoGrow
+              value={line1}
+              onChange={(e) => setLine1(e.target.value)}
+              placeholder="House / street, area, landmark"
+              containerClassName="mt-3 sm:mt-4"
+            />
+          </section>
+
+          <section className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4 lg:p-5">
+            <h2 className="mb-3 text-sm font-medium text-white/80 sm:mb-4">
+              Payment & status
+            </h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+              <Input
+                label="Order date"
+                type="date"
+                required
+                value={orderDate}
+                onChange={(e) => setOrderDate(e.target.value)}
+              />
+              <Select
+                label="Payment method"
+                options={PAYMENT_OPTIONS}
+                value={paymentMethod}
+                onChange={(v) => setPaymentMethod(v as PaymentMethod)}
+                searchable={false}
+              />
+              <Select
+                label="Payment status"
+                options={[
+                  { value: "unpaid", label: "Unpaid" },
+                  { value: "paid", label: "Paid" },
+                  { value: "refunded", label: "Refunded" },
+                ]}
+                value={paymentStatus}
+                onChange={(v) => setPaymentStatus(v as PaymentStatus)}
+                searchable={false}
+              />
+              <Select
+                label="Order status"
+                options={
+                  mode === "edit" ? EDIT_STATUS_OPTIONS : CREATE_STATUS_OPTIONS
+                }
+                value={status}
+                onChange={(v) => setStatus(v as OrderStatus)}
+                searchable={false}
+              />
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4 lg:p-5">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 sm:mb-4">
+              <h2 className="text-sm font-medium text-white/80">Line items</h2>
+              {!lockItems && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setLines((curr) => [
+                      ...curr,
+                      { productId: "", quantity: "1", unitPrice: "" },
+                    ])
+                  }
+                  className="inline-flex items-center gap-1.5 text-sm text-gold hover:text-gold-light"
+                >
+                  <Plus className="h-4 w-4" /> Add line
+                </button>
+              )}
+            </div>
+            {lockItems && (
+              <p className="mb-3 text-xs text-amber-200/80 sm:text-sm">
+                Line items are locked after the order is shipped or delivered.
+                Customer details and status can still be updated.
+              </p>
+            )}
+
+            <div className="flex flex-col gap-3">
+              {lines.map((line, index) => (
+                <div
+                  key={index}
+                  className="grid grid-cols-[minmax(0,1fr)_4.5rem_6.5rem_2.5rem] items-end gap-2 sm:grid-cols-[minmax(0,1fr)_5.5rem_7.5rem_2.75rem] sm:gap-3"
+                >
+                  <Select
+                    label={index === 0 ? "Product" : undefined}
+                    options={productOptions}
+                    value={line.productId}
+                    onChange={(v) => onProductChange(index, v)}
+                    searchable
+                    disabled={lockItems}
+                  />
+                  <Input
+                    label={index === 0 ? "Qty" : undefined}
+                    type="number"
+                    min="1"
+                    value={line.quantity}
+                    disabled={lockItems}
+                    onChange={(e) =>
+                      setLines((curr) =>
+                        curr.map((l, i) =>
+                          i === index ? { ...l, quantity: e.target.value } : l,
+                        ),
+                      )
+                    }
+                    aria-label="Quantity"
+                  />
+                  <Input
+                    label={index === 0 ? "Unit price" : undefined}
+                    type="number"
+                    min="0"
+                    value={line.unitPrice}
+                    disabled={lockItems}
+                    onChange={(e) =>
+                      setLines((curr) =>
+                        curr.map((l, i) =>
+                          i === index ? { ...l, unitPrice: e.target.value } : l,
+                        ),
+                      )
+                    }
+                    aria-label="Unit price"
+                  />
+                  <button
+                    type="button"
+                    aria-label="Remove line"
+                    disabled={lockItems || lines.length <= 1}
+                    onClick={() =>
+                      setLines((curr) => curr.filter((_, i) => i !== index))
+                    }
+                    className="inline-flex h-11 w-full items-center justify-center rounded-md border border-glass-border text-white/50 hover:text-red-400 disabled:opacity-40"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <aside className="space-y-3 lg:sticky lg:top-0 lg:space-y-4">
+          <div className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4">
+            <Textarea
+              label="Notes"
+              rows={3}
+              autoGrow
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Optional notes for this order"
+            />
+          </div>
+
+          <div className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4">
+            <h2 className="mb-3 text-sm font-medium text-white/80">Summary</h2>
+            <Input
+              label="Shipping fee"
+              type="number"
+              min="0"
+              value={shippingFee}
+              onChange={(e) => setShippingFee(e.target.value)}
+              placeholder="Auto if empty"
+              hint="Leave empty to use default shipping"
+            />
+            <dl className="mt-4 space-y-2.5 text-sm">
+              <div className="flex items-center justify-between gap-3 text-white/60">
+                <dt>Goods subtotal</dt>
+                <dd className={`text-white ${numeric}`}>
+                  {formatPrice(subtotal)}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between gap-3 text-white/60">
+                <dt>Shipping</dt>
+                <dd className={`text-white ${numeric}`}>
+                  {shippingN == null ? "Auto" : formatPrice(shippingN)}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between gap-3 border-t border-glass-border pt-2.5 font-medium text-white">
+                <dt>Total</dt>
+                <dd className={`text-gold ${numeric}`}>
+                  {shippingN == null
+                    ? formatPrice(subtotal)
+                    : formatPrice(estimatedTotal)}
+                  {shippingN == null && (
+                    <span className="ml-1 text-xs font-normal text-white/40">
+                      + ship
+                    </span>
+                  )}
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <Button
+            type="submit"
+            loading={submitting}
+            size="lg"
+            className="w-full"
+          >
+            {mode === "edit" ? "Save changes" : "Create order"}
+          </Button>
+        </aside>
       </div>
     </form>
   );

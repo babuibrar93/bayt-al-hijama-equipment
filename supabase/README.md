@@ -24,7 +24,11 @@ In **Supabase > SQL Editor**, paste and run the contents of:
 1. [`schema.sql`](./schema.sql) — tables, triggers, RLS policies, indexes  
    (or, for an existing project, run migrations in order:
    [`migrations/20261003_cost_purchases.sql`](./migrations/20261003_cost_purchases.sql),
-   then [`migrations/20261004_admin_indexes.sql`](./migrations/20261004_admin_indexes.sql);
+   then [`migrations/20261004_admin_indexes.sql`](./migrations/20261004_admin_indexes.sql),
+   then [`migrations/20261004_monthly_history.sql`](./migrations/20261004_monthly_history.sql),
+   then [`migrations/20261004_report_manual_days.sql`](./migrations/20261004_report_manual_days.sql),
+   then [`migrations/20261004_report_manual_day_only.sql`](./migrations/20261004_report_manual_day_only.sql),
+   then [`migrations/20261004_report_manual_order_count.sql`](./migrations/20261004_report_manual_order_count.sql);
    keep `schema.sql` as the full source of truth)
 
    To apply all migrations from the CLI (needs `DATABASE_URL` in `.env.local`):

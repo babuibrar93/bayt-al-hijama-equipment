@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { getAdminUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { updateAdminOrderSchema } from "@/lib/validation/admin-order";
+import {
+  currentKarachiDateKey,
+  karachiDateWithTimeIso,
+  toKarachiDateKey,
+} from "@/lib/admin/dates";
 import type { ShippingAddress } from "@/types/db";
 
 interface RouteParams {
@@ -80,6 +85,15 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   if (data.status != null) updates.status = data.status;
   if (data.shippingFee != null) updates.shipping_fee = data.shippingFee;
   if (data.notes !== undefined) updates.notes = data.notes;
+  if (data.orderDate) {
+    const currentKey = toKarachiDateKey(existing.created_at);
+    if (data.orderDate !== currentKey) {
+      updates.created_at =
+        data.orderDate === currentKarachiDateKey()
+          ? new Date().toISOString()
+          : karachiDateWithTimeIso(data.orderDate, new Date(existing.created_at));
+    }
+  }
   if (data.address) {
     const shippingAddress: ShippingAddress = {
       line1: data.address.line1,

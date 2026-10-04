@@ -7,6 +7,10 @@ export const adminOrderItemSchema = z.object({
   unitPrice: z.number().nonnegative().optional(),
 });
 
+const orderDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date");
+
 export const createAdminOrderSchema = z.object({
   customerName: z.string().min(2).max(120),
   customerPhone: z.string().min(7).max(40),
@@ -16,6 +20,8 @@ export const createAdminOrderSchema = z.object({
   status: z
     .enum(["pending", "confirmed", "shipped", "delivered", "cancelled"])
     .default("pending"),
+  /** Asia/Karachi calendar day for the order (maps to created_at). */
+  orderDate: orderDateSchema.optional(),
   shippingFee: z.number().nonnegative().optional(),
   notes: z.string().max(2000).optional().or(z.literal("")),
   address: z.object({
@@ -39,6 +45,7 @@ export const updateAdminOrderSchema = z.object({
   status: z
     .enum(["pending", "confirmed", "shipped", "delivered", "cancelled"])
     .optional(),
+  orderDate: orderDateSchema.optional(),
   shippingFee: z.number().nonnegative().optional(),
   notes: z.string().max(2000).nullable().optional(),
   address: z

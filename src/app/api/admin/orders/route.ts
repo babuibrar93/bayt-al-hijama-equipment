@@ -3,6 +3,10 @@ import { getAdminUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createAdminOrderSchema } from "@/lib/validation/admin-order";
 import { generateOrderNumber } from "@/lib/admin/order-number";
+import {
+  currentKarachiDateKey,
+  karachiDateWithTimeIso,
+} from "@/lib/admin/dates";
 import { SHIPPING_FEE, FREE_SHIPPING_THRESHOLD } from "@/constants/payment";
 import type { ShippingAddress } from "@/types/db";
 
@@ -97,6 +101,11 @@ export async function POST(request: Request) {
   };
 
   const orderNumber = generateOrderNumber();
+  const orderDate = data.orderDate || currentKarachiDateKey();
+  const createdAt =
+    orderDate === currentKarachiDateKey()
+      ? new Date().toISOString()
+      : karachiDateWithTimeIso(orderDate);
 
   const { data: order, error: orderError } = await db
     .from("orders")
@@ -114,6 +123,7 @@ export async function POST(request: Request) {
       shipping_fee: shippingFee,
       total,
       notes: data.notes || null,
+      created_at: createdAt,
     })
     .select("id, order_number")
     .single();

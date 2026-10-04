@@ -259,7 +259,30 @@ create index if not exists categories_sort_order_idx on public.categories(sort_o
 create index if not exists profiles_is_admin_idx
   on public.profiles(id) where is_admin = true;
 
--- Keep products/purchases.updated_at fresh on update.
+-- -------------------------------------------------------------
+-- Report manual day totals (Asia/Karachi calendar day)
+-- -------------------------------------------------------------
+create table if not exists public.report_manual_entries (
+  id              uuid primary key default gen_random_uuid(),
+  year            int not null check (year >= 2000 and year <= 2100),
+  month           int not null check (month >= 1 and month <= 12),
+  day             int not null check (day >= 1 and day <= 31),
+  revenue         numeric(12,2) not null default 0 check (revenue >= 0),
+  purchase_spend  numeric(12,2) not null default 0 check (purchase_spend >= 0),
+  gross_profit    numeric(12,2) not null default 0,
+  order_count     int not null default 0 check (order_count >= 0),
+  notes           text,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+
+create unique index if not exists report_manual_entries_period_uidx
+  on public.report_manual_entries (year, month, day);
+
+create index if not exists report_manual_entries_year_month_idx
+  on public.report_manual_entries (year, month);
+
+-- Keep updated_at fresh on update.
 create or replace function public.touch_updated_at()
 returns trigger
 language plpgsql
@@ -278,6 +301,11 @@ create trigger products_touch_updated_at
 drop trigger if exists purchases_touch_updated_at on public.purchases;
 create trigger purchases_touch_updated_at
   before update on public.purchases
+  for each row execute function public.touch_updated_at();
+
+drop trigger if exists report_manual_entries_touch_updated_at on public.report_manual_entries;
+create trigger report_manual_entries_touch_updated_at
+  before update on public.report_manual_entries
   for each row execute function public.touch_updated_at();
 
 -- -------------------------------------------------------------
@@ -305,6 +333,7 @@ alter table public.orders         enable row level security;
 alter table public.order_items    enable row level security;
 alter table public.purchases      enable row level security;
 alter table public.purchase_items enable row level security;
+alter table public.report_manual_entries enable row level security;
 
 -- Categories: public read, admin write
 drop policy if exists "categories_read" on public.categories;
@@ -358,4 +387,8 @@ create policy "purchases_admin_all" on public.purchases
 
 drop policy if exists "purchase_items_admin_all" on public.purchase_items;
 create policy "purchase_items_admin_all" on public.purchase_items
+  for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "report_manual_entries_admin_all" on public.report_manual_entries;
+create policy "report_manual_entries_admin_all" on public.report_manual_entries
   for all using (public.is_admin()) with check (public.is_admin());

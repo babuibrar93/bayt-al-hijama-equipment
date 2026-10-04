@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import OrderForm from "@/components/admin/OrderForm";
+import { toKarachiDateKey } from "@/lib/admin/dates";
 import type { OrderWithItems, Product } from "@/types/db";
 
 interface PageProps {
@@ -105,6 +106,7 @@ export default async function AdminEditOrderPage({ params }: PageProps) {
         notes: order.notes ?? "",
         shippingFee:
           order.shipping_fee != null ? String(order.shipping_fee) : "",
+        orderDate: toKarachiDateKey(order.created_at),
         items: editableItems,
       }}
     />

@@ -4,7 +4,6 @@ import {
   DollarSign,
   TrendingUp,
   ShoppingBag,
-  Wallet,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/utils";
@@ -12,6 +11,7 @@ import { numeric } from "@/lib/classes";
 import AdminFilterBar from "@/components/admin/AdminFilterBar";
 import type { FilterField } from "@/components/admin/AdminFilterBar";
 import PeriodBreadcrumb from "@/components/admin/PeriodBreadcrumb";
+import ReportManualEntryControl from "@/components/admin/ReportManualEntryControl";
 import { computeOrderProfit } from "@/lib/admin/profit";
 import {
   currentKarachiYearMonth,
@@ -34,7 +34,7 @@ import {
   StatCard,
   StatGrid,
 } from "@/components/ui";
-import type { OrderWithItems, Purchase } from "@/types/db";
+import type { OrderWithItems, Purchase, ReportManualEntry } from "@/types/db";
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -68,6 +68,18 @@ function summarizeOrders(orders: OrderWithItems[]) {
   };
 }
 
+function manualSlice(entry?: ReportManualEntry | null) {
+  if (!entry) {
+    return { revenue: 0, purchases: 0, profit: 0, orderCount: 0 };
+  }
+  return {
+    revenue: Number(entry.revenue),
+    purchases: Number(entry.purchase_spend),
+    profit: Number(entry.gross_profit),
+    orderCount: Number(entry.order_count) || 0,
+  };
+}
+
 export default async function AdminReportsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const { year: defaultYear } = currentKarachiYearMonth();
@@ -82,7 +94,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
     month && dayRaw && Number(dayRaw) >= 1 && Number(dayRaw) <= 31
       ? Number(dayRaw)
       : null;
-  const payment = param(sp.payment) || "paid";
+  const payment = param(sp.payment) || "all";
   const q = param(sp.q).trim();
 
   const level = day ? "day" : month ? "month" : "year";
@@ -105,7 +117,11 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
     ordersQuery = ordersQuery.neq("payment_status", "refunded");
   }
 
-  const [{ data: ordersData }, { data: purchasesData }] = await Promise.all([
+  const [
+    { data: ordersData },
+    { data: purchasesData },
+    { data: manualData },
+  ] = await Promise.all([
     ordersQuery,
     supabase
       .from("purchases")
@@ -113,11 +129,20 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
       .eq("status", "confirmed")
       .gte("purchased_at", yearBounds.from)
       .lt("purchased_at", yearBounds.to),
+    supabase.from("report_manual_entries").select("*").eq("year", year),
   ]);
 
   const orders = (ordersData ?? []) as unknown as OrderWithItems[];
-
   const purchases = (purchasesData ?? []) as Purchase[];
+  const manuals = (manualData ?? []) as ReportManualEntry[];
+
+  const dayLevelByKey = new Map<string, ReportManualEntry>();
+  for (const row of manuals) {
+    dayLevelByKey.set(
+      `${row.year}-${String(row.month).padStart(2, "0")}-${padDay(row.day)}`,
+      row,
+    );
+  }
 
   const months = Array.from({ length: 12 }, (_, i) => {
     const m = i + 1;
@@ -129,42 +154,60 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
       inBounds(p.purchased_at, bounds.from, bounds.to),
     );
     const summary = summarizeOrders(monthOrders);
-    const purchaseSpend = monthPurchases.reduce(
+    const livePurchases = monthPurchases.reduce(
       (sum, p) => sum + Number(p.subtotal),
       0,
     );
+
+    let dayManualRevenue = 0;
+    let dayManualPurchases = 0;
+    let dayManualProfit = 0;
+    let dayManualOrders = 0;
+    for (const [key, entry] of dayLevelByKey) {
+      if (!key.startsWith(`${year}-${String(m).padStart(2, "0")}-`)) continue;
+      const slice = manualSlice(entry);
+      dayManualRevenue += slice.revenue;
+      dayManualPurchases += slice.purchases;
+      dayManualProfit += slice.profit;
+      dayManualOrders += slice.orderCount;
+    }
+
+    const revenue = summary.revenue + dayManualRevenue;
+    const grossProfit = summary.grossProfit + dayManualProfit;
+    // Purchases = product cost on sold orders (COGS) + stock purchases + day entries
+    const purchaseSpend =
+      summary.cogs + livePurchases + dayManualPurchases;
+
     return {
       month: m,
       label: monthLabelLong(m),
       shortLabel: monthLabel(m),
-      ...summary,
+      revenue,
+      grossProfit,
+      missing: summary.missing,
+      orderCount: summary.orderCount + dayManualOrders,
       purchaseSpend,
-      netCash: summary.revenue - purchaseSpend,
     };
   });
 
   const yearTotals = months.reduce(
     (acc, m) => ({
       revenue: acc.revenue + m.revenue,
-      cogs: acc.cogs + m.cogs,
       grossProfit: acc.grossProfit + m.grossProfit,
       purchaseSpend: acc.purchaseSpend + m.purchaseSpend,
-      netCash: acc.netCash + m.netCash,
       missing: acc.missing + m.missing,
       orderCount: acc.orderCount + m.orderCount,
     }),
     {
       revenue: 0,
-      cogs: 0,
       grossProfit: 0,
       purchaseSpend: 0,
-      netCash: 0,
       missing: 0,
       orderCount: 0,
     },
   );
 
-  const monthMeta = month ? months.find((m) => m.month === month) : null;
+  const monthMeta = month ? months.find((row) => row.month === month) : null;
 
   const dayRows =
     month != null
@@ -176,17 +219,27 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
             (p) => toKarachiDateKey(p.purchased_at) === key,
           );
           const summary = summarizeOrders(dayOrders);
-          const purchaseSpend = dayPurchases.reduce(
+          const livePurchases = dayPurchases.reduce(
             (sum, p) => sum + Number(p.subtotal),
             0,
           );
+          const dayNum = Number(key.slice(-2));
+          const entry = dayLevelByKey.get(key) ?? null;
+          const manual = manualSlice(entry);
+          const revenue = summary.revenue + manual.revenue;
+          const grossProfit = summary.grossProfit + manual.profit;
+          const purchaseSpend =
+            summary.cogs + livePurchases + manual.purchases;
           return {
             key,
-            day: Number(key.slice(-2)),
+            day: dayNum,
             label: formatKarachiDayLabel(key),
-            ...summary,
+            revenue,
+            grossProfit,
+            missing: summary.missing,
+            orderCount: summary.orderCount + manual.orderCount,
             purchaseSpend,
-            netCash: summary.revenue - purchaseSpend,
+            entry,
           };
         })
       : [];
@@ -221,13 +274,6 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
         ? monthMeta
         : yearTotals;
 
-  const scopeLabel =
-    level === "day" && dayKey
-      ? formatKarachiDayLabel(dayKey)
-      : level === "month" && month
-        ? `${monthLabelLong(month)} ${year}`
-        : String(year);
-
   const yearOptions = Array.from({ length: 5 }, (_, i) => {
     const y = defaultYear - i;
     return { value: String(y), label: String(y) };
@@ -251,9 +297,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
           },
         ]
       : []),
-    ...(dayKey
-      ? [{ label: formatKarachiDayLabel(dayKey) }]
-      : []),
+    ...(dayKey ? [{ label: formatKarachiDayLabel(dayKey) }] : []),
   ];
 
   return (
@@ -264,11 +308,19 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
             Profit reports
           </h1>
           <p className="mt-1 text-xs text-white/50 sm:mt-2 sm:text-sm">
-            Click a month for daily totals, then a day for that day’s orders.
-            Times in Asia/Karachi.
+            Click a month, then a day. Website orders update automatically; you
+            can also add day totals. Times in Asia/Karachi.
           </p>
         </div>
-        <div className="flex w-full justify-end sm:w-auto">
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+          {level === "day" && month != null && day != null && (
+            <ReportManualEntryControl
+              year={year}
+              month={month}
+              day={day}
+              entry={dayMeta?.entry}
+            />
+          )}
           <Suspense fallback={null}>
             <AdminFilterBar
               title="Report filters"
@@ -303,10 +355,10 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
                     label: "Sales filter",
                     type: "select",
                     options: [
-                      { value: "paid", label: "Paid only" },
                       { value: "all", label: "Include unpaid" },
+                      { value: "paid", label: "Paid only" },
                     ],
-                    defaultValue: "paid",
+                    defaultValue: "all",
                     allowEmpty: false,
                   },
                 ] satisfies FilterField[]
@@ -318,26 +370,21 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
 
       <PeriodBreadcrumb items={crumbs} />
 
-      <StatGrid>
+      <StatGrid columns={3}>
         <StatCard
-          label={`${scopeLabel} revenue`}
-          value={formatPrice(scopeStats.revenue)}
-          icon={DollarSign}
-        />
-        <StatCard
-          label={`${scopeLabel} gross profit`}
-          value={formatPrice(scopeStats.grossProfit)}
-          icon={TrendingUp}
-        />
-        <StatCard
-          label={`${scopeLabel} purchases`}
+          label="Purchases"
           value={formatPrice(scopeStats.purchaseSpend)}
           icon={ShoppingBag}
         />
         <StatCard
-          label={`${scopeLabel} net cash`}
-          value={formatPrice(scopeStats.netCash)}
-          icon={Wallet}
+          label="Sales"
+          value={formatPrice(scopeStats.revenue)}
+          icon={DollarSign}
+        />
+        <StatCard
+          label="Gross profit"
+          value={formatPrice(scopeStats.grossProfit)}
+          icon={TrendingUp}
         />
       </StatGrid>
 
@@ -349,15 +396,13 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
       )}
 
       {level === "year" && (
-        <Table minWidth="min-w-[720px]">
+        <Table minWidth="min-w-[560px]">
           <THead>
             <Tr>
               <Th>Month</Th>
-              <Th align="right">Revenue</Th>
-              <Th align="right">COGS</Th>
-              <Th align="right">Gross profit</Th>
               <Th align="right">Purchases</Th>
-              <Th align="right">Net cash</Th>
+              <Th align="right">Sales</Th>
+              <Th align="right">Gross profit</Th>
               <Th align="right">Orders</Th>
             </Tr>
           </THead>
@@ -373,19 +418,13 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
                   </Link>
                 </Td>
                 <Td align="right" className={numeric}>
-                  {formatPrice(m.revenue)}
-                </Td>
-                <Td align="right" className={numeric}>
-                  {formatPrice(m.cogs)}
-                </Td>
-                <Td align="right" className={`text-gold ${numeric}`}>
-                  {formatPrice(m.grossProfit)}
-                </Td>
-                <Td align="right" className={numeric}>
                   {formatPrice(m.purchaseSpend)}
                 </Td>
                 <Td align="right" className={numeric}>
-                  {formatPrice(m.netCash)}
+                  {formatPrice(m.revenue)}
+                </Td>
+                <Td align="right" className={`text-gold ${numeric}`}>
+                  {formatPrice(m.grossProfit)}
                 </Td>
                 <Td align="right" className={numeric}>
                   {m.orderCount}
@@ -395,19 +434,13 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
             <Tr className="bg-white/5 font-medium">
               <Td className="text-white">{year} total</Td>
               <Td align="right" className={numeric}>
-                {formatPrice(yearTotals.revenue)}
-              </Td>
-              <Td align="right" className={numeric}>
-                {formatPrice(yearTotals.cogs)}
-              </Td>
-              <Td align="right" className={`text-gold ${numeric}`}>
-                {formatPrice(yearTotals.grossProfit)}
-              </Td>
-              <Td align="right" className={numeric}>
                 {formatPrice(yearTotals.purchaseSpend)}
               </Td>
               <Td align="right" className={numeric}>
-                {formatPrice(yearTotals.netCash)}
+                {formatPrice(yearTotals.revenue)}
+              </Td>
+              <Td align="right" className={`text-gold ${numeric}`}>
+                {formatPrice(yearTotals.grossProfit)}
               </Td>
               <Td align="right" className={numeric}>
                 {yearTotals.orderCount}
@@ -418,16 +451,15 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
       )}
 
       {level === "month" && month != null && (
-        <Table minWidth="min-w-[720px]">
+        <Table minWidth="min-w-[620px]">
           <THead>
             <Tr>
               <Th>Day</Th>
-              <Th align="right">Revenue</Th>
-              <Th align="right">COGS</Th>
-              <Th align="right">Gross profit</Th>
               <Th align="right">Purchases</Th>
-              <Th align="right">Net cash</Th>
+              <Th align="right">Sales</Th>
+              <Th align="right">Gross profit</Th>
               <Th align="right">Orders</Th>
+              <Th align="right" />
             </Tr>
           </THead>
           <TBody>
@@ -442,22 +474,25 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
                   </Link>
                 </Td>
                 <Td align="right" className={numeric}>
-                  {formatPrice(row.revenue)}
+                  {formatPrice(row.purchaseSpend)}
                 </Td>
                 <Td align="right" className={numeric}>
-                  {formatPrice(row.cogs)}
+                  {formatPrice(row.revenue)}
                 </Td>
                 <Td align="right" className={`text-gold ${numeric}`}>
                   {formatPrice(row.grossProfit)}
                 </Td>
                 <Td align="right" className={numeric}>
-                  {formatPrice(row.purchaseSpend)}
-                </Td>
-                <Td align="right" className={numeric}>
-                  {formatPrice(row.netCash)}
-                </Td>
-                <Td align="right" className={numeric}>
                   {row.orderCount}
+                </Td>
+                <Td align="right">
+                  <ReportManualEntryControl
+                    year={year}
+                    month={month}
+                    day={row.day}
+                    entry={row.entry}
+                    compact
+                  />
                 </Td>
               </Tr>
             ))}
@@ -465,51 +500,55 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
         </Table>
       )}
 
-      {level === "day" && dayKey && (
-        <div>
-          <h2 className="mb-4 font-body text-xl text-white">
-            Orders on {formatKarachiDayLabel(dayKey)}
-          </h2>
-          {dayOrders.length === 0 ? (
-            <div className="rounded-lg border border-glass-border bg-glass-bg px-4 py-8 text-center text-sm text-white/60 sm:p-10">
-              No orders on this day.
-            </div>
-          ) : (
-            <Table minWidth="min-w-[560px]">
-              <THead>
-                <Tr>
-                  <Th>Order</Th>
-                  <Th>Customer</Th>
-                  <Th align="right">Total</Th>
-                  <Th align="right">Profit</Th>
-                </Tr>
-              </THead>
-              <TBody>
-                {dayOrders.map((order) => {
-                  const profit = computeOrderProfit(order.items);
-                  return (
-                    <Tr key={order.id}>
-                      <Td>
-                        <Link
-                          href={`/admin/orders/${order.id}`}
-                          className={`text-gold hover:text-gold-light ${numeric}`}
-                        >
-                          {order.order_number}
-                        </Link>
-                      </Td>
-                      <Td className="text-white/70">{order.customer_name}</Td>
-                      <Td align="right" className={numeric}>
-                        {formatPrice(Number(order.total))}
-                      </Td>
-                      <Td align="right" className={`text-gold ${numeric}`}>
-                        {formatPrice(profit.profit)}
-                      </Td>
-                    </Tr>
-                  );
-                })}
-              </TBody>
-            </Table>
-          )}
+      {level === "day" && dayKey && month != null && day != null && (
+        <div className="space-y-6">
+          <div>
+            <h2 className="mb-4 font-body text-xl text-white">
+              Orders on {formatKarachiDayLabel(dayKey)}
+            </h2>
+            {dayOrders.length === 0 ? (
+              <div className="rounded-lg border border-glass-border bg-glass-bg px-4 py-8 text-center text-sm text-white/60 sm:p-10">
+                No website orders on this day. Use{" "}
+                <span className="text-white/80">Add totals</span> if you want
+                to record this day manually.
+              </div>
+            ) : (
+              <Table minWidth="min-w-[560px]">
+                <THead>
+                  <Tr>
+                    <Th>Order</Th>
+                    <Th>Customer</Th>
+                    <Th align="right">Total</Th>
+                    <Th align="right">Profit</Th>
+                  </Tr>
+                </THead>
+                <TBody>
+                  {dayOrders.map((order) => {
+                    const profit = computeOrderProfit(order.items);
+                    return (
+                      <Tr key={order.id}>
+                        <Td>
+                          <Link
+                            href={`/admin/orders/${order.id}`}
+                            className={`text-gold hover:text-gold-light ${numeric}`}
+                          >
+                            {order.order_number}
+                          </Link>
+                        </Td>
+                        <Td className="text-white/70">{order.customer_name}</Td>
+                        <Td align="right" className={numeric}>
+                          {formatPrice(Number(order.total))}
+                        </Td>
+                        <Td align="right" className={`text-gold ${numeric}`}>
+                          {formatPrice(profit.profit)}
+                        </Td>
+                      </Tr>
+                    );
+                  })}
+                </TBody>
+              </Table>
+            )}
+          </div>
         </div>
       )}
     </div>
