@@ -27,13 +27,15 @@ async function loadLogoDataUrl(): Promise<string | null> {
   }
 }
 
+function invoiceFileName(order: OrderWithItems): string {
+  return `${order.order_number}-invoice.pdf`;
+}
+
 /**
  * Client-facing invoice PDF.
  * Omits admin-only fields (order status, payment status, cost, profit).
  */
-export async function downloadOrderBillPdf(
-  order: OrderWithItems,
-): Promise<void> {
+async function buildOrderBillPdf(order: OrderWithItems): Promise<jsPDF> {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -288,5 +290,35 @@ export async function downloadOrderBillPdf(
     align: "right",
   });
 
-  doc.save(`${order.order_number}-invoice.pdf`);
+  return doc;
+}
+
+/** Build invoice as a File for Web Share / WhatsApp attach flows. */
+export async function buildOrderBillPdfFile(
+  order: OrderWithItems,
+): Promise<File> {
+  const doc = await buildOrderBillPdf(order);
+  const blob = doc.output("blob");
+  return new File([blob], invoiceFileName(order), {
+    type: "application/pdf",
+  });
+}
+
+export async function downloadOrderBillPdf(
+  order: OrderWithItems,
+): Promise<void> {
+  const doc = await buildOrderBillPdf(order);
+  doc.save(invoiceFileName(order));
+}
+
+export function triggerPdfFileDownload(file: File): void {
+  const url = URL.createObjectURL(file);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = file.name;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
