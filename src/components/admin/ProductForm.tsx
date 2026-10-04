@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import { Loader2, Plus, X, Upload, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { slugify } from "@/utils";
@@ -27,8 +26,6 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
   const isEdit = Boolean(product);
 
   const [name, setName] = useState(product?.name ?? "");
-  const [slug, setSlug] = useState(product?.slug ?? "");
-  const [slugTouched, setSlugTouched] = useState(isEdit);
   const [description, setDescription] = useState(product?.description ?? "");
   const [price, setPrice] = useState(product ? String(product.price) : "");
   const [costPrice, setCostPrice] = useState(
@@ -49,15 +46,12 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const slug = slugify(name);
+
   const categoryOptions = [
     { value: "", label: "No category" },
     ...categories.map((c) => ({ value: c.id, label: c.name })),
   ];
-
-  const onNameChange = (value: string) => {
-    setName(value);
-    if (!slugTouched) setSlug(slugify(value));
-  };
 
   const updateFeature = (index: number, value: string) => {
     setFeatures((curr) => curr.map((f, i) => (i === index ? value : f)));
@@ -88,6 +82,10 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!slug) {
+      toast.error("Enter a product name to generate the URL");
+      return;
+    }
     setSubmitting(true);
 
     const payload = {
@@ -127,193 +125,281 @@ export default function ProductForm({ categories, product }: ProductFormProps) {
   };
 
   return (
-    <form onSubmit={onSubmit} className="w-full max-w-3xl">
-      <Link
-        href="/admin/products"
-        className="mb-4 inline-flex items-center gap-2 text-sm text-white/50 transition-colors hover:text-white sm:mb-5"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to products
-      </Link>
-
-      <h1 className="mb-4 font-body text-xl font-normal text-white sm:mb-6 sm:text-2xl lg:text-3xl">
-        {isEdit ? "Edit Product" : "Add Product"}
-      </h1>
-
-      <div className="flex flex-col gap-4 sm:gap-5">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-          <Input
-            label="Name"
-            required
-            value={name}
-            onChange={(e) => onNameChange(e.target.value)}
-          />
-          <Input
-            label="Slug (URL)"
-            required
-            value={slug}
-            onChange={(e) => {
-              setSlugTouched(true);
-              setSlug(slugify(e.target.value));
-            }}
-          />
+    <form onSubmit={onSubmit} className="w-full">
+      <div className="mb-4 flex flex-wrap items-center gap-2 sm:mb-6 sm:gap-3">
+        <Button
+          href="/admin/products"
+          variant="subtle"
+          size="sm"
+          leftIcon={<ArrowLeft className="h-4 w-4" />}
+          className="shrink-0"
+        >
+          Back
+        </Button>
+        <div className="min-w-0">
+          <h1 className="truncate font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
+            {isEdit ? "Edit product" : "Add product"}
+          </h1>
         </div>
+      </div>
 
-        <Textarea
-          label="Description"
-          required
-          rows={4}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 space-y-4 sm:space-y-5">
+          <section className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4 lg:p-5">
+            <h2 className="mb-3 text-sm font-medium text-white/80 sm:mb-4">
+              Basics
+            </h2>
+            <Input
+              label="Name"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Product name"
+            />
+            <Textarea
+              label="Description"
+              required
+              rows={4}
+              autoGrow
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Short product description"
+              containerClassName="mt-3 sm:mt-4"
+            />
+          </section>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Input
-            label="Sell price (PKR)"
-            required
-            type="number"
-            min="0"
-            step="1"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-          />
-          <Input
-            label="Cost price (PKR)"
-            type="number"
-            min="0"
-            step="0.01"
-            value={costPrice}
-            onChange={(e) => setCostPrice(e.target.value)}
-            placeholder="Purchase cost"
-          />
-          <Input
-            label="Stock"
-            required
-            type="number"
-            min="0"
-            step="1"
-            value={stock}
-            onChange={(e) => setStock(e.target.value)}
-          />
-          <Select
-            label="Category"
-            options={categoryOptions}
-            value={categoryId ?? ""}
-            onChange={setCategoryId}
-            placeholder="Select category"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input
-            label="Badge (optional)"
-            value={badge}
-            onChange={(e) => setBadge(e.target.value)}
-            placeholder="e.g. Best Seller"
-          />
-          <Select
-            label="Badge Style"
-            options={BADGE_OPTIONS}
-            value={badgeVariant}
-            onChange={(v) => setBadgeVariant(v as BadgeVariant)}
-            searchable={false}
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-white/70">Features</span>
-          {features.map((feature, index) => (
-            <div key={index} className="flex gap-2">
+          <section className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4 lg:p-5">
+            <h2 className="mb-3 text-sm font-medium text-white/80 sm:mb-4">
+              Pricing & stock
+            </h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
               <Input
-                containerClassName="flex-1"
-                value={feature}
-                onChange={(e) => updateFeature(index, e.target.value)}
-                placeholder={`Feature ${index + 1}`}
+                label="Sell price (PKR)"
+                required
+                type="number"
+                min="0"
+                step="1"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
               />
+              <Input
+                label="Cost price (PKR)"
+                type="number"
+                min="0"
+                step="0.01"
+                value={costPrice}
+                onChange={(e) => setCostPrice(e.target.value)}
+                placeholder="Optional"
+              />
+              <Input
+                label="Stock"
+                required
+                type="number"
+                min="0"
+                step="1"
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+              />
+              <Select
+                label="Category"
+                options={categoryOptions}
+                value={categoryId ?? ""}
+                onChange={setCategoryId}
+                placeholder="Select category"
+              />
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4 lg:p-5">
+            <h2 className="mb-3 text-sm font-medium text-white/80 sm:mb-4">
+              Badge
+            </h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+              <Input
+                label="Badge text (optional)"
+                value={badge}
+                onChange={(e) => setBadge(e.target.value)}
+                placeholder="e.g. Best Seller"
+              />
+              <Select
+                label="Badge style"
+                options={BADGE_OPTIONS}
+                value={badgeVariant}
+                onChange={(v) => setBadgeVariant(v as BadgeVariant)}
+                searchable={false}
+              />
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4 lg:p-5">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 sm:mb-4">
+              <h2 className="text-sm font-medium text-white/80">Features</h2>
               <button
                 type="button"
-                onClick={() =>
-                  setFeatures((curr) => curr.filter((_, i) => i !== index))
-                }
-                aria-label="Remove feature"
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-glass-border text-white/50 hover:text-red-400"
+                onClick={() => setFeatures((curr) => [...curr, ""])}
+                className="inline-flex items-center gap-1.5 text-sm text-gold hover:text-gold-light"
               >
-                <X className="h-4 w-4" />
+                <Plus className="h-4 w-4" /> Add feature
               </button>
             </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setFeatures((curr) => [...curr, ""])}
-            className="inline-flex w-fit items-center gap-1.5 text-sm text-gold hover:text-gold-light"
-          >
-            <Plus className="h-4 w-4" /> Add feature
-          </button>
+            <div className="flex flex-col gap-2.5 sm:gap-3">
+              {features.map((feature, index) => (
+                <div
+                  key={index}
+                  className="grid grid-cols-[minmax(0,1fr)_2.75rem] items-end gap-2"
+                >
+                  <Input
+                    label={index === 0 ? "Feature" : undefined}
+                    value={feature}
+                    onChange={(e) => updateFeature(index, e.target.value)}
+                    placeholder={`Feature ${index + 1}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFeatures((curr) => curr.filter((_, i) => i !== index))
+                    }
+                    aria-label="Remove feature"
+                    disabled={features.length <= 1}
+                    className="inline-flex h-11 w-full items-center justify-center rounded-md border border-glass-border text-white/50 hover:text-red-400 disabled:opacity-40"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+
         </div>
 
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-white/70">Images</span>
-          <div className="flex flex-wrap gap-3">
-            {images.map((url) => (
-              <div
-                key={url}
-                className="relative h-24 w-24 overflow-hidden rounded-md border border-glass-border"
-              >
-                <Image src={url} alt="" fill sizes="96px" className="object-cover" />
+        <aside className="space-y-3 lg:sticky lg:top-0 lg:space-y-4">
+          <div className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4">
+            <div className="mb-2.5 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-medium text-white/80">Images</h2>
+              {images.length > 0 ? (
+                <span className="text-xs text-white/40">{images.length}</span>
+              ) : null}
+            </div>
+
+            {images[0] ? (
+              <div className="relative mb-2 aspect-[4/3] overflow-hidden rounded-md border border-glass-border bg-black/30">
+                <Image
+                  src={images[0]}
+                  alt=""
+                  fill
+                  sizes="320px"
+                  className="object-cover"
+                />
                 <button
                   type="button"
-                  onClick={() => setImages((curr) => curr.filter((u) => u !== url))}
-                  aria-label="Remove image"
-                  className="absolute right-1 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-white hover:bg-red-500"
+                  onClick={() => setImages((curr) => curr.slice(1))}
+                  aria-label="Remove cover image"
+                  className="absolute right-1.5 top-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-white hover:bg-red-500"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
+                <span className="absolute bottom-1.5 left-1.5 rounded bg-black/65 px-1.5 py-0.5 text-[10px] text-white/80">
+                  Cover
+                </span>
               </div>
-            ))}
-            <label
-              className={cn(
-                "flex h-24 w-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-dashed border-glass-border text-white/50 transition-colors hover:border-gold/40 hover:text-gold",
-                uploading && "pointer-events-none opacity-60",
-              )}
-            >
-              {uploading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <>
-                  <Upload className="h-5 w-5" />
-                  <span className="text-xs">Upload</span>
-                </>
-              )}
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/avif"
-                onChange={onUpload}
-                className="hidden"
-              />
-            </label>
+            ) : null}
+
+            <div className="grid grid-cols-4 gap-1.5">
+              {images.slice(1).map((url, index) => (
+                <div
+                  key={url}
+                  className="relative aspect-square overflow-hidden rounded border border-glass-border bg-black/30"
+                >
+                  <Image
+                    src={url}
+                    alt=""
+                    fill
+                    sizes="72px"
+                    className="object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setImages((curr) =>
+                        curr.filter((_, i) => i !== index + 1),
+                      )
+                    }
+                    aria-label="Remove image"
+                    className="absolute inset-0 flex items-center justify-center bg-black/0 text-transparent transition-colors hover:bg-black/55 hover:text-white"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+              <label
+                aria-label={images.length ? "Add image" : "Upload image"}
+                title={images.length ? "Add image" : "Upload image"}
+                className={cn(
+                  "flex cursor-pointer items-center justify-center rounded-md bg-gold/15 text-gold transition-colors hover:bg-gold/25 hover:text-gold-light",
+                  images.length
+                    ? "aspect-square"
+                    : "col-span-4 aspect-[4/3]",
+                  uploading && "pointer-events-none opacity-60",
+                )}
+              >
+                {uploading ? (
+                  <Loader2
+                    className={cn(
+                      "animate-spin",
+                      images.length ? "h-4 w-4" : "h-6 w-6",
+                    )}
+                  />
+                ) : (
+                  <Upload
+                    className={images.length ? "h-4 w-4" : "h-6 w-6"}
+                    aria-hidden="true"
+                  />
+                )}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/avif"
+                  onChange={onUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
           </div>
-        </div>
 
-        <div className="flex flex-wrap gap-6">
-          <Checkbox
-            label="Active (visible in shop)"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-          />
-          <Checkbox
-            label="Featured on homepage"
-            checked={isFeatured}
-            onChange={(e) => setIsFeatured(e.target.checked)}
-          />
-        </div>
+          <div className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4">
+            <h2 className="mb-3 text-sm font-medium text-white/80">
+              Visibility
+            </h2>
+            <div className="flex flex-col gap-3">
+              <Checkbox
+                label="Active (visible in shop)"
+                checked={isActive}
+                onChange={(e) => setIsActive(e.target.checked)}
+              />
+              <Checkbox
+                label="Featured on homepage"
+                checked={isFeatured}
+                onChange={(e) => setIsFeatured(e.target.checked)}
+              />
+            </div>
+          </div>
 
-        <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap">
-          <Button type="submit" loading={submitting} size="lg" className="w-full sm:w-auto">
-            {isEdit ? "Save Changes" : "Create Product"}
+          <Button
+            type="submit"
+            loading={submitting}
+            size="lg"
+            className="w-full"
+          >
+            {isEdit ? "Save changes" : "Create product"}
           </Button>
-          <Button variant="ghost" size="lg" href="/admin/products" className="w-full sm:w-auto">
+          <Button
+            variant="ghost"
+            size="lg"
+            href="/admin/products"
+            className="w-full"
+          >
             Cancel
           </Button>
-        </div>
+        </aside>
       </div>
     </form>
   );

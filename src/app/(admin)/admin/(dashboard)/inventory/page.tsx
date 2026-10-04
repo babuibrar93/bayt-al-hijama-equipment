@@ -64,8 +64,10 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
 
   let listQuery = supabase
     .from("products")
-    .select("id, name, images, stock, is_active", { count: "exact" })
-    .order("stock", { ascending: true })
+    .select("id, name, images, stock, is_active, updated_at", {
+      count: "exact",
+    })
+    .order("updated_at", { ascending: false })
     .range((page - 1) * perPage, page * perPage - 1);
 
   if (q) {
@@ -92,17 +94,11 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
-            Inventory
-          </h1>
-          <p className="mt-1 text-xs text-white/50 sm:mt-1.5 sm:text-sm">
-            Use + / − or type a quantity, then press Update. Items at or below{" "}
-            {LOW_STOCK_THRESHOLD} units are flagged.
-          </p>
-        </div>
-        <div className="flex w-full justify-end sm:w-auto">
+      <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6 sm:gap-4">
+        <h1 className="min-w-0 font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
+          Inventory
+        </h1>
+        <div className="flex shrink-0 items-center gap-2">
           <Suspense fallback={null}>
             <AdminFilterBar
               fields={[
@@ -179,8 +175,8 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
               const badge = stockBadge(product.stock);
               return (
                 <Tr key={product.id}>
-                  <Td>
-                    <div className="flex items-center gap-3">
+                  <Td className="max-w-[16rem]">
+                    <div className="flex min-w-0 items-center gap-3">
                       <div className="h-10 w-10 shrink-0 overflow-hidden rounded-md">
                         <ProductImage
                           src={product.images[0] ?? null}
@@ -188,15 +184,15 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
                           sizes="40px"
                         />
                       </div>
-                      <span className="font-medium text-white">
+                      <span className="truncate font-medium text-white">
                         {product.name}
                       </span>
                     </div>
                   </Td>
-                  <Td>
+                  <Td className="whitespace-nowrap">
                     <Badge tone={badge.tone}>{badge.label}</Badge>
                   </Td>
-                  <Td align="right">
+                  <Td align="right" className="whitespace-nowrap">
                     <StockEditor
                       id={product.id}
                       initialStock={product.stock}

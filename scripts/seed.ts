@@ -178,9 +178,9 @@ async function main() {
     .limit(1);
   if (schemaCheck) {
     console.error(
-      "\n❌ Database is missing cost_price / purchases schema.\n" +
+      "\n❌ Database is missing cost_price on products.\n" +
         "   1. Open Supabase → SQL Editor\n" +
-        "   2. Run supabase/migrations/20261003_cost_purchases.sql\n" +
+        "   2. Run supabase/migrations/20261003_cost_purchases.sql (adds cost_price)\n" +
         "   3. Or set DATABASE_URL in .env.local and run: npm run migrate\n" +
         "   4. Re-run: npm run seed\n",
     );

@@ -66,29 +66,9 @@ create index if not exists order_items_product_idx
   on public.order_items (product_id);
 
 -- -------------------------------------------------------------
--- Purchases (status cards, date filters, search)
--- -------------------------------------------------------------
-create index if not exists purchases_status_purchased_at_idx
-  on public.purchases (status, purchased_at desc);
-
-create index if not exists purchases_purchase_number_trgm_idx
-  on public.purchases using gin (purchase_number gin_trgm_ops);
-
-create index if not exists purchases_supplier_name_trgm_idx
-  on public.purchases using gin (supplier_name gin_trgm_ops);
-
-create index if not exists purchases_supplier_phone_trgm_idx
-  on public.purchases using gin (supplier_phone gin_trgm_ops);
-
--- -------------------------------------------------------------
--- Purchase items
--- -------------------------------------------------------------
-create index if not exists purchase_items_product_idx
-  on public.purchase_items (product_id);
-
--- -------------------------------------------------------------
 -- Categories / profiles (admin helpers)
 -- -------------------------------------------------------------
+
 create index if not exists categories_sort_order_idx
   on public.categories (sort_order);
 

@@ -11,8 +11,6 @@ export type OrderStatus =
   | "delivered"
   | "cancelled";
 
-export type PurchaseStatus = "draft" | "confirmed" | "cancelled";
-
 export interface Category {
   id: string;
   name: string;
@@ -97,6 +95,7 @@ export interface Order {
   total: number;
   notes: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface OrderItem {
@@ -112,32 +111,6 @@ export interface OrderItem {
 export interface OrderWithItems extends Order {
   items: OrderItem[];
   customer?: CustomerProfile | null;
-}
-
-export interface Purchase {
-  id: string;
-  purchase_number: string;
-  supplier_name: string;
-  supplier_phone: string | null;
-  status: PurchaseStatus;
-  subtotal: number;
-  notes: string | null;
-  purchased_at: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface PurchaseItem {
-  id: string;
-  purchase_id: string;
-  product_id: string | null;
-  product_name: string;
-  unit_cost: number;
-  quantity: number;
-}
-
-export interface PurchaseWithItems extends Purchase {
-  items: PurchaseItem[];
 }
 
 export interface OrderProfit {

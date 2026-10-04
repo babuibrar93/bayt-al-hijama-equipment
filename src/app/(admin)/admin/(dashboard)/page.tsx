@@ -8,7 +8,6 @@ import {
   Plus,
   ShoppingBag,
   TrendingUp,
-  Truck,
   Wallet,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -59,14 +58,6 @@ export default async function AdminDashboardPage() {
   const { year, month } = currentKarachiYearMonth();
   const mtd = karachiMonthBounds(year, month);
   const monthName = monthLabelLong(month);
-  const todayLabel = new Date().toLocaleDateString("en-PK", {
-    timeZone: "Asia/Karachi",
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
   const [
     { data: recentOrders },
     { data: mtdOrders },
@@ -75,8 +66,6 @@ export default async function AdminDashboardPage() {
     { count: outOfStockCount },
     { count: pendingCount },
     { count: unpaidCount },
-    { data: mtdPurchases },
-    { count: draftPurchaseCount },
   ] = await Promise.all([
     supabase
       .from("orders")
@@ -112,16 +101,6 @@ export default async function AdminDashboardPage() {
       .select("id", { count: "exact", head: true })
       .eq("payment_status", "unpaid")
       .neq("status", "cancelled"),
-    supabase
-      .from("purchases")
-      .select("subtotal")
-      .eq("status", "confirmed")
-      .gte("purchased_at", mtd.from)
-      .lt("purchased_at", mtd.to),
-    supabase
-      .from("purchases")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "draft"),
   ]);
 
   const orderList = (recentOrders ?? []) as RecentOrder[];
@@ -150,8 +129,8 @@ export default async function AdminDashboardPage() {
     0,
   );
   const mtdOrderCount = mtdList.length;
-  const mtdPurchaseSpend = (mtdPurchases ?? []).reduce(
-    (sum, p) => sum + Number(p.subtotal),
+  const mtdProductCost = paidMtd.reduce(
+    (sum, o) => sum + computeOrderProfit(o.items ?? []).cogs,
     0,
   );
 
@@ -180,42 +159,31 @@ export default async function AdminDashboardPage() {
       href: "/admin/inventory?stock=out",
       tone: "red" as const,
     },
-    {
-      label: "Draft purchases",
-      value: draftPurchaseCount ?? 0,
-      href: "/admin/purchases?status=draft",
-      tone: "neutral" as const,
-    },
   ].filter((item) => item.value > 0);
 
   return (
     <div className="space-y-5 sm:space-y-8">
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4">
-        <div className="min-w-0">
-          <h1 className="font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
-            Dashboard
-          </h1>
-          <p className="mt-1 text-xs text-white/50 sm:mt-1.5 sm:text-sm">
-            {todayLabel}
-          </p>
-        </div>
-        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+      <div className="flex items-center justify-between gap-3 sm:gap-4">
+        <h1 className="min-w-0 font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
+          Dashboard
+        </h1>
+        <div className="flex shrink-0 items-center gap-2">
           <Button
             href="/admin/orders/new"
             size="sm"
             leftIcon={<Plus className="h-4 w-4" />}
+            aria-label="Create order"
+            title="Create order"
+            className="h-9 w-9 gap-0 px-0 sm:w-auto sm:gap-1.5 sm:px-3.5"
           >
-            Create order
+            <span className="hidden sm:inline">Create order</span>
           </Button>
           <Button
-            href="/admin/purchases/new"
+            href="/admin/reports"
             size="sm"
-            variant="subtle"
-            leftIcon={<Truck className="h-4 w-4" />}
+            variant="ghost"
+            className="whitespace-nowrap"
           >
-            New purchase
-          </Button>
-          <Button href="/admin/reports" size="sm" variant="ghost">
             Reports
           </Button>
         </div>
@@ -253,10 +221,10 @@ export default async function AdminDashboardPage() {
             hint="Non-cancelled this month"
           />
           <StatCard
-            label="Purchase spend"
-            value={formatPrice(mtdPurchaseSpend)}
+            label="Product cost"
+            value={formatPrice(mtdProductCost)}
             icon={Wallet}
-            hint="Confirmed supplier bills"
+            hint="Paid sales · product cost"
           />
         </StatGrid>
       </section>
@@ -393,8 +361,6 @@ export default async function AdminDashboardPage() {
                               "bg-red-500/15 text-red-300",
                             item.tone === "amber" &&
                               "bg-amber-500/15 text-amber-200",
-                            item.tone === "neutral" &&
-                              "bg-white/10 text-white/80",
                           )}
                         >
                           {item.value}
@@ -432,12 +398,12 @@ export default async function AdminDashboardPage() {
                 Products
               </Button>
               <Button
-                href="/admin/purchases"
+                href="/admin/reports"
                 fullWidth
                 variant="subtle"
                 size="sm"
               >
-                Purchases
+                Reports
               </Button>
             </div>
           </section>

@@ -140,8 +140,13 @@ export default function ReportManualEntryControl({
             )
           }
           onClick={openEditor}
+          aria-label={entry ? "Edit totals" : "Add totals"}
+          title={entry ? "Edit totals" : "Add totals"}
+          className="h-9 w-9 gap-0 px-0 sm:w-auto sm:gap-1.5 sm:px-3.5"
         >
-          {entry ? "Edit totals" : "Add totals"}
+          <span className="hidden sm:inline">
+            {entry ? "Edit totals" : "Add totals"}
+          </span>
         </Button>
       )}
 

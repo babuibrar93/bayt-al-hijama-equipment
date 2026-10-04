@@ -127,12 +127,14 @@ create table if not exists public.orders (
   shipping_fee     numeric(10,2) not null default 0,
   total            numeric(10,2) not null default 0,
   notes            text,
-  created_at       timestamptz not null default now()
+  created_at       timestamptz not null default now(),
+  updated_at       timestamptz not null default now()
 );
 
 create index if not exists orders_user_idx on public.orders(user_id);
 create index if not exists orders_status_idx on public.orders(status);
 create index if not exists orders_created_at_idx on public.orders(created_at desc);
+create index if not exists orders_updated_at_idx on public.orders(updated_at desc);
 create index if not exists orders_status_created_idx on public.orders(status, created_at desc);
 create index if not exists orders_payment_status_idx on public.orders(payment_status);
 create index if not exists orders_payment_status_created_idx on public.orders(payment_status, created_at desc);
@@ -215,46 +217,6 @@ create trigger on_order_cancelled
   after update of status on public.orders
   for each row execute function public.restock_on_order_cancel();
 
--- -------------------------------------------------------------
--- Purchases (supplier stock-in)
--- -------------------------------------------------------------
-create table if not exists public.purchases (
-  id               uuid primary key default gen_random_uuid(),
-  purchase_number  text not null unique,
-  supplier_name    text not null,
-  supplier_phone   text,
-  status           text not null default 'draft'
-                   check (status in ('draft','confirmed','cancelled')),
-  subtotal         numeric(10,2) not null default 0,
-  notes            text,
-  purchased_at     timestamptz not null default now(),
-  created_at       timestamptz not null default now(),
-  updated_at       timestamptz not null default now()
-);
-
-create index if not exists purchases_status_idx on public.purchases(status);
-create index if not exists purchases_purchased_at_idx on public.purchases(purchased_at);
-create index if not exists purchases_status_purchased_at_idx
-  on public.purchases(status, purchased_at desc);
-create index if not exists purchases_purchase_number_trgm_idx
-  on public.purchases using gin (purchase_number gin_trgm_ops);
-create index if not exists purchases_supplier_name_trgm_idx
-  on public.purchases using gin (supplier_name gin_trgm_ops);
-create index if not exists purchases_supplier_phone_trgm_idx
-  on public.purchases using gin (supplier_phone gin_trgm_ops);
-
-create table if not exists public.purchase_items (
-  id           uuid primary key default gen_random_uuid(),
-  purchase_id  uuid not null references public.purchases(id) on delete cascade,
-  product_id   uuid references public.products(id) on delete set null,
-  product_name text not null,
-  unit_cost    numeric(10,2) not null check (unit_cost >= 0),
-  quantity     int not null check (quantity > 0)
-);
-
-create index if not exists purchase_items_purchase_idx on public.purchase_items(purchase_id);
-create index if not exists purchase_items_product_idx on public.purchase_items(product_id);
-
 create index if not exists categories_sort_order_idx on public.categories(sort_order);
 create index if not exists profiles_is_admin_idx
   on public.profiles(id) where is_admin = true;
@@ -298,9 +260,9 @@ create trigger products_touch_updated_at
   before update on public.products
   for each row execute function public.touch_updated_at();
 
-drop trigger if exists purchases_touch_updated_at on public.purchases;
-create trigger purchases_touch_updated_at
-  before update on public.purchases
+drop trigger if exists orders_touch_updated_at on public.orders;
+create trigger orders_touch_updated_at
+  before update on public.orders
   for each row execute function public.touch_updated_at();
 
 drop trigger if exists report_manual_entries_touch_updated_at on public.report_manual_entries;
@@ -331,8 +293,6 @@ alter table public.products       enable row level security;
 alter table public.profiles       enable row level security;
 alter table public.orders         enable row level security;
 alter table public.order_items    enable row level security;
-alter table public.purchases      enable row level security;
-alter table public.purchase_items enable row level security;
 alter table public.report_manual_entries enable row level security;
 
 -- Categories: public read, admin write
@@ -379,15 +339,6 @@ create policy "order_items_owner_read" on public.order_items
         and ((o.user_id is not null and auth.uid() = o.user_id) or public.is_admin())
     )
   );
-
--- Purchases: admin only (mutations also go through service-role API routes)
-drop policy if exists "purchases_admin_all" on public.purchases;
-create policy "purchases_admin_all" on public.purchases
-  for all using (public.is_admin()) with check (public.is_admin());
-
-drop policy if exists "purchase_items_admin_all" on public.purchase_items;
-create policy "purchase_items_admin_all" on public.purchase_items
-  for all using (public.is_admin()) with check (public.is_admin());
 
 drop policy if exists "report_manual_entries_admin_all" on public.report_manual_entries;
 create policy "report_manual_entries_admin_all" on public.report_manual_entries

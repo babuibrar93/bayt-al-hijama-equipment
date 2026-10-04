@@ -34,7 +34,7 @@ import {
   StatCard,
   StatGrid,
 } from "@/components/ui";
-import type { OrderWithItems, Purchase, ReportManualEntry } from "@/types/db";
+import type { OrderWithItems, ReportManualEntry } from "@/types/db";
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -117,23 +117,12 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
     ordersQuery = ordersQuery.neq("payment_status", "refunded");
   }
 
-  const [
-    { data: ordersData },
-    { data: purchasesData },
-    { data: manualData },
-  ] = await Promise.all([
+  const [{ data: ordersData }, { data: manualData }] = await Promise.all([
     ordersQuery,
-    supabase
-      .from("purchases")
-      .select("id, subtotal, purchased_at")
-      .eq("status", "confirmed")
-      .gte("purchased_at", yearBounds.from)
-      .lt("purchased_at", yearBounds.to),
     supabase.from("report_manual_entries").select("*").eq("year", year),
   ]);
 
   const orders = (ordersData ?? []) as unknown as OrderWithItems[];
-  const purchases = (purchasesData ?? []) as Purchase[];
   const manuals = (manualData ?? []) as ReportManualEntry[];
 
   const dayLevelByKey = new Map<string, ReportManualEntry>();
@@ -150,14 +139,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
     const monthOrders = orders.filter((o) =>
       inBounds(o.created_at, bounds.from, bounds.to),
     );
-    const monthPurchases = purchases.filter((p) =>
-      inBounds(p.purchased_at, bounds.from, bounds.to),
-    );
     const summary = summarizeOrders(monthOrders);
-    const livePurchases = monthPurchases.reduce(
-      (sum, p) => sum + Number(p.subtotal),
-      0,
-    );
 
     let dayManualRevenue = 0;
     let dayManualPurchases = 0;
@@ -174,9 +156,8 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
 
     const revenue = summary.revenue + dayManualRevenue;
     const grossProfit = summary.grossProfit + dayManualProfit;
-    // Purchases = product cost on sold orders (COGS) + stock purchases + day entries
-    const purchaseSpend =
-      summary.cogs + livePurchases + dayManualPurchases;
+    // Purchases = product cost on sold orders + day entries
+    const purchaseSpend = summary.cogs + dayManualPurchases;
 
     return {
       month: m,
@@ -215,21 +196,13 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
           const dayOrders = orders.filter(
             (o) => toKarachiDateKey(o.created_at) === key,
           );
-          const dayPurchases = purchases.filter(
-            (p) => toKarachiDateKey(p.purchased_at) === key,
-          );
           const summary = summarizeOrders(dayOrders);
-          const livePurchases = dayPurchases.reduce(
-            (sum, p) => sum + Number(p.subtotal),
-            0,
-          );
           const dayNum = Number(key.slice(-2));
           const entry = dayLevelByKey.get(key) ?? null;
           const manual = manualSlice(entry);
           const revenue = summary.revenue + manual.revenue;
           const grossProfit = summary.grossProfit + manual.profit;
-          const purchaseSpend =
-            summary.cogs + livePurchases + manual.purchases;
+          const purchaseSpend = summary.cogs + manual.purchases;
           return {
             key,
             day: dayNum,
@@ -302,17 +275,11 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
-            Profit reports
-          </h1>
-          <p className="mt-1 text-xs text-white/50 sm:mt-2 sm:text-sm">
-            Click a month, then a day. Website orders update automatically; you
-            can also add day totals. Times in Asia/Karachi.
-          </p>
-        </div>
-        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+      <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6 sm:gap-4">
+        <h1 className="min-w-0 font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
+          Profit reports
+        </h1>
+        <div className="flex shrink-0 items-center gap-2">
           {level === "day" && month != null && day != null && (
             <ReportManualEntryControl
               year={year}

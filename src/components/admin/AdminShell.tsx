@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Logo from "@/components/ui/Logo";
 import {
   LayoutDashboard,
@@ -14,17 +14,17 @@ import {
   PanelLeft,
   Menu,
   X,
-  Truck,
   BarChart3,
+  ChevronDown,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/classes";
-import SignOutButton from "@/components/auth/SignOutButton";
+import { createClient } from "@/lib/supabase/client";
 
 const LINKS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
-  { href: "/admin/purchases", label: "Purchases", icon: Truck },
   { href: "/admin/inventory", label: "Inventory", icon: Boxes },
   { href: "/admin/reports", label: "Reports", icon: BarChart3 },
 ];
@@ -68,6 +68,106 @@ function NavLinks({ showLabels }: { showLabels: boolean }) {
         );
       })}
     </nav>
+  );
+}
+
+function AdminProfileMenu({
+  admin,
+}: {
+  admin: { email?: string; fullName: string | null };
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const initial = (admin.fullName ?? admin.email ?? "A").charAt(0).toUpperCase();
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  const onSignOut = async () => {
+    setOpen(false);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
+
+  return (
+    <div ref={rootRef} className="relative z-[130]">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Account menu"
+        className={cn(
+          "inline-flex items-center gap-2 rounded-md py-1 pl-1 pr-1.5 transition-colors",
+          "hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
+          open && "bg-white/5",
+        )}
+      >
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gold/15 text-xs font-semibold text-gold sm:h-9 sm:w-9 sm:text-sm">
+          {initial}
+        </span>
+        <span className="hidden min-w-0 text-left min-[480px]:block">
+          <span className="block max-w-[9rem] truncate text-sm font-medium text-white sm:max-w-[12rem] lg:max-w-[14rem]">
+            {admin.fullName ?? "Admin"}
+          </span>
+          {admin.email ? (
+            <span className="block max-w-[9rem] truncate text-xs text-white/45 sm:max-w-[12rem] lg:max-w-[14rem]">
+              {admin.email}
+            </span>
+          ) : null}
+        </span>
+        <ChevronDown
+          className={cn(
+            "hidden h-4 w-4 shrink-0 text-white/45 transition-transform min-[480px]:block",
+            open && "rotate-180",
+          )}
+          aria-hidden="true"
+        />
+      </button>
+
+      {open ? (
+        <div
+          role="menu"
+          className="absolute right-0 top-[calc(100%+0.5rem)] z-[140] w-56 overflow-hidden rounded-lg border border-glass-border bg-black-2 py-1 shadow-2xl"
+        >
+          <div className="border-b border-glass-border px-3 py-2.5 min-[480px]:hidden">
+            <p className="truncate text-sm font-medium text-white">
+              {admin.fullName ?? "Admin"}
+            </p>
+            {admin.email ? (
+              <p className="truncate text-xs text-white/45">{admin.email}</p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={onSignOut}
+            className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm text-white/75 transition-colors hover:bg-white/5 hover:text-white"
+          >
+            <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
+            Sign out
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -168,14 +268,13 @@ export default function AdminShell({ admin, children }: AdminShellProps) {
                 <Store className="h-[18px] w-[18px]" aria-hidden="true" />
                 View Store
               </Link>
-              <SignOutButton className="w-full justify-center" />
             </div>
           </aside>
         </div>
       )}
 
       <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
-        <header className="z-[100] flex shrink-0 items-center justify-between gap-2 border-b border-glass-border bg-black-2/95 px-3 py-2.5 backdrop-blur-md sm:gap-4 sm:px-5 sm:py-3 lg:px-8">
+        <header className="relative z-[100] flex shrink-0 items-center justify-between gap-2 border-b border-glass-border bg-black-2/95 px-3 py-2.5 backdrop-blur-md sm:gap-4 sm:px-5 sm:py-3 lg:px-8">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
@@ -202,22 +301,7 @@ export default function AdminShell({ admin, children }: AdminShellProps) {
             </h1>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <div className="hidden text-right min-[480px]:block">
-              <p className="max-w-[9rem] truncate text-sm font-medium text-white sm:max-w-[12rem] lg:max-w-none">
-                {admin.fullName ?? "Admin"}
-              </p>
-              {admin.email && (
-                <p className="max-w-[9rem] truncate text-xs text-white/45 sm:max-w-[12rem] lg:max-w-[14rem]">
-                  {admin.email}
-                </p>
-              )}
-            </div>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold/15 text-xs font-semibold text-gold sm:h-9 sm:w-9 sm:text-sm">
-              {(admin.fullName ?? admin.email ?? "A").charAt(0).toUpperCase()}
-            </div>
-            <SignOutButton className="hidden sm:inline-flex" />
-          </div>
+          <AdminProfileMenu admin={admin} />
         </header>
 
         <main className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-8">

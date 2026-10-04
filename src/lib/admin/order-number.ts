@@ -4,7 +4,3 @@ export function generateOrderNumber(prefix = "BAH"): string {
   const random = Math.floor(1000 + Math.random() * 9000);
   return `${prefix}-${ymd}-${random}`;
 }
-
-export function generatePurchaseNumber(): string {
-  return generateOrderNumber("PUR");
-}

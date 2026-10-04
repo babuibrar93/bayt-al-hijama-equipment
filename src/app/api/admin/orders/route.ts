@@ -124,6 +124,7 @@ export async function POST(request: Request) {
       total,
       notes: data.notes || null,
       created_at: createdAt,
+      updated_at: createdAt,
     })
     .select("id, order_number")
     .single();

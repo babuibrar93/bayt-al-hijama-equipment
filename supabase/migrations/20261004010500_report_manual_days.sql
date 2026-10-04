@@ -32,29 +32,44 @@ drop policy if exists "report_manual_entries_admin_all" on public.report_manual_
 create policy "report_manual_entries_admin_all" on public.report_manual_entries
   for all using (public.is_admin()) with check (public.is_admin());
 
+-- Migrate month-level history only while `day` still allows NULL.
+-- Skip when the schema is already day-only (day NOT NULL).
 do $$
 begin
-  if to_regclass('public.monthly_history') is not null then
-    insert into public.report_manual_entries (
-      year, month, day, revenue, purchase_spend, gross_profit, notes, created_at, updated_at
-    )
-    select
-      mh.year,
-      mh.month,
-      null,
-      mh.revenue,
-      mh.purchase_spend,
-      mh.gross_profit,
-      mh.notes,
-      mh.created_at,
-      mh.updated_at
-    from public.monthly_history mh
-    where not exists (
-      select 1
-      from public.report_manual_entries e
-      where e.year = mh.year
-        and e.month = mh.month
-        and e.day is null
-    );
+  if to_regclass('public.monthly_history') is null then
+    return;
   end if;
+
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'report_manual_entries'
+      and column_name = 'day'
+      and is_nullable = 'NO'
+  ) then
+    return;
+  end if;
+
+  insert into public.report_manual_entries (
+    year, month, day, revenue, purchase_spend, gross_profit, notes, created_at, updated_at
+  )
+  select
+    mh.year,
+    mh.month,
+    null,
+    mh.revenue,
+    mh.purchase_spend,
+    mh.gross_profit,
+    mh.notes,
+    mh.created_at,
+    mh.updated_at
+  from public.monthly_history mh
+  where not exists (
+    select 1
+    from public.report_manual_entries e
+    where e.year = mh.year
+      and e.month = mh.month
+      and e.day is null
+  );
 end $$;

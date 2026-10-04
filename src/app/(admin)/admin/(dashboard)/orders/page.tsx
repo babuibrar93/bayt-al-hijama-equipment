@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { Pencil, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/utils";
-import { numeric } from "@/lib/classes";
+import { cn, numeric } from "@/lib/classes";
 import {
   Button,
   Badge,
@@ -58,7 +58,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
       "id, order_number, customer_name, customer_phone, total, status, payment_status, created_at, items:order_items(unit_price, unit_cost, quantity)",
       { count: "exact" },
     )
-    .order("created_at", { ascending: false })
+    .order("updated_at", { ascending: false })
     .range((page - 1) * perPage, page * perPage - 1);
 
   if (status) query = query.eq("status", status);
@@ -110,16 +110,11 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
-            Orders
-          </h1>
-          <p className="mt-1 text-xs text-white/50 sm:mt-1.5 sm:text-sm">
-            Newest orders first. Open an order for full details.
-          </p>
-        </div>
-        <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-2 sm:w-auto">
+      <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6 sm:gap-4">
+        <h1 className="min-w-0 font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
+          Orders
+        </h1>
+        <div className="flex shrink-0 items-center gap-2">
           <Suspense fallback={null}>
             <AdminFilterBar fields={filterFields} />
           </Suspense>
@@ -127,9 +122,11 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             href="/admin/orders/new"
             size="sm"
             leftIcon={<Plus className="h-4 w-4" />}
-            className="whitespace-nowrap"
+            aria-label="Create order"
+            title="Create order"
+            className="h-9 w-9 gap-0 px-0 sm:w-auto sm:gap-1.5 sm:px-3.5"
           >
-            Create order
+            <span className="hidden sm:inline">Create order</span>
           </Button>
         </div>
       </div>
@@ -165,27 +162,29 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
               const profit = computeOrderProfit(order.items);
               return (
                 <Tr key={order.id}>
-                  <Td>
+                  <Td className="whitespace-nowrap">
                     <Link
                       href={`/admin/orders/${order.id}`}
                       className={`font-medium text-gold hover:text-gold-light ${numeric}`}
                     >
                       {order.order_number}
                     </Link>
-                    <p className="text-xs text-white/40">
+                    <p className="whitespace-nowrap text-xs text-white/40">
                       {new Date(order.created_at).toLocaleString("en-PK", {
                         timeZone: "Asia/Karachi",
                       })}
                     </p>
                   </Td>
-                  <Td>
-                    <p className="text-white/80">{order.customer_name}</p>
-                    <p className="text-xs text-white/40">
+                  <Td className="max-w-[12rem]">
+                    <p className="truncate text-white/80">
+                      {order.customer_name}
+                    </p>
+                    <p className="whitespace-nowrap text-xs text-white/40">
                       {order.customer_phone}
                     </p>
                   </Td>
-                  <Td>
-                    <div className="flex flex-wrap gap-1.5">
+                  <Td className="whitespace-nowrap">
+                    <div className="flex flex-nowrap gap-1.5">
                       <Badge tone="neutral">{order.status}</Badge>
                       <Badge
                         tone={
@@ -196,13 +195,19 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                       </Badge>
                     </div>
                   </Td>
-                  <Td align="right" className={numeric}>
+                  <Td
+                    align="right"
+                    className={cn("whitespace-nowrap", numeric)}
+                  >
                     {formatPrice(Number(order.total))}
                   </Td>
-                  <Td align="right" className={`text-gold ${numeric}`}>
+                  <Td
+                    align="right"
+                    className={cn("whitespace-nowrap text-gold", numeric)}
+                  >
                     {formatPrice(profit.profit)}
                   </Td>
-                  <Td align="right">
+                  <Td align="right" className="whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5">
                       <Button
                         href={`/admin/orders/${order.id}/edit`}

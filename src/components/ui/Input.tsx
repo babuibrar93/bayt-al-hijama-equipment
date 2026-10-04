@@ -57,7 +57,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           required={required}
           aria-invalid={error ? true : undefined}
           className={cn(
-            "h-11 w-full rounded-md border bg-black/30 px-3.5 text-sm text-white placeholder:text-white/30 transition-colors focus:outline-none",
+            "h-11 w-full rounded-md border bg-black/30 px-3.5 text-sm text-white placeholder:text-white/30 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:opacity-55",
             leftIcon && "pl-10",
             isPassword && "pr-11",
             isDate && "date-input pr-3 [color-scheme:dark]",

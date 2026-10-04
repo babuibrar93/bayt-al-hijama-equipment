@@ -50,7 +50,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
       "id, name, slug, price, cost_price, stock, images, is_active, created_at, category:categories(id, name, slug)",
       { count: "exact" },
     )
-    .order("created_at", { ascending: false })
+    .order("updated_at", { ascending: false })
     .range((page - 1) * perPage, page * perPage - 1);
 
   if (q) {
@@ -74,11 +74,11 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <h1 className="font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
+      <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6 sm:gap-4">
+        <h1 className="min-w-0 font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
           Products
         </h1>
-        <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-2 sm:w-auto">
+        <div className="flex shrink-0 items-center gap-2">
           <Suspense fallback={null}>
             <AdminFilterBar
               fields={[
@@ -117,9 +117,11 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
             href="/admin/products/new"
             size="sm"
             leftIcon={<Plus className="h-4 w-4" />}
-            className="whitespace-nowrap"
+            aria-label="Add product"
+            title="Add product"
+            className="h-9 w-9 gap-0 px-0 sm:w-auto sm:gap-1.5 sm:px-3.5"
           >
-            Add Product
+            <span className="hidden sm:inline">Add product</span>
           </Button>
         </div>
       </div>
@@ -130,6 +132,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <Table
+          minWidth="min-w-[820px]"
           pagination={{
             page,
             totalPages,
@@ -154,7 +157,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
             {products.map((product) => (
               <Tr key={product.id}>
                 <Td>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3">
                     <div className="h-11 w-11 shrink-0 overflow-hidden rounded-md">
                       <ProductImage
                         src={product.images[0] ?? null}
@@ -162,16 +165,24 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                         sizes="44px"
                       />
                     </div>
-                    <span className="font-medium text-white">{product.name}</span>
+                    <p className="font-medium leading-snug text-white">
+                      {product.name}
+                    </p>
                   </div>
                 </Td>
-                <Td className="text-white/60">
+                <Td className="whitespace-nowrap text-white/60">
                   {product.category?.name ?? "—"}
                 </Td>
-                <Td align="right" className={numeric}>
+                <Td
+                  align="right"
+                  className={cn("whitespace-nowrap", numeric)}
+                >
                   {formatPrice(product.price)}
                 </Td>
-                <Td align="right" className={cn(numeric, "text-white/50")}>
+                <Td
+                  align="right"
+                  className={cn("whitespace-nowrap text-white/50", numeric)}
+                >
                   {product.cost_price == null
                     ? "—"
                     : formatPrice(Number(product.cost_price))}
@@ -179,18 +190,19 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                 <Td
                   align="right"
                   className={cn(
+                    "whitespace-nowrap",
                     numeric,
                     product.stock <= 5 ? "text-amber-300" : "text-white/80",
                   )}
                 >
                   {product.stock}
                 </Td>
-                <Td>
+                <Td className="whitespace-nowrap">
                   <Badge tone={product.is_active ? "green" : "neutral"}>
                     {product.is_active ? "Active" : "Hidden"}
                   </Badge>
                 </Td>
-                <Td align="right">
+                <Td align="right" className="whitespace-nowrap">
                   <div className="flex items-center justify-end gap-2">
                     <Link
                       href={`/admin/products/${product.id}`}
