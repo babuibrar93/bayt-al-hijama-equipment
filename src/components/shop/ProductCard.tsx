@@ -54,7 +54,7 @@ export default function ProductCard({
           sizes={
             isList
               ? "(max-width: 639px) 100vw, 176px"
-              : "(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 25vw"
+              : "(max-width: 639px) 100vw, (max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
           }
         />
       </Link>
@@ -63,7 +63,7 @@ export default function ProductCard({
         {product.category && (
           <span
             className={cn(
-              "mb-1 font-semibold uppercase tracking-[0.14em] text-gold/80",
+              "mb-0.5 font-semibold uppercase tracking-[0.14em] text-gold/80",
               typeEyebrow,
             )}
           >
@@ -72,7 +72,7 @@ export default function ProductCard({
         )}
         <h3
           className={cn(
-            "mb-1 line-clamp-2 min-h-[2.4em] min-w-0 font-body font-medium leading-snug text-white",
+            "line-clamp-2 min-w-0 font-body font-medium leading-snug text-white",
             typeCardTitle,
           )}
         >
@@ -86,7 +86,7 @@ export default function ProductCard({
         </h3>
         <p
           className={cn(
-            "line-clamp-1 min-h-[1.25em] text-white/55",
+            "mt-0.5 line-clamp-2 min-h-[2.5em] leading-snug text-white/55",
             typeBodySm,
           )}
         >
@@ -94,7 +94,7 @@ export default function ProductCard({
         </p>
 
         <div className="mt-auto">
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
             <span
               className={cn("font-semibold text-white", numeric, typeCardTitle)}
             >
@@ -121,10 +121,7 @@ export default function ProductCard({
                 image,
                 maxStock: product.stock,
               }}
-              className={cn(
-                "min-h-12 w-full px-3 py-2.5",
-                typeBtnSm,
-              )}
+              className={cn("min-h-12 w-full px-3 py-2.5", typeBtnSm)}
             />
           </div>
         </div>

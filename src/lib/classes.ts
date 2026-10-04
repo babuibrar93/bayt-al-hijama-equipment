@@ -12,9 +12,9 @@ export const pageGutter =
 /** Landing / site content width. No max-width so edges align with hero. */
 export const container = `w-full ${pageGutter}`;
 
-/** Shared 4-up product grid (landing, shop, related). */
+/** One card per row on phones; 2 / 3 / 4 columns as the screen grows. */
 export const productGrid =
-  "grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 lg:gap-4";
+  "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 lg:gap-4";
 
 export const section =
   "relative py-8 md:py-10 lg:py-12";
