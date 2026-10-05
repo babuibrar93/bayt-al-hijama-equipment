@@ -45,19 +45,8 @@ export const SEO = {
   ],
 } as const;
 
-export const MARQUEE_ITEMS = [
-  "Professional Equipment",
-  "Nationwide Delivery",
-  "Trusted by 500+ Therapists",
-  "100% Authentic",
-  "Hijama Cups",
-  "Complete Kits",
-  "Fast Shipping",
-  "Clinic Grade Quality",
-] as const;
-
 export const HERO_STATS = [
-  { target: 500, suffix: "+", label: "Happy Therapists" },
+  { target: 1000, suffix: "+", label: "Happy Therapists" },
   { target: 50, suffix: "+", label: "Cities Served" },
   { target: 3, suffix: " Days", label: "Avg Delivery" },
 ] as const;

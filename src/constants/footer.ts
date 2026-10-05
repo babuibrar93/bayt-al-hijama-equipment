@@ -37,3 +37,18 @@ export const FOOTER_CONTACT = {
   whatsappHref: WHATSAPP.mobile,
   location: SITE.delivery,
 };
+
+export const FOOTER_SOCIAL = [
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/baytalhijamaequipment",
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/hijamaequipmentofficial",
+  },
+  {
+    label: "WhatsApp",
+    href: WHATSAPP.mobile,
+  },
+] as const;

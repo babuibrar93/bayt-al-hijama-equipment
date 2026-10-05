@@ -11,8 +11,6 @@ import {
   cn,
   getRevealClass,
   pageGutter,
-  typeBody,
-  typeDisplay,
   typeEyebrow,
 } from "@/lib/classes";
 
@@ -22,7 +20,7 @@ export default function HeroSection() {
       id="hero"
       aria-label="Hero"
       className={cn(
-        "relative flex min-h-[90svh] items-center overflow-hidden bg-black pb-8 pt-[92px] lg:min-h-svh lg:pb-10 lg:pt-[96px]",
+        "relative flex min-h-[78svh] items-center overflow-hidden bg-black pb-8 pt-[92px] lg:min-h-[82svh] lg:pb-10 lg:pt-[96px]",
         pageGutter,
       )}
     >
@@ -31,23 +29,23 @@ export default function HeroSection() {
         alt="Professional Hijama cupping equipment"
         fill
         priority
-        quality={62}
+        quality={75}
         sizes="100vw"
-        className="object-cover object-[68%_center] sm:object-[72%_center]"
+        className="object-cover object-[75%_32%] sm:object-[80%_28%] lg:object-[82%_30%]"
       />
 
-      {/* Keep cups/pump visible on the right; darken left for copy */}
+      {/* Darken left for copy; keep bright product side visible on the right */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/35 sm:via-black/80 sm:to-black/25"
+        className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-transparent sm:via-black/85 sm:to-black/10"
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/50"
+        className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/35"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-grad-hero opacity-70"
+        className="pointer-events-none absolute inset-0 bg-grad-hero opacity-40"
       />
 
       <IdleParticles id="heroParticles" options={{ count: 10, goldRatio: 0.35 }} />
@@ -75,31 +73,29 @@ export default function HeroSection() {
         <h1
           data-reveal
           className={cn(
-            "mb-5 font-display font-normal leading-[0.95] tracking-[-0.01em] text-white is-visible",
-            typeDisplay,
+            "mb-4 font-display font-normal leading-[0.95] tracking-[-0.01em] text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.55)] is-visible text-[clamp(2rem,3.6vw,3.35rem)]",
             getRevealClass("up", 1),
           )}
         >
-          <span className="block leading-[0.88]">
-            Elevate Your <br />
-            <span className="-mt-1 block text-transparent [-webkit-text-stroke:1px_#c9a84c]">
-              Hijama Practice
-            </span>
+          <span className="block leading-[0.95]">
+            Elevate Your
           </span>
-          <span className="block italic leading-[0.95] text-white/70">
-            With Professional <br /> Grade Equipment
+          <span className="block text-gold leading-[0.95]">
+            Hijama Practice
+          </span>
+          <span className="block italic leading-[0.95] text-white/85 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]">
+            With Professional Grade Equipment
           </span>
         </h1>
 
         <p
           data-reveal
           className={cn(
-            "mb-8 max-w-[500px] leading-[1.7] text-white/70 max-md:mx-auto is-visible",
-            typeBody,
+            "mb-7 max-w-[500px] text-[0.95rem] leading-[1.7] text-white/80 max-md:mx-auto is-visible drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)]",
             getRevealClass("up", 2),
           )}
         >
-          Trusted by 500+ therapists, clinics, and training institutes across
+          Trusted by 1000+ therapists, clinics, and training institutes across
           Pakistan. Premium quality tools that honour the Sunnah — delivered to
           your door.
         </p>

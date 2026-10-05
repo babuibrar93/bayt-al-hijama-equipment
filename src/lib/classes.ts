@@ -102,7 +102,7 @@ export const featureCard =
   "group relative overflow-hidden rounded-xl border border-glass-border bg-glass-bg transition-all duration-[350ms] ease-spring hover:-translate-y-1.5 hover:border-gold/25 hover:bg-glass-bg-hover hover:shadow-[0_12px_40px_rgba(27,107,71,0.12)]";
 
 export const featureCardIcon =
-  "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-green-mid/30 bg-green-mid/10 transition-colors duration-[350ms] group-hover:border-gold/30 group-hover:bg-gold/10 sm:h-11 sm:w-11 [&_svg]:h-[22px] [&_svg]:w-[22px] sm:[&_svg]:h-[26px] sm:[&_svg]:w-[26px]";
+  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold text-black shadow-[0_4px_14px_rgba(201,168,76,0.28)] transition-colors duration-[350ms] group-hover:bg-gold-light sm:h-12 sm:w-12 [&_svg]:h-[22px] [&_svg]:w-[22px] sm:[&_svg]:h-[24px] sm:[&_svg]:w-[24px]";
 
 export const featureCardIndex =
   "flex h-6 min-w-[1.6rem] shrink-0 items-center justify-center rounded-md border border-gold/25 bg-gold/10 px-1.5 font-body text-[0.62rem] font-bold tabular-nums tracking-wide text-gold sm:h-7 sm:min-w-[1.75rem] sm:text-[0.68rem]";

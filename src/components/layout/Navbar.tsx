@@ -9,6 +9,9 @@ import { NAV_LINKS } from "@/constants/navigation";
 import { useCart } from "@/context/CartContext";
 import { cn, navLink, pageGutter } from "@/lib/classes";
 
+const navIconClass =
+  "inline-flex h-10 w-10 items-center justify-center rounded-full bg-green-mid text-white transition-colors hover:bg-green-light";
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -69,7 +72,7 @@ export default function Navbar() {
           <Link
             href="/account"
             aria-label="My account"
-            className="inline-flex h-12 w-12 items-center justify-center rounded-full text-white/75 transition-colors hover:text-gold"
+            className={navIconClass}
           >
             <User className="h-[18px] w-[18px]" aria-hidden="true" />
           </Link>
@@ -184,7 +187,7 @@ function CartLink({
     <Link
       href="/cart"
       aria-label={`Cart${isHydrated && itemCount > 0 ? `, ${itemCount} items` : ""}`}
-      className="relative inline-flex h-12 w-12 items-center justify-center rounded-full text-white/75 transition-colors hover:text-gold"
+      className={cn(navIconClass, "relative")}
     >
       <ShoppingBag className="h-[18px] w-[18px]" aria-hidden="true" />
       {isHydrated && itemCount > 0 && (

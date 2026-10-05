@@ -14,11 +14,7 @@ export default function CounterStat({ target, suffix, label }: CounterStatProps)
         className={`font-body font-semibold tabular-nums leading-none text-gold ${typeStat}`}
       >
         {target}
-      </span>
-      <span
-        className={`font-body font-normal tabular-nums text-gold ${typeStatSuffix}`}
-      >
-        {suffix}
+        <span className={`font-normal ${typeStatSuffix}`}>{suffix}</span>
       </span>
       <span className={`mt-1 tracking-[0.04em] text-white/50 ${typeEyebrow}`}>
         {label}

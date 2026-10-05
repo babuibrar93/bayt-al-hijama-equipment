@@ -21,7 +21,7 @@ export const TRUST_CARDS: TrustCard[] = [
   },
   {
     iconId: "community",
-    title: "Trusted by 500+ Therapists",
+    title: "Trusted by 1000+ Therapists",
     description:
       "From solo practitioners to multi-room clinics and training institutes — our equipment powers healing across Pakistan. Join a community that practises the Sunnah with the best tools.",
   },

@@ -48,12 +48,12 @@ export default function WhySection() {
               >
                 <div
                   className={cn(
-                    "group z-[1] flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gold bg-black transition-all duration-[350ms] hover:bg-gold/10 hover:shadow-[0_0_24px_rgba(201,168,76,0.2)]",
+                    "group z-[1] flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold text-black shadow-[0_4px_14px_rgba(201,168,76,0.28)] transition-all duration-[350ms] hover:bg-gold-light",
                     "lg:col-start-2 lg:row-start-1",
                   )}
                 >
                   <span
-                    className={`${typeEyebrow} font-bold tracking-[0.05em] text-gold`}
+                    className={`${typeEyebrow} font-bold tracking-[0.05em] text-black`}
                   >
                     {item.number}
                   </span>
