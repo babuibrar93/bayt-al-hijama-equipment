@@ -5,7 +5,7 @@ import { useCallback, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { Select } from "@/components/ui";
-import { cn, fieldBorder, typeBodySm, typeEyebrow, typeMeta } from "@/lib/classes";
+import { cn, fieldBorder, typeBodySm } from "@/lib/classes";
 import type { Category } from "@/types/db";
 import type { ProductSort } from "@/lib/products";
 
@@ -136,8 +136,7 @@ export default function ShopFilters({
           <span className="h-px w-4 shrink-0 bg-gold/80" aria-hidden="true" />
           <span
             className={cn(
-              "font-semibold uppercase tracking-[0.14em] text-gold",
-              typeEyebrow,
+              "text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-gold sm:text-xs sm:tracking-[0.14em]",
             )}
           >
             Categories
@@ -177,8 +176,7 @@ function FilterPill({
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "inline-flex min-h-12 items-center rounded-lg border px-4 font-medium transition-all duration-200",
-        typeMeta,
+        "inline-flex min-h-8 items-center rounded-md border px-2.5 py-1 text-[0.68rem] font-medium leading-none transition-all duration-200 sm:min-h-9 sm:rounded-lg sm:px-3.5 sm:py-1.5 sm:text-[0.78rem] md:min-h-10 md:px-4 md:text-[0.82rem]",
         active
           ? "border-gold/40 bg-gold/12 text-gold shadow-[inset_0_0_0_1px_rgba(201,168,76,0.15)]"
           : "border-glass-border bg-black/15 text-white/55 hover:border-white/20 hover:bg-white/[0.03] hover:text-white/85",

@@ -50,8 +50,7 @@ export default function AddToCartButton({
         type="button"
         disabled
         className={cn(
-          "inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-sm border border-glass-border px-7 py-3.5 font-semibold text-white/40",
-          withQuantity ? "w-auto" : "w-full",
+          "inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-sm border border-glass-border px-7 py-3.5 font-semibold text-white/40",
           typeBtn,
           className,
         )}
@@ -61,20 +60,18 @@ export default function AddToCartButton({
     );
   }
 
+  const qtyBtnClass =
+    "flex h-11 w-11 shrink-0 items-center justify-center text-white/70 transition-colors hover:bg-white/5 hover:text-gold sm:h-12 sm:w-12";
+
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-4",
-        withQuantity && "sm:flex-row sm:items-center",
-      )}
-    >
+    <div className={cn("flex w-full flex-col gap-3", withQuantity && "sm:gap-3")}>
       {withQuantity && (
-        <div className="inline-flex items-center rounded-sm border border-glass-border">
+        <div className="flex w-fit items-center self-start overflow-hidden rounded-sm border border-glass-border">
           <button
             type="button"
             aria-label="Decrease quantity"
             onClick={() => setQty(quantity - 1)}
-            className="flex h-12 w-12 items-center justify-center text-white/70 transition-colors hover:text-gold"
+            className={qtyBtnClass}
           >
             <Minus className="h-4 w-4" />
           </button>
@@ -102,7 +99,7 @@ export default function AddToCartButton({
               }
             }}
             className={cn(
-              "h-12 w-14 border-x border-glass-border bg-transparent text-center font-semibold text-white outline-none focus:bg-white/5",
+              "h-11 w-12 shrink-0 border-x border-glass-border bg-transparent text-center font-semibold text-white outline-none focus:bg-white/5 sm:h-12 sm:w-14",
               typeBody,
             )}
           />
@@ -110,7 +107,7 @@ export default function AddToCartButton({
             type="button"
             aria-label="Increase quantity"
             onClick={() => setQty(quantity + 1)}
-            className="flex h-12 w-12 items-center justify-center text-white/70 transition-colors hover:text-gold"
+            className={qtyBtnClass}
           >
             <Plus className="h-4 w-4" />
           </button>
@@ -121,12 +118,7 @@ export default function AddToCartButton({
         type="button"
         onClick={handleAdd}
         aria-label={`Add to Cart: ${product.name}`}
-        className={cn(
-          btnPrimary,
-          "justify-center",
-          withQuantity ? "w-auto self-start px-8 sm:px-10" : undefined,
-          className,
-        )}
+        className={cn(btnPrimary, "w-full justify-center", className)}
       >
         {added ? (
           <>

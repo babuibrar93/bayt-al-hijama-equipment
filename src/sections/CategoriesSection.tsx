@@ -8,7 +8,7 @@ import {
   featureCardIcon,
   featureCardIndex,
   getRevealClass,
-  sectionBandSecond,
+  section,
   typeBodySm,
   typeCardTitle,
   typeMeta,
@@ -33,7 +33,7 @@ export default async function CategoriesSection() {
   return (
     <section
       data-section
-      className={sectionBandSecond}
+      className={section}
       id="categories"
       aria-label="Product categories"
     >

@@ -7,7 +7,7 @@ import {
   featureCardIcon,
   featureCardIndex,
   getRevealClass,
-  sectionBandFirst,
+  section,
   typeBodySm,
   typeCardTitle,
 } from "@/lib/classes";
@@ -15,7 +15,7 @@ import {
 export default function TrustSection() {
   return (
     <section
-      className={sectionBandFirst}
+      className={section}
       data-section
       id="trust"
       aria-label="Trust signals"

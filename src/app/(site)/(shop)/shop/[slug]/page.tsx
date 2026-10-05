@@ -111,7 +111,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           ]}
         />
 
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
+        <div className="grid grid-cols-1 gap-8 md:gap-10 lg:grid-cols-2 lg:gap-12">
           <div className="relative">
             <div className="relative overflow-hidden rounded-lg border border-glass-border bg-glass-bg">
               <ProductImage
@@ -122,7 +122,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               />
             </div>
             {product.images.length > 1 && (
-              <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3">
+              <div className="mt-3 grid grid-cols-3 gap-2 sm:mt-4 sm:grid-cols-4 sm:gap-3">
                 {product.images.slice(0, 4).map((img, i) => (
                   <div
                     key={i}
@@ -143,18 +143,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {product.category && (
               <Link
                 href={`/shop/category/${product.category.slug}`}
-                className={`mb-3 inline-flex min-h-12 items-center font-semibold uppercase tracking-[0.18em] text-gold transition-colors hover:text-gold-light ${typeEyebrow}`}
+                className={`mb-2 inline-flex min-h-10 items-center font-semibold uppercase tracking-[0.18em] text-gold transition-colors hover:text-gold-light sm:mb-3 sm:min-h-12 ${typeEyebrow}`}
               >
                 {product.category.name}
               </Link>
             )}
             <h1
-              className={`mb-4 font-body font-normal leading-tight text-white ${typeSectionTitle}`}
+              className={`mb-3 font-body font-normal leading-tight text-white sm:mb-4 ${typeSectionTitle}`}
             >
               {product.name}
             </h1>
 
-            <div className="mb-6 flex flex-wrap items-center gap-3 sm:gap-4">
+            <div className="mb-5 flex flex-wrap items-center gap-3 sm:mb-6 sm:gap-4">
               <span
                 className={`font-body font-semibold text-white ${typeStat}`}
               >
@@ -176,13 +176,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </div>
 
             <p
-              className={`mb-8 leading-relaxed text-white/70 ${typeBody}`}
+              className={`mb-6 leading-relaxed text-white/70 sm:mb-8 ${typeBody}`}
             >
               {product.description}
             </p>
 
             {product.features.length > 0 && (
-              <ul className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2" role="list">
+              <ul className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:grid-cols-2" role="list">
                 {product.features.map((feature) => (
                   <li
                     key={feature}
@@ -195,7 +195,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </ul>
             )}
 
-            <div className="mb-6">
+            <div className="mb-5 w-full sm:mb-6">
               <AddToCartButton
                 product={{
                   productId: product.id,
@@ -213,14 +213,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className={`mb-8 inline-flex items-center gap-2 font-medium text-white/70 transition-colors hover:text-gold ${typeBodySm}`}
+              className={`mb-6 inline-flex items-center gap-2 font-medium text-white/70 transition-colors hover:text-gold sm:mb-8 ${typeBodySm}`}
             >
               <MessageCircle className="h-4 w-4" aria-hidden="true" />
               Prefer WhatsApp? Order directly
             </a>
 
             <div
-              className={`flex flex-col gap-3 border-t border-glass-border pt-6 text-white/60 ${typeBodySm}`}
+              className={`flex flex-col gap-3 border-t border-glass-border pt-5 text-white/60 sm:pt-6 ${typeBodySm}`}
             >
               <div className="flex items-center gap-3">
                 <Truck className="h-5 w-5 text-gold" aria-hidden="true" />
@@ -235,9 +235,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </div>
 
         {related.length > 0 && (
-          <section className="mt-20" aria-label="Related products">
+          <section className="mt-10 sm:mt-12 lg:mt-14" aria-label="Related products">
             <h2
-              className={`mb-8 font-body font-medium text-white ${typeSectionTitle}`}
+              className={`mb-5 font-body font-medium text-white sm:mb-6 ${typeSectionTitle}`}
             >
               You may also like
             </h2>

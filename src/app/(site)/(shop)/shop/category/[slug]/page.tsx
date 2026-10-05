@@ -160,7 +160,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                   <li key={c.id}>
                     <Link
                       href={`/shop/category/${c.slug}`}
-                      className={`inline-flex min-h-12 items-center rounded-lg border border-glass-border bg-glass-bg px-4 text-white/70 transition-colors hover:border-gold/40 hover:text-gold ${typeBodySm}`}
+                      className="inline-flex min-h-8 items-center rounded-md border border-glass-border bg-glass-bg px-2.5 py-1 text-[0.68rem] text-white/70 transition-colors hover:border-gold/40 hover:text-gold sm:min-h-9 sm:rounded-lg sm:px-3.5 sm:text-[0.8125rem] md:min-h-10 md:px-4 md:text-[0.875rem]"
                     >
                       {c.name}
                     </Link>
