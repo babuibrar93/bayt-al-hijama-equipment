@@ -4,6 +4,34 @@ import { getAdminUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { productSchema } from "@/lib/validation/product";
 
+/** Lightweight product list for admin order form refresh. */
+export async function GET(request: Request) {
+  const admin = await getAdminUser();
+  if (!admin) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const activeOnly = searchParams.get("active") === "1";
+
+  const db = createAdminClient();
+  let query = db
+    .from("products")
+    .select("id, name, price, cost_price, stock, is_active")
+    .order("name");
+
+  if (activeOnly) {
+    query = query.eq("is_active", true);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ products: data ?? [] });
+}
+
 export async function POST(request: Request) {
   const admin = await getAdminUser();
   if (!admin) {

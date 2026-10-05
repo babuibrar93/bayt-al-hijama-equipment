@@ -44,8 +44,12 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   const parsed = updateAdminOrderSchema.safeParse(normalized);
   if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0]?.message;
     return NextResponse.json(
-      { error: "Validation failed", issues: parsed.error.flatten() },
+      {
+        error: firstIssue || "Validation failed",
+        issues: parsed.error.flatten(),
+      },
       { status: 400 },
     );
   }
@@ -96,11 +100,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   }
   if (data.address) {
     const shippingAddress: ShippingAddress = {
-      line1: data.address.line1,
-      line2: data.address.line2 || undefined,
-      city: data.address.city,
-      province: data.address.province,
-      postalCode: data.address.postalCode || undefined,
+      line1: data.address.line1.trim(),
+      line2: data.address.line2?.trim() || undefined,
+      city: data.address.city.trim(),
+      province: data.address.province.trim() || "Punjab",
+      postalCode: data.address.postalCode?.trim() || undefined,
     };
     updates.shipping_address = shippingAddress;
   }

@@ -2,14 +2,19 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, X } from "lucide-react";
+import { ArrowLeft, Plus, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button, Input, Select, Textarea } from "@/components/ui";
 import { formatPrice } from "@/utils";
 import { PROVINCES } from "@/lib/validation/order";
 import { currentKarachiDateKey } from "@/lib/admin/dates";
-import { numeric } from "@/lib/classes";
+import { cn, numeric } from "@/lib/classes";
 import type { OrderStatus, PaymentMethod, PaymentStatus, Product } from "@/types/db";
+
+type CatalogProduct = Pick<
+  Product,
+  "id" | "name" | "price" | "cost_price" | "stock"
+>;
 
 interface LineState {
   productId: string;
@@ -18,10 +23,7 @@ interface LineState {
 }
 
 interface OrderFormProps {
-  products: Pick<
-    Product,
-    "id" | "name" | "price" | "cost_price" | "stock"
-  >[];
+  products: CatalogProduct[];
   mode?: "create" | "edit";
   orderId?: string;
   orderNumber?: string;
@@ -68,8 +70,44 @@ const EDIT_STATUS_OPTIONS = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
+function firstValidationMessage(issues: unknown): string | null {
+  if (!issues || typeof issues !== "object") return null;
+  const flat = issues as {
+    formErrors?: string[];
+    fieldErrors?: Record<string, string[] | undefined>;
+  };
+  const formError = flat.formErrors?.find(Boolean);
+  if (formError) return formError;
+  for (const messages of Object.values(flat.fieldErrors ?? {})) {
+    const message = messages?.find(Boolean);
+    if (message) return message;
+  }
+  return null;
+}
+
+/** While editing an active order, qty already on lines counts as available stock. */
+function withReservedStock(
+  list: CatalogProduct[],
+  lines: LineState[],
+  creditReserved: boolean,
+): CatalogProduct[] {
+  if (!creditReserved) return list;
+  const reserved = new Map<string, number>();
+  for (const line of lines) {
+    if (!line.productId) continue;
+    reserved.set(
+      line.productId,
+      (reserved.get(line.productId) ?? 0) + (Number(line.quantity) || 0),
+    );
+  }
+  return list.map((product) => ({
+    ...product,
+    stock: Number(product.stock) + (reserved.get(product.id) ?? 0),
+  }));
+}
+
 export default function OrderForm({
-  products,
+  products: initialProducts,
   mode = "create",
   orderId,
   orderNumber,
@@ -78,6 +116,8 @@ export default function OrderForm({
 }: OrderFormProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [products, setProducts] = useState(initialProducts);
   const [customerName, setCustomerName] = useState(initial?.customerName ?? "");
   const [customerPhone, setCustomerPhone] = useState(
     initial?.customerPhone ?? "",
@@ -90,7 +130,7 @@ export default function OrderForm({
     return raw === "Walk-in / WhatsApp" ? "" : raw;
   });
   const [city, setCity] = useState(initial?.city ?? "");
-  const [province, setProvince] = useState(initial?.province ?? "Punjab");
+  const [province, setProvince] = useState(initial?.province || "Punjab");
   const [paymentMethod, setPaymentMethod] = useState(
     initial?.paymentMethod ?? "cod",
   );
@@ -156,6 +196,31 @@ export default function OrderForm({
     );
   };
 
+  const refreshProducts = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      const activeOnly = mode === "create";
+      const res = await fetch(
+        `/api/admin/products?active=${activeOnly ? "1" : "0"}`,
+      );
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error || "Could not refresh products");
+      }
+      const next = (result.products ?? []) as CatalogProduct[];
+      const creditReserved = mode === "edit" && status !== "cancelled";
+      setProducts(withReservedStock(next, lines, creditReserved));
+      toast.success("Product stock refreshed");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not refresh products",
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const items = lines
@@ -169,22 +234,36 @@ export default function OrderForm({
       toast.error("Add at least one product");
       return;
     }
+    if (items.some((item) => !Number.isFinite(item.quantity) || item.quantity < 1)) {
+      toast.error("Quantity must be at least 1");
+      return;
+    }
+    if (
+      items.some(
+        (item) =>
+          item.unitPrice != null &&
+          (!Number.isFinite(item.unitPrice) || item.unitPrice < 0),
+      )
+    ) {
+      toast.error("Unit price must be 0 or greater");
+      return;
+    }
 
     setSubmitting(true);
     try {
       const payload = {
-        customerName,
-        customerPhone,
-        customerEmail,
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+        customerEmail: customerEmail.trim(),
         paymentMethod,
         paymentStatus,
         status,
-        notes,
+        notes: notes.trim(),
         orderDate,
         shippingFee: shippingFee === "" ? undefined : Number(shippingFee),
         address: {
-          line1,
-          city: city || "N/A",
+          line1: line1.trim(),
+          city: city.trim(),
           province,
         },
         ...(lockItems ? {} : { items }),
@@ -201,8 +280,11 @@ export default function OrderForm({
       const result = await res.json();
       if (!res.ok) {
         throw new Error(
-          result.error ||
-            (mode === "edit" ? "Could not update order" : "Could not create order"),
+          firstValidationMessage(result.issues) ||
+            result.error ||
+            (mode === "edit"
+              ? "Could not update order"
+              : "Could not create order"),
         );
       }
       toast.success(
@@ -265,12 +347,15 @@ export default function OrderForm({
               />
               <Input
                 label="Email (optional)"
-                type="email"
+                type="text"
+                inputMode="email"
+                autoComplete="email"
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
+                placeholder="customer@email.com"
               />
               <Input
-                label="City"
+                label="City (optional)"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
               />
@@ -283,8 +368,7 @@ export default function OrderForm({
               />
             </div>
             <Textarea
-              label="Address"
-              required
+              label="Address (optional)"
               rows={2}
               autoGrow
               value={line1}
@@ -339,20 +423,34 @@ export default function OrderForm({
           <section className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4 lg:p-5">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 sm:mb-4">
               <h2 className="text-sm font-medium text-white/80">Line items</h2>
-              {!lockItems && (
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() =>
-                    setLines((curr) => [
-                      ...curr,
-                      { productId: "", quantity: "1", unitPrice: "" },
-                    ])
-                  }
-                  className="inline-flex items-center gap-1.5 text-sm text-gold hover:text-gold-light"
+                  onClick={refreshProducts}
+                  disabled={refreshing}
+                  aria-label="Refresh product stock"
+                  title="Refresh product stock"
+                  className="inline-flex items-center justify-center text-white/50 transition-colors hover:text-gold disabled:opacity-40"
                 >
-                  <Plus className="h-4 w-4" /> Add line
+                  <RefreshCw
+                    className={cn("h-4 w-4", refreshing && "animate-spin")}
+                  />
                 </button>
-              )}
+                {!lockItems && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setLines((curr) => [
+                        ...curr,
+                        { productId: "", quantity: "1", unitPrice: "" },
+                      ])
+                    }
+                    className="inline-flex items-center gap-1.5 text-sm text-gold hover:text-gold-light"
+                  >
+                    <Plus className="h-4 w-4" /> Add line
+                  </button>
+                )}
+              </div>
             </div>
             {lockItems && (
               <p className="mb-3 text-xs text-amber-200/80 sm:text-sm">

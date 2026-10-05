@@ -25,8 +25,12 @@ export async function POST(request: Request) {
 
   const parsed = createAdminOrderSchema.safeParse(body);
   if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0]?.message;
     return NextResponse.json(
-      { error: "Validation failed", issues: parsed.error.flatten() },
+      {
+        error: firstIssue || "Validation failed",
+        issues: parsed.error.flatten(),
+      },
       { status: 400 },
     );
   }
@@ -93,11 +97,11 @@ export async function POST(request: Request) {
   const total = subtotal + shippingFee;
 
   const shippingAddress: ShippingAddress = {
-    line1: data.address.line1,
-    line2: data.address.line2 || undefined,
-    city: data.address.city,
-    province: data.address.province,
-    postalCode: data.address.postalCode || undefined,
+    line1: data.address.line1.trim(),
+    line2: data.address.line2?.trim() || undefined,
+    city: data.address.city.trim(),
+    province: data.address.province.trim() || "Punjab",
+    postalCode: data.address.postalCode?.trim() || undefined,
   };
 
   const orderNumber = generateOrderNumber();
@@ -114,7 +118,7 @@ export async function POST(request: Request) {
       order_number: orderNumber,
       customer_name: data.customerName,
       customer_phone: data.customerPhone,
-      customer_email: data.customerEmail || null,
+      customer_email: data.customerEmail,
       shipping_address: shippingAddress,
       payment_method: data.paymentMethod,
       payment_status: data.paymentStatus,

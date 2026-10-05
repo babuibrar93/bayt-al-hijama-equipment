@@ -11,10 +11,29 @@ const orderDateSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date");
 
+/** Empty / null email is allowed; non-empty must be valid. Omitted stays undefined. */
+const optionalEmailSchema = z
+  .union([z.string().email("Please enter a valid email"), z.literal(""), z.null()])
+  .optional()
+  .transform((value) => {
+    if (value === undefined) return undefined;
+    if (value === "" || value === null) return null;
+    return value;
+  });
+
+/** Address fields are optional for walk-in / WhatsApp admin orders. */
+const adminAddressSchema = z.object({
+  line1: z.string().max(200),
+  line2: z.string().max(200).optional().or(z.literal("")),
+  city: z.string().max(100),
+  province: z.string().max(80),
+  postalCode: z.string().max(20).optional().or(z.literal("")),
+});
+
 export const createAdminOrderSchema = z.object({
-  customerName: z.string().min(2).max(120),
-  customerPhone: z.string().min(7).max(40),
-  customerEmail: z.string().email().optional().or(z.literal("")),
+  customerName: z.string().min(2, "Name is required").max(120),
+  customerPhone: z.string().min(7, "Phone is required").max(40),
+  customerEmail: optionalEmailSchema,
   paymentMethod: z.enum(["cod", "bank_transfer", "jazzcash", "easypaisa"]),
   paymentStatus: z.enum(["unpaid", "paid", "refunded"]).default("unpaid"),
   status: z
@@ -24,20 +43,14 @@ export const createAdminOrderSchema = z.object({
   orderDate: orderDateSchema.optional(),
   shippingFee: z.number().nonnegative().optional(),
   notes: z.string().max(2000).optional().or(z.literal("")),
-  address: z.object({
-    line1: z.string().min(1).max(200),
-    line2: z.string().max(200).optional().or(z.literal("")),
-    city: z.string().min(1).max(100),
-    province: z.string().min(1).max(80),
-    postalCode: z.string().max(20).optional().or(z.literal("")),
-  }),
-  items: z.array(adminOrderItemSchema).min(1),
+  address: adminAddressSchema,
+  items: z.array(adminOrderItemSchema).min(1, "Add at least one product"),
 });
 
 export const updateAdminOrderSchema = z.object({
-  customerName: z.string().min(2).max(120).optional(),
-  customerPhone: z.string().min(7).max(40).optional(),
-  customerEmail: z.string().email().nullable().optional(),
+  customerName: z.string().min(2, "Name is required").max(120).optional(),
+  customerPhone: z.string().min(7, "Phone is required").max(40).optional(),
+  customerEmail: optionalEmailSchema,
   paymentMethod: z
     .enum(["cod", "bank_transfer", "jazzcash", "easypaisa"])
     .optional(),
@@ -48,15 +61,7 @@ export const updateAdminOrderSchema = z.object({
   orderDate: orderDateSchema.optional(),
   shippingFee: z.number().nonnegative().optional(),
   notes: z.string().max(2000).nullable().optional(),
-  address: z
-    .object({
-      line1: z.string().min(1).max(200),
-      line2: z.string().max(200).optional().or(z.literal("")),
-      city: z.string().min(1).max(100),
-      province: z.string().min(1),
-      postalCode: z.string().max(20).optional().or(z.literal("")),
-    })
-    .optional(),
+  address: adminAddressSchema.optional(),
   items: z.array(adminOrderItemSchema).min(1).optional(),
 });
 

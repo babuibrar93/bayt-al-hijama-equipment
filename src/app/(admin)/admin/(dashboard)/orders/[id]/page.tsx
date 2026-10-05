@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   DollarSign,
+  Package,
   Truck,
   TrendingUp,
   Wallet,
@@ -93,6 +94,11 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
               icon={Wallet}
             />
             <StatCard
+              label="Cost of goods sold"
+              value={formatPrice(profit.cogs)}
+              icon={Package}
+            />
+            <StatCard
               label="Goods revenue"
               value={formatPrice(profit.goodsRevenue)}
               icon={DollarSign}
@@ -102,6 +108,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
               value={formatPrice(Number(order.shipping_fee))}
               icon={Truck}
             />
+
             <StatCard
               label="Order profit"
               value={formatPrice(profit.profit)}
@@ -171,12 +178,6 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                       {address.province || "—"}
                     </dd>
                   </div>
-                  <div>
-                    <dt className="text-white/45">Shipping fee</dt>
-                    <dd className={cn("mt-0.5 text-white", numeric)}>
-                      {formatPrice(Number(order.shipping_fee))}
-                    </dd>
-                  </div>
                 </dl>
               </div>
             </section>
@@ -203,12 +204,6 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                     <dt className="text-white/45">Order status</dt>
                     <dd className="mt-0.5 capitalize text-white">
                       {order.status}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-white/45">COGS</dt>
-                    <dd className={cn("mt-0.5 text-white", numeric)}>
-                      {formatPrice(profit.cogs)}
                     </dd>
                   </div>
                 </dl>
