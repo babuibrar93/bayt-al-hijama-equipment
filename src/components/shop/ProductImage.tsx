@@ -12,7 +12,7 @@ interface ProductImageProps {
 
 /**
  * Renders a product image with next/image, or a branded placeholder when no
- * image is available. The wrapper enforces a square aspect ratio to avoid CLS.
+ * image is available. Aspect ratio is controlled by the caller via className.
  */
 export default function ProductImage({
   src,
@@ -24,7 +24,7 @@ export default function ProductImage({
   return (
     <div
       className={cn(
-        "relative aspect-square w-full overflow-hidden bg-gradient-to-br from-green-deep/40 to-black",
+        "relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-green-deep/40 to-black",
         className,
       )}
     >

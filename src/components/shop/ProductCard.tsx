@@ -6,7 +6,6 @@ import {
   numeric,
   typeBodySm,
   typeBtnSm,
-  typeCardTitle,
   typeEyebrow,
   typeMeta,
 } from "@/lib/classes";
@@ -41,8 +40,8 @@ export default function ProductCard({
         href={`/shop/${product.slug}`}
         prefetch={false}
         className={cn(
-          "relative block shrink-0",
-          isList ? "w-full sm:w-36 md:w-44" : "w-full",
+          "relative block shrink-0 overflow-hidden",
+          isList ? "w-full sm:w-32 md:w-40" : "w-full",
         )}
         aria-label={`View ${product.name}`}
       >
@@ -50,16 +49,20 @@ export default function ProductCard({
           src={image}
           alt={product.name}
           priority={priority}
-          className={isList ? undefined : "aspect-[5/4]"}
+          className={
+            isList
+              ? "aspect-[16/10] sm:aspect-square"
+              : "aspect-[4/3] sm:aspect-[5/4] lg:aspect-[4/3]"
+          }
           sizes={
             isList
-              ? "(max-width: 639px) 100vw, 176px"
-              : "(max-width: 639px) 100vw, (max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
+              ? "(max-width: 639px) 100vw, 160px"
+              : "(max-width: 639px) 50vw, (max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
           }
         />
       </Link>
 
-      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-3.5">
+      <div className="flex min-w-0 flex-1 flex-col p-2.5 sm:p-3">
         {product.category && (
           <span
             className={cn(
@@ -70,12 +73,7 @@ export default function ProductCard({
             {product.category.name}
           </span>
         )}
-        <h3
-          className={cn(
-            "line-clamp-2 min-w-0 font-body font-medium leading-snug text-white",
-            typeCardTitle,
-          )}
-        >
+        <h3 className="line-clamp-2 min-w-0 font-body text-[0.9rem] font-medium leading-snug text-white sm:text-[1rem] md:text-[1.05rem]">
           <Link
             href={`/shop/${product.slug}`}
             prefetch={false}
@@ -86,7 +84,7 @@ export default function ProductCard({
         </h3>
         <p
           className={cn(
-            "mt-0.5 line-clamp-2 min-h-[2.5em] leading-snug text-white/55",
+            "mt-0.5 line-clamp-1 leading-snug text-white/55 sm:line-clamp-2",
             typeBodySm,
           )}
         >
@@ -94,9 +92,13 @@ export default function ProductCard({
         </p>
 
         <div className="mt-auto">
-          <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
+          <div className="mt-1.5 flex flex-wrap items-center justify-between gap-1.5">
             <span
-              className={cn("font-semibold text-white", numeric, typeCardTitle)}
+              className={cn(
+                "font-semibold text-white",
+                numeric,
+                "text-[0.9rem] sm:text-[1rem] md:text-[1.05rem]",
+              )}
             >
               {formatPrice(product.price)}
             </span>
@@ -111,7 +113,7 @@ export default function ProductCard({
             ) : null}
           </div>
 
-          <div className="mt-2.5">
+          <div className="mt-2">
             <AddToCartButton
               product={{
                 productId: product.id,
@@ -121,7 +123,10 @@ export default function ProductCard({
                 image,
                 maxStock: product.stock,
               }}
-              className={cn("min-h-12 w-full px-3 py-2.5", typeBtnSm)}
+              className={cn(
+                "min-h-10 w-full px-2.5 py-2 sm:min-h-11",
+                typeBtnSm,
+              )}
             />
           </div>
         </div>

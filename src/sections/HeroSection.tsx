@@ -20,7 +20,11 @@ export default function HeroSection() {
       id="hero"
       aria-label="Hero"
       className={cn(
-        "relative flex min-h-[78svh] items-center overflow-hidden bg-black pb-8 pt-[92px] lg:min-h-[82svh] lg:pb-10 lg:pt-[96px]",
+        "relative flex min-h-[72svh] flex-col overflow-hidden bg-black",
+        /* Always clear the fixed nav; never let vertical centering eat top space */
+        "pb-8 pt-[calc(theme(spacing.nav)+1.25rem)]",
+        "sm:min-h-[76svh] sm:pb-9 sm:pt-[calc(theme(spacing.nav)+1.75rem)]",
+        "lg:min-h-[80svh] lg:pb-10 lg:pt-[calc(theme(spacing.nav)+2rem)]",
         pageGutter,
       )}
     >
@@ -50,11 +54,12 @@ export default function HeroSection() {
 
       <IdleParticles id="heroParticles" options={{ count: 10, goldRatio: 0.35 }} />
 
-      <div className="relative z-[2] w-full max-w-[620px] max-md:mx-auto max-md:text-center">
+      {/* my-auto centers when space allows; top padding on section always remains */}
+      <div className="relative z-[2] my-auto w-full max-w-[620px] max-md:mx-auto max-md:text-center">
         <div
           data-reveal
           className={cn(
-            "mb-5 flex max-w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 font-medium uppercase tracking-[0.12em] text-gold sm:tracking-[0.15em] lg:justify-start is-visible",
+            "mb-3 flex max-w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 font-medium uppercase tracking-[0.12em] text-gold sm:mb-4 sm:tracking-[0.15em] lg:mb-5 lg:justify-start is-visible",
             typeEyebrow,
             getRevealClass("up"),
           )}
@@ -73,17 +78,18 @@ export default function HeroSection() {
         <h1
           data-reveal
           className={cn(
-            "mb-4 font-display font-normal leading-[0.95] tracking-[-0.01em] text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.55)] is-visible text-[clamp(2rem,3.6vw,3.35rem)]",
+            "mb-3 font-display font-normal leading-[1.02] tracking-[-0.01em] text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.55)] is-visible sm:mb-4",
+            /* Cap size with rem + soft vw so 100% zoom on 13" stays balanced */
+            "text-[clamp(1.85rem,1.15rem+1.6vw,2.75rem)]",
+            "min-[1100px]:text-[clamp(2.1rem,1.2rem+1.5vw,3rem)]",
+            /* Shorter laptop viewports (common at 100% zoom) */
+            "max-[800px]:text-[clamp(1.75rem,1.1rem+1.4vw,2.35rem)]",
             getRevealClass("up", 1),
           )}
         >
-          <span className="block leading-[0.95]">
-            Elevate Your
-          </span>
-          <span className="block text-gold leading-[0.95]">
-            Hijama Practice
-          </span>
-          <span className="block italic leading-[0.95] text-white/85 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]">
+          <span className="block leading-[1.02]">Elevate Your</span>
+          <span className="block leading-[1.02] text-gold">Hijama Practice</span>
+          <span className="block italic leading-[1.05] text-white/85 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]">
             With Professional Grade Equipment
           </span>
         </h1>
@@ -91,7 +97,7 @@ export default function HeroSection() {
         <p
           data-reveal
           className={cn(
-            "mb-7 max-w-[500px] text-[0.95rem] leading-[1.7] text-white/80 max-md:mx-auto is-visible drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)]",
+            "mb-5 max-w-[500px] text-[0.875rem] leading-[1.65] text-white/80 max-md:mx-auto is-visible drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)] sm:mb-6 sm:text-[0.95rem] sm:leading-[1.7] lg:mb-7",
             getRevealClass("up", 2),
           )}
         >
@@ -103,7 +109,7 @@ export default function HeroSection() {
         <div
           data-reveal
           className={cn(
-            "mb-10 flex flex-wrap items-center gap-4 max-md:justify-center is-visible",
+            "mb-6 flex flex-wrap items-center gap-3 max-md:justify-center is-visible sm:mb-8 sm:gap-4 lg:mb-10",
             getRevealClass("up", 3),
           )}
         >
@@ -142,7 +148,7 @@ export default function HeroSection() {
         <div
           data-reveal
           className={cn(
-            "flex flex-wrap items-center justify-center gap-x-4 gap-y-3 border-t border-glass-border py-4 max-md:gap-x-2 lg:justify-start is-visible",
+            "flex flex-wrap items-center justify-center gap-x-4 gap-y-3 border-t border-glass-border py-3 max-md:gap-x-2 sm:py-4 lg:justify-start is-visible",
             getRevealClass("up", 4),
           )}
         >
