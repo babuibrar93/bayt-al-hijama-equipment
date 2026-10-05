@@ -70,6 +70,18 @@
     scrollbar-color: rgb(255 255 255 / 0.2) transparent;
   }
 
+  /* Hide native search clear (often bright blue on dark UIs); use custom clear instead */
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input[type="search"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
   /* Keep native date picker icon visible on dark inputs */
   input.date-input::-webkit-calendar-picker-indicator {
     cursor: pointer;

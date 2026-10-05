@@ -5,7 +5,7 @@ import { useCallback, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { Select } from "@/components/ui";
-import { cn, typeBodySm, typeEyebrow, typeMeta } from "@/lib/classes";
+import { cn, fieldBorder, typeBodySm, typeEyebrow, typeMeta } from "@/lib/classes";
 import type { Category } from "@/types/db";
 import type { ProductSort } from "@/lib/products";
 
@@ -68,7 +68,8 @@ export default function ShopFilters({
   };
 
   const fieldClass = cn(
-    "h-10 rounded-lg border border-glass-border bg-black/20 text-white transition-colors focus:border-gold/45 focus:outline-none sm:h-11",
+    "h-10 rounded-lg border bg-black/20 text-white transition-colors focus:outline-none sm:h-11",
+    fieldBorder,
     typeBodySm,
   );
 

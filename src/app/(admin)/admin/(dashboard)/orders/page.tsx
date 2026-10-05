@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Pencil, Plus } from "lucide-react";
+import {
+  Banknote,
+  ClipboardList,
+  Clock3,
+  Pencil,
+  Plus,
+  Wallet,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/utils";
 import { cn, numeric } from "@/lib/classes";
@@ -13,6 +20,8 @@ import {
   Tr,
   Th,
   Td,
+  StatCard,
+  StatGrid,
 } from "@/components/ui";
 import AdminFilterBar from "@/components/admin/AdminFilterBar";
 import type { FilterField } from "@/components/admin/AdminFilterBar";
@@ -23,6 +32,7 @@ import {
   karachiDayStartIso,
 } from "@/lib/admin/dates";
 import { ADMIN_PAGE_SIZE, parsePage, parsePerPage } from "@/lib/admin/list-href";
+import { fetchOrderListStats } from "@/lib/admin/queries";
 import type { OrderWithItems } from "@/types/db";
 
 interface PageProps {
@@ -52,7 +62,8 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   };
 
   const supabase = await createClient();
-  let query = supabase
+
+  let listQuery = supabase
     .from("orders")
     .select(
       "id, order_number, customer_name, customer_phone, total, status, payment_status, created_at, items:order_items(unit_price, unit_cost, quantity)",
@@ -61,17 +72,22 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     .order("updated_at", { ascending: false })
     .range((page - 1) * perPage, page * perPage - 1);
 
-  if (status) query = query.eq("status", status);
-  if (paymentStatus) query = query.eq("payment_status", paymentStatus);
-  if (from) query = query.gte("created_at", karachiDayStartIso(from));
-  if (to) query = query.lt("created_at", karachiDayEndExclusiveIso(to));
+  if (status) listQuery = listQuery.eq("status", status);
+  if (paymentStatus) listQuery = listQuery.eq("payment_status", paymentStatus);
+  if (from) listQuery = listQuery.gte("created_at", karachiDayStartIso(from));
+  if (to) listQuery = listQuery.lt("created_at", karachiDayEndExclusiveIso(to));
   if (q) {
-    query = query.or(
+    listQuery = listQuery.or(
       `order_number.ilike.%${q}%,customer_name.ilike.%${q}%,customer_phone.ilike.%${q}%,customer_email.ilike.%${q}%`,
     );
   }
 
-  const { data, count } = await query;
+  const [orderStats, listResult] = await Promise.all([
+    fetchOrderListStats(supabase),
+    listQuery,
+  ]);
+
+  const { data, count } = listResult;
   const orders = (data ?? []) as unknown as OrderWithItems[];
   const total = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
@@ -80,7 +96,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     {
       name: "q",
       label: "Search",
-      placeholder: "Order #, name, phone",
+      placeholder: "Search order #, name, phone",
     },
     {
       name: "status",
@@ -110,26 +126,46 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6 sm:gap-4">
-        <h1 className="min-w-0 font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
-          Orders
-        </h1>
-        <div className="flex shrink-0 items-center gap-2">
-          <Suspense fallback={null}>
-            <AdminFilterBar fields={filterFields} />
-          </Suspense>
-          <Button
-            href="/admin/orders/new"
-            size="sm"
-            leftIcon={<Plus className="h-4 w-4" />}
-            aria-label="Create order"
-            title="Create order"
-            className="h-9 w-9 gap-0 px-0 sm:w-auto sm:gap-1.5 sm:px-3.5"
-          >
-            <span className="hidden sm:inline">Create order</span>
-          </Button>
-        </div>
-      </div>
+      <StatGrid>
+        <StatCard
+          label="Total orders"
+          value={String(orderStats.total)}
+          icon={ClipboardList}
+        />
+        <StatCard
+          label="Pending"
+          value={String(orderStats.pending)}
+          icon={Clock3}
+        />
+        <StatCard
+          label="Unpaid"
+          value={String(orderStats.unpaid)}
+          icon={Wallet}
+        />
+        <StatCard
+          label="Paid"
+          value={String(orderStats.paid)}
+          icon={Banknote}
+        />
+      </StatGrid>
+
+      <Suspense fallback={null}>
+        <AdminFilterBar
+          fields={filterFields}
+          actions={
+            <Button
+              href="/admin/orders/new"
+              size="sm"
+              leftIcon={<Plus className="h-4 w-4" />}
+              aria-label="Create order"
+              title="Create order"
+              className="h-11 w-11 gap-0 px-0 sm:w-auto sm:gap-1.5 sm:px-3.5"
+            >
+              <span className="hidden sm:inline">Create order</span>
+            </Button>
+          }
+        />
+      </Suspense>
 
       {orders.length === 0 ? (
         <div className="rounded-lg border border-glass-border bg-glass-bg px-4 py-8 text-center text-sm text-white/60 sm:p-10">

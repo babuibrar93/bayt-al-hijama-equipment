@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Plus, Pencil } from "lucide-react";
+import {
+  AlertTriangle,
+  Eye,
+  Package,
+  PackageX,
+  Pencil,
+  Plus,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/utils";
 import { cn, numeric } from "@/lib/classes";
@@ -16,8 +23,11 @@ import {
   Tr,
   Th,
   Td,
+  StatCard,
+  StatGrid,
 } from "@/components/ui";
 import { ADMIN_PAGE_SIZE, parsePage, parsePerPage } from "@/lib/admin/list-href";
+import { fetchProductCatalogStats } from "@/lib/admin/queries";
 import type { Category, ProductWithCategory } from "@/types/db";
 
 interface PageProps {
@@ -32,19 +42,24 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const q = param(sp.q).trim();
   const category = param(sp.category);
-  const active = param(sp.active);
   const stock = param(sp.stock);
   const page = parsePage(param(sp.page));
   const perPage = parsePerPage(param(sp.perPage), ADMIN_PAGE_SIZE);
-  const filters = { q, category, active, stock };
+  const filters = { q, category, stock };
 
   const supabase = await createClient();
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("id, name, slug")
-    .order("sort_order");
 
-  let query = supabase
+  const [{ data: categoriesData }, catalogStats] = await Promise.all([
+    supabase
+      .from("categories")
+      .select("id, name, slug")
+      .order("sort_order"),
+    fetchProductCatalogStats(supabase),
+  ]);
+
+  const categories = (categoriesData ?? []) as Category[];
+
+  let listQuery = supabase
     .from("products")
     .select(
       "id, name, slug, price, cost_price, stock, images, is_active, created_at, category:categories(id, name, slug)",
@@ -54,77 +69,83 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
     .range((page - 1) * perPage, page * perPage - 1);
 
   if (q) {
-    query = query.or(`name.ilike.%${q}%,slug.ilike.%${q}%`);
+    listQuery = listQuery.or(`name.ilike.%${q}%,slug.ilike.%${q}%`);
   }
   if (category) {
-    const cat = (categories as Category[] | null)?.find(
-      (c) => c.slug === category,
-    );
-    if (cat) query = query.eq("category_id", cat.id);
+    const cat = categories.find((c) => c.slug === category);
+    if (cat) listQuery = listQuery.eq("category_id", cat.id);
   }
-  if (active === "active") query = query.eq("is_active", true);
-  if (active === "inactive") query = query.eq("is_active", false);
-  if (stock === "out") query = query.eq("stock", 0);
-  if (stock === "low") query = query.gt("stock", 0).lte("stock", 5);
+  if (stock === "out") listQuery = listQuery.eq("stock", 0);
+  if (stock === "low") listQuery = listQuery.gt("stock", 0).lte("stock", 5);
 
-  const { data, count } = await query;
+  const { data, count } = await listQuery;
   const products = (data ?? []) as unknown as ProductWithCategory[];
   const total = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6 sm:gap-4">
-        <h1 className="min-w-0 font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
-          Products
-        </h1>
-        <div className="flex shrink-0 items-center gap-2">
-          <Suspense fallback={null}>
-            <AdminFilterBar
-              fields={[
-                { name: "q", label: "Search", placeholder: "Name or slug" },
-                {
-                  name: "category",
-                  label: "Category",
-                  type: "select",
-                  options: ((categories as Category[] | null) ?? []).map((c) => ({
-                    value: c.slug,
-                    label: c.name,
-                  })),
-                },
-                {
-                  name: "active",
-                  label: "Visibility",
-                  type: "select",
-                  options: [
-                    { value: "active", label: "Active" },
-                    { value: "inactive", label: "Hidden" },
-                  ],
-                },
-                {
-                  name: "stock",
-                  label: "Stock",
-                  type: "select",
-                  options: [
-                    { value: "low", label: "Low (1–5)" },
-                    { value: "out", label: "Out of stock" },
-                  ],
-                },
-              ]}
-            />
-          </Suspense>
-          <Button
-            href="/admin/products/new"
-            size="sm"
-            leftIcon={<Plus className="h-4 w-4" />}
-            aria-label="Add product"
-            title="Add product"
-            className="h-9 w-9 gap-0 px-0 sm:w-auto sm:gap-1.5 sm:px-3.5"
-          >
-            <span className="hidden sm:inline">Add product</span>
-          </Button>
-        </div>
-      </div>
+      <StatGrid>
+        <StatCard
+          label="Total products"
+          value={String(catalogStats.total)}
+          icon={Package}
+        />
+        <StatCard
+          label="Active"
+          value={String(catalogStats.active)}
+          icon={Eye}
+        />
+        <StatCard
+          label="Low stock"
+          value={String(catalogStats.low)}
+          icon={AlertTriangle}
+          hint="1–5 units"
+        />
+        <StatCard
+          label="Out of stock"
+          value={String(catalogStats.out)}
+          icon={PackageX}
+        />
+      </StatGrid>
+
+      <Suspense fallback={null}>
+        <AdminFilterBar
+          fields={[
+            { name: "q", label: "Search", placeholder: "Search name or slug" },
+            {
+              name: "category",
+              label: "Category",
+              type: "select",
+              options: categories.map((c) => ({
+                value: c.slug,
+                label: c.name,
+              })),
+            },
+            {
+              name: "stock",
+              label: "Stock",
+              type: "select",
+              options: [
+                { value: "low", label: "Low (1–5)" },
+                { value: "out", label: "Out of stock" },
+              ],
+            },
+          ]}
+          actions={
+            <Button
+              href="/admin/products/new"
+              size="sm"
+              leftIcon={<Plus className="h-4 w-4" />}
+              aria-label="Add product"
+              title="Add product"
+              className="h-11 w-11 gap-0 px-0 sm:w-auto sm:gap-1.5 sm:px-3.5"
+            >
+              <span className="hidden sm:inline">Add product</span>
+            </Button>
+          }
+        />
+      </Suspense>
 
       {products.length === 0 ? (
         <div className="rounded-lg border border-glass-border bg-glass-bg px-4 py-8 text-center text-sm text-white/60 sm:p-10">

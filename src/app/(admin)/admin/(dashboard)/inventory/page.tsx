@@ -17,6 +17,7 @@ import {
 } from "@/components/ui";
 import type { BadgeTone } from "@/components/ui";
 import { ADMIN_PAGE_SIZE, parsePage, parsePerPage } from "@/lib/admin/list-href";
+import { fetchProductCatalogStats } from "@/lib/admin/queries";
 import type { Product } from "@/types/db";
 
 const LOW_STOCK_THRESHOLD = 5;
@@ -45,23 +46,6 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
 
   const supabase = await createClient();
 
-  const [
-    { count: totalCount },
-    { count: lowCount },
-    { count: outCount },
-  ] = await Promise.all([
-    supabase.from("products").select("id", { count: "exact", head: true }),
-    supabase
-      .from("products")
-      .select("id", { count: "exact", head: true })
-      .gt("stock", 0)
-      .lte("stock", LOW_STOCK_THRESHOLD),
-    supabase
-      .from("products")
-      .select("id", { count: "exact", head: true })
-      .eq("stock", 0),
-  ]);
-
   let listQuery = supabase
     .from("products")
     .select("id, name, images, stock, is_active, updated_at", {
@@ -79,7 +63,12 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
   }
   if (stock === "ok") listQuery = listQuery.gt("stock", LOW_STOCK_THRESHOLD);
 
-  const { data, count } = await listQuery;
+  const [catalogStats, listResult] = await Promise.all([
+    fetchProductCatalogStats(supabase),
+    listQuery,
+  ]);
+
+  const { data, count } = listResult;
 
   const products = (data ?? []) as Pick<
     Product,
@@ -87,42 +76,13 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
   >[];
   const total = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / perPage));
-  const catalogTotal = totalCount ?? 0;
-  const lowStockCount = lowCount ?? 0;
-  const outOfStock = outCount ?? 0;
+  const catalogTotal = catalogStats.total;
+  const lowStockCount = catalogStats.low;
+  const outOfStock = catalogStats.out;
   const inStock = Math.max(0, catalogTotal - lowStockCount - outOfStock);
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6 sm:gap-4">
-        <h1 className="min-w-0 font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
-          Inventory
-        </h1>
-        <div className="flex shrink-0 items-center gap-2">
-          <Suspense fallback={null}>
-            <AdminFilterBar
-              fields={[
-                {
-                  name: "q",
-                  label: "Search",
-                  placeholder: "Product name",
-                },
-                {
-                  name: "stock",
-                  label: "Stock",
-                  type: "select",
-                  options: [
-                    { value: "ok", label: "In stock" },
-                    { value: "low", label: "Low (1–5)" },
-                    { value: "out", label: "Out of stock" },
-                  ],
-                },
-              ]}
-            />
-          </Suspense>
-        </div>
-      </div>
-
       <StatGrid>
         <StatCard
           label="Total products"
@@ -146,6 +106,28 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
           icon={PackageX}
         />
       </StatGrid>
+
+      <Suspense fallback={null}>
+        <AdminFilterBar
+          fields={[
+            {
+              name: "q",
+              label: "Search",
+              placeholder: "Search product name",
+            },
+            {
+              name: "stock",
+              label: "Stock",
+              type: "select",
+              options: [
+                { value: "ok", label: "In stock" },
+                { value: "low", label: "Low (1–5)" },
+                { value: "out", label: "Out of stock" },
+              ],
+            },
+          ]}
+        />
+      </Suspense>
 
       {products.length === 0 ? (
         <div className="rounded-lg border border-glass-border bg-glass-bg px-4 py-8 text-center text-sm text-white/60 sm:p-10">

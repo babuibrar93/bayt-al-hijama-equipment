@@ -7,7 +7,7 @@ import {
   useId,
   useRef,
 } from "react";
-import { cn } from "@/lib/classes";
+import { cn, fieldBorder, fieldBorderError } from "@/lib/classes";
 
 interface TextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -92,9 +92,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           className={cn(
             "w-full rounded-md border bg-black/30 px-3.5 py-2.5 text-sm text-white placeholder:text-white/30 transition-colors focus:outline-none",
             autoGrow ? "resize-none overflow-hidden" : "resize-none",
-            error
-              ? "border-red-500/50 focus:border-red-500/70"
-              : "border-glass-border focus:border-gold/50",
+            error ? fieldBorderError : fieldBorder,
             className,
           )}
           {...rest}

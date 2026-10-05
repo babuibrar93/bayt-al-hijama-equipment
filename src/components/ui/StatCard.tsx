@@ -60,11 +60,12 @@ export function StatGrid({
   return (
     <div
       className={cn(
-        "mb-5 grid grid-cols-1 gap-2.5 sm:mb-6 sm:gap-4",
-        columns === 2 && "min-[420px]:grid-cols-2",
-        columns === 3 && "min-[420px]:grid-cols-3",
+        "mb-4 grid gap-2 sm:mb-5 sm:gap-3",
+        columns === 2 && "grid-cols-1 min-[380px]:grid-cols-2",
+        columns === 3 &&
+          "grid-cols-1 min-[380px]:grid-cols-2 lg:grid-cols-3",
         columns === 4 &&
-          "min-[420px]:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4",
+          "grid-cols-2 lg:grid-cols-4",
         className,
       )}
     >

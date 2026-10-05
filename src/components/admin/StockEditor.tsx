@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui";
-import { cn } from "@/lib/classes";
+import { cn, fieldBorder, fieldBorderTone } from "@/lib/classes";
 
 export default function StockEditor({
   id,
@@ -52,7 +52,12 @@ export default function StockEditor({
 
   return (
     <div className="flex flex-wrap items-center justify-start gap-1.5 sm:justify-end sm:gap-2">
-      <div className="inline-flex items-center rounded-md border border-glass-border bg-black/30">
+      <div
+        className={cn(
+          "inline-flex items-center rounded-md border bg-black/30",
+          fieldBorder,
+        )}
+      >
         <button
           type="button"
           onClick={() => bump(-1)}
@@ -73,7 +78,8 @@ export default function StockEditor({
           }}
           aria-label="Stock quantity"
           className={cn(
-            "h-8 w-12 border-x border-glass-border bg-transparent text-center text-sm text-white sm:h-9 sm:w-14",
+            "h-8 w-12 border-x bg-transparent text-center text-sm text-white sm:h-9 sm:w-14",
+            fieldBorderTone,
             "focus:outline-none [appearance:textfield]",
             "[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
           )}

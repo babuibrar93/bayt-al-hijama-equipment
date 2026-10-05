@@ -16,14 +16,16 @@ import { computeOrderProfit } from "@/lib/admin/profit";
 import {
   currentKarachiYearMonth,
   formatKarachiDayLabel,
+  karachiDayEndExclusiveIso,
   karachiDayKeysInMonth,
+  karachiDayStartIso,
   karachiMonthBounds,
   karachiYearBounds,
   monthLabel,
   monthLabelLong,
   padDay,
-  toKarachiDateKey,
 } from "@/lib/admin/dates";
+import { fetchReportTimeBuckets } from "@/lib/admin/queries";
 import {
   Table,
   THead,
@@ -44,30 +46,6 @@ function param(v: string | string[] | undefined): string {
   return typeof v === "string" ? v : "";
 }
 
-function inBounds(iso: string, from: string, to: string): boolean {
-  const t = new Date(iso).getTime();
-  return t >= new Date(from).getTime() && t < new Date(to).getTime();
-}
-
-function summarizeOrders(orders: OrderWithItems[]) {
-  let revenue = 0;
-  let cogs = 0;
-  let missing = 0;
-  for (const order of orders) {
-    revenue += Number(order.total);
-    const profit = computeOrderProfit(order.items);
-    cogs += profit.cogs;
-    missing += profit.missingCostLines;
-  }
-  return {
-    revenue,
-    cogs,
-    grossProfit: revenue - cogs,
-    missing,
-    orderCount: orders.length,
-  };
-}
-
 function manualSlice(entry?: ReportManualEntry | null) {
   if (!entry) {
     return { revenue: 0, purchases: 0, profit: 0, orderCount: 0 };
@@ -79,6 +57,29 @@ function manualSlice(entry?: ReportManualEntry | null) {
     orderCount: Number(entry.order_count) || 0,
   };
 }
+
+type MonthRow = {
+  month: number;
+  label: string;
+  shortLabel: string;
+  revenue: number;
+  grossProfit: number;
+  missing: number;
+  orderCount: number;
+  purchaseSpend: number;
+};
+
+type DayRow = {
+  key: string;
+  day: number;
+  label: string;
+  revenue: number;
+  grossProfit: number;
+  missing: number;
+  orderCount: number;
+  purchaseSpend: number;
+  entry: ReportManualEntry | null;
+};
 
 export default async function AdminReportsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
@@ -96,35 +97,67 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
       : null;
   const payment = param(sp.payment) || "all";
   const q = param(sp.q).trim();
-
+  const paidOnly = payment === "paid";
   const level = day ? "day" : month ? "month" : "year";
 
   const supabase = await createClient();
   const yearBounds = karachiYearBounds(year);
+  const dayKey =
+    month && day
+      ? `${year}-${String(month).padStart(2, "0")}-${padDay(day)}`
+      : null;
+  const monthBounds = month != null ? karachiMonthBounds(year, month) : null;
 
-  let ordersQuery = supabase
-    .from("orders")
-    .select(
-      "id, order_number, customer_name, customer_phone, total, payment_status, status, created_at, items:order_items(unit_price, unit_cost, quantity)",
-    )
-    .gte("created_at", yearBounds.from)
-    .lt("created_at", yearBounds.to)
-    .neq("status", "cancelled");
+  const [manualResult, monthlyBuckets, dailyBuckets, dayOrdersResult] =
+    await Promise.all([
+      supabase
+        .from("report_manual_entries")
+        .select(
+          "id, year, month, day, revenue, purchase_spend, gross_profit, order_count, notes, created_at, updated_at",
+        )
+        .eq("year", year),
+      level === "year" || level === "month"
+        ? fetchReportTimeBuckets(
+            supabase,
+            yearBounds.from,
+            yearBounds.to,
+            paidOnly,
+            "month",
+          )
+        : Promise.resolve(null),
+      level === "month" && monthBounds
+        ? fetchReportTimeBuckets(
+            supabase,
+            monthBounds.from,
+            monthBounds.to,
+            paidOnly,
+            "day",
+          )
+        : Promise.resolve(null),
+      dayKey
+        ? (() => {
+            let query = supabase
+              .from("orders")
+              .select(
+                "id, order_number, customer_name, customer_phone, total, payment_status, status, created_at, items:order_items(unit_price, unit_cost, quantity)",
+              )
+              .gte("created_at", karachiDayStartIso(dayKey))
+              .lt("created_at", karachiDayEndExclusiveIso(dayKey))
+              .neq("status", "cancelled")
+              .order("created_at", { ascending: false });
+            if (paidOnly) query = query.eq("payment_status", "paid");
+            else query = query.neq("payment_status", "refunded");
+            if (q) {
+              query = query.or(
+                `order_number.ilike.%${q}%,customer_name.ilike.%${q}%,customer_phone.ilike.%${q}%`,
+              );
+            }
+            return query;
+          })()
+        : Promise.resolve({ data: null as unknown }),
+    ]);
 
-  if (payment === "paid") {
-    ordersQuery = ordersQuery.eq("payment_status", "paid");
-  } else {
-    ordersQuery = ordersQuery.neq("payment_status", "refunded");
-  }
-
-  const [{ data: ordersData }, { data: manualData }] = await Promise.all([
-    ordersQuery,
-    supabase.from("report_manual_entries").select("*").eq("year", year),
-  ]);
-
-  const orders = (ordersData ?? []) as unknown as OrderWithItems[];
-  const manuals = (manualData ?? []) as ReportManualEntry[];
-
+  const manuals = (manualResult.data ?? []) as ReportManualEntry[];
   const dayLevelByKey = new Map<string, ReportManualEntry>();
   for (const row of manuals) {
     dayLevelByKey.set(
@@ -133,43 +166,99 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
     );
   }
 
-  const months = Array.from({ length: 12 }, (_, i) => {
-    const m = i + 1;
-    const bounds = karachiMonthBounds(year, m);
-    const monthOrders = orders.filter((o) =>
-      inBounds(o.created_at, bounds.from, bounds.to),
-    );
-    const summary = summarizeOrders(monthOrders);
+  const monthBucketMap = new Map(
+    (monthlyBuckets ?? []).map((b) => [Number(b.bucketKey), b]),
+  );
 
+  const months: MonthRow[] = Array.from({ length: 12 }, (_, i) => {
+    const m = i + 1;
+    const bucket = monthBucketMap.get(m);
+    const revenue = bucket?.revenue ?? 0;
+    const cogs = bucket?.cogs ?? 0;
     let dayManualRevenue = 0;
     let dayManualPurchases = 0;
     let dayManualProfit = 0;
     let dayManualOrders = 0;
+    const prefix = `${year}-${String(m).padStart(2, "0")}-`;
     for (const [key, entry] of dayLevelByKey) {
-      if (!key.startsWith(`${year}-${String(m).padStart(2, "0")}-`)) continue;
+      if (!key.startsWith(prefix)) continue;
       const slice = manualSlice(entry);
       dayManualRevenue += slice.revenue;
       dayManualPurchases += slice.purchases;
       dayManualProfit += slice.profit;
       dayManualOrders += slice.orderCount;
     }
-
-    const revenue = summary.revenue + dayManualRevenue;
-    const grossProfit = summary.grossProfit + dayManualProfit;
-    // Purchases = product cost on sold orders + day entries
-    const purchaseSpend = summary.cogs + dayManualPurchases;
-
     return {
       month: m,
       label: monthLabelLong(m),
       shortLabel: monthLabel(m),
-      revenue,
-      grossProfit,
-      missing: summary.missing,
-      orderCount: summary.orderCount + dayManualOrders,
-      purchaseSpend,
+      revenue: revenue + dayManualRevenue,
+      grossProfit: revenue - cogs + dayManualProfit,
+      missing: bucket?.missingCostLines ?? 0,
+      orderCount: (bucket?.orderCount ?? 0) + dayManualOrders,
+      purchaseSpend: cogs + dayManualPurchases,
     };
   });
+
+  if (!monthlyBuckets && (level === "year" || level === "month")) {
+    let fallbackQuery = supabase
+      .from("orders")
+      .select(
+        "total, created_at, items:order_items(unit_price, unit_cost, quantity)",
+      )
+      .gte("created_at", yearBounds.from)
+      .lt("created_at", yearBounds.to)
+      .neq("status", "cancelled");
+    if (paidOnly) fallbackQuery = fallbackQuery.eq("payment_status", "paid");
+    else fallbackQuery = fallbackQuery.neq("payment_status", "refunded");
+    const { data: fallbackOrders } = await fallbackQuery;
+    const byMonth = new Map<
+      number,
+      { revenue: number; cogs: number; missing: number; orderCount: number }
+    >();
+    for (const order of fallbackOrders ?? []) {
+      const key = Number(
+        new Date(order.created_at).toLocaleString("en-CA", {
+          timeZone: "Asia/Karachi",
+          month: "2-digit",
+        }),
+      );
+      const prev = byMonth.get(key) ?? {
+        revenue: 0,
+        cogs: 0,
+        missing: 0,
+        orderCount: 0,
+      };
+      prev.revenue += Number(order.total) || 0;
+      prev.orderCount += 1;
+      const profit = computeOrderProfit(order.items ?? []);
+      prev.cogs += profit.cogs;
+      prev.missing += profit.missingCostLines;
+      byMonth.set(key, prev);
+    }
+    for (const row of months) {
+      const summary = byMonth.get(row.month);
+      if (!summary) continue;
+      let dayManualRevenue = 0;
+      let dayManualPurchases = 0;
+      let dayManualProfit = 0;
+      let dayManualOrders = 0;
+      const prefix = `${year}-${String(row.month).padStart(2, "0")}-`;
+      for (const [key, entry] of dayLevelByKey) {
+        if (!key.startsWith(prefix)) continue;
+        const slice = manualSlice(entry);
+        dayManualRevenue += slice.revenue;
+        dayManualPurchases += slice.purchases;
+        dayManualProfit += slice.profit;
+        dayManualOrders += slice.orderCount;
+      }
+      row.revenue = summary.revenue + dayManualRevenue;
+      row.grossProfit = summary.revenue - summary.cogs + dayManualProfit;
+      row.missing = summary.missing;
+      row.orderCount = summary.orderCount + dayManualOrders;
+      row.purchaseSpend = summary.cogs + dayManualPurchases;
+    }
+  }
 
   const yearTotals = months.reduce(
     (acc, m) => ({
@@ -189,55 +278,81 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
   );
 
   const monthMeta = month ? months.find((row) => row.month === month) : null;
+  const dayBucketMap = new Map(
+    (dailyBuckets ?? []).map((b) => [b.bucketKey, b]),
+  );
 
-  const dayRows =
+  const dayRows: DayRow[] =
     month != null
       ? karachiDayKeysInMonth(year, month).map((key) => {
-          const dayOrders = orders.filter(
-            (o) => toKarachiDateKey(o.created_at) === key,
-          );
-          const summary = summarizeOrders(dayOrders);
-          const dayNum = Number(key.slice(-2));
+          const bucket = dayBucketMap.get(key);
+          const revenue = bucket?.revenue ?? 0;
+          const cogs = bucket?.cogs ?? 0;
           const entry = dayLevelByKey.get(key) ?? null;
           const manual = manualSlice(entry);
-          const revenue = summary.revenue + manual.revenue;
-          const grossProfit = summary.grossProfit + manual.profit;
-          const purchaseSpend = summary.cogs + manual.purchases;
           return {
             key,
-            day: dayNum,
+            day: Number(key.slice(-2)),
             label: formatKarachiDayLabel(key),
-            revenue,
-            grossProfit,
-            missing: summary.missing,
-            orderCount: summary.orderCount + manual.orderCount,
-            purchaseSpend,
+            revenue: revenue + manual.revenue,
+            grossProfit: revenue - cogs + manual.profit,
+            missing: bucket?.missingCostLines ?? 0,
+            orderCount: (bucket?.orderCount ?? 0) + manual.orderCount,
+            purchaseSpend: cogs + manual.purchases,
             entry,
           };
         })
       : [];
 
-  const dayKey =
-    month && day
-      ? `${year}-${String(month).padStart(2, "0")}-${padDay(day)}`
-      : null;
-
-  let dayOrders: OrderWithItems[] = [];
-  if (dayKey) {
-    dayOrders = orders.filter((o) => toKarachiDateKey(o.created_at) === dayKey);
-    if (q) {
-      const lower = q.toLowerCase();
-      dayOrders = dayOrders.filter(
-        (o) =>
-          o.order_number.toLowerCase().includes(lower) ||
-          o.customer_name.toLowerCase().includes(lower) ||
-          o.customer_phone.includes(q),
-      );
+  if (!dailyBuckets && month != null && monthBounds) {
+    let fallbackQuery = supabase
+      .from("orders")
+      .select(
+        "total, created_at, items:order_items(unit_price, unit_cost, quantity)",
+      )
+      .gte("created_at", monthBounds.from)
+      .lt("created_at", monthBounds.to)
+      .neq("status", "cancelled");
+    if (paidOnly) fallbackQuery = fallbackQuery.eq("payment_status", "paid");
+    else fallbackQuery = fallbackQuery.neq("payment_status", "refunded");
+    const { data: fallbackOrders } = await fallbackQuery;
+    const byDay = new Map<
+      string,
+      { revenue: number; cogs: number; missing: number; orderCount: number }
+    >();
+    for (const order of fallbackOrders ?? []) {
+      const key = new Date(order.created_at).toLocaleDateString("en-CA", {
+        timeZone: "Asia/Karachi",
+      });
+      const prev = byDay.get(key) ?? {
+        revenue: 0,
+        cogs: 0,
+        missing: 0,
+        orderCount: 0,
+      };
+      prev.revenue += Number(order.total) || 0;
+      prev.orderCount += 1;
+      const profit = computeOrderProfit(order.items ?? []);
+      prev.cogs += profit.cogs;
+      prev.missing += profit.missingCostLines;
+      byDay.set(key, prev);
+    }
+    for (const row of dayRows) {
+      const summary = byDay.get(row.key);
+      if (!summary) continue;
+      const manual = manualSlice(row.entry);
+      row.revenue = summary.revenue + manual.revenue;
+      row.grossProfit = summary.revenue - summary.cogs + manual.profit;
+      row.missing = summary.missing;
+      row.orderCount = summary.orderCount + manual.orderCount;
+      row.purchaseSpend = summary.cogs + manual.purchases;
     }
   }
 
+  const dayOrders = ((dayOrdersResult as { data?: unknown }).data ??
+    []) as unknown as OrderWithItems[];
   const dayMeta = dayKey
-    ? dayRows.find((row) => row.key === dayKey) ?? null
+    ? (dayRows.find((row) => row.key === dayKey) ?? null)
     : null;
 
   const scopeStats =
@@ -275,68 +390,6 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6 sm:gap-4">
-        <h1 className="min-w-0 font-body text-xl font-normal text-white sm:text-2xl lg:text-3xl">
-          Profit reports
-        </h1>
-        <div className="flex shrink-0 items-center gap-2">
-          {level === "day" && month != null && day != null && (
-            <ReportManualEntryControl
-              year={year}
-              month={month}
-              day={day}
-              entry={dayMeta?.entry}
-            />
-          )}
-          <Suspense fallback={null}>
-            <AdminFilterBar
-              title="Report filters"
-              preserveParams={
-                level === "day"
-                  ? ["month", "day"]
-                  : level === "month"
-                    ? ["month"]
-                    : []
-              }
-              fields={
-                [
-                  ...(level === "day"
-                    ? [
-                        {
-                          name: "q",
-                          label: "Search orders",
-                          placeholder: "Order # / customer",
-                        },
-                      ]
-                    : []),
-                  {
-                    name: "year",
-                    label: "Year",
-                    type: "select",
-                    options: yearOptions,
-                    defaultValue: String(year),
-                    allowEmpty: false,
-                  },
-                  {
-                    name: "payment",
-                    label: "Sales filter",
-                    type: "select",
-                    options: [
-                      { value: "all", label: "Include unpaid" },
-                      { value: "paid", label: "Paid only" },
-                    ],
-                    defaultValue: "all",
-                    allowEmpty: false,
-                  },
-                ] satisfies FilterField[]
-              }
-            />
-          </Suspense>
-        </div>
-      </div>
-
-      <PeriodBreadcrumb items={crumbs} />
-
       <StatGrid columns={3}>
         <StatCard
           label="Purchases"
@@ -354,6 +407,62 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
           icon={TrendingUp}
         />
       </StatGrid>
+
+      <Suspense fallback={null}>
+        <AdminFilterBar
+          preserveParams={
+            level === "day"
+              ? ["month", "day"]
+              : level === "month"
+                ? ["month"]
+                : []
+          }
+          fields={
+            [
+              ...(level === "day"
+                ? [
+                    {
+                      name: "q",
+                      label: "Search orders",
+                      placeholder: "Search order # / customer",
+                    },
+                  ]
+                : []),
+              {
+                name: "year",
+                label: "Year",
+                type: "select",
+                options: yearOptions,
+                defaultValue: String(year),
+                allowEmpty: false,
+              },
+              {
+                name: "payment",
+                label: "Sales filter",
+                type: "select",
+                options: [
+                  { value: "all", label: "All" },
+                  { value: "paid", label: "Paid only" },
+                ],
+                defaultValue: "all",
+                allowEmpty: false,
+              },
+            ] satisfies FilterField[]
+          }
+          actions={
+            level === "day" && month != null && day != null ? (
+              <ReportManualEntryControl
+                year={year}
+                month={month}
+                day={day}
+                entry={dayMeta?.entry}
+              />
+            ) : undefined
+          }
+        />
+      </Suspense>
+
+      <PeriodBreadcrumb items={crumbs} />
 
       {"missing" in scopeStats && scopeStats.missing > 0 && (
         <div className="mb-4 rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">

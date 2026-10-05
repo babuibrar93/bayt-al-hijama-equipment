@@ -10,7 +10,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Check, Search } from "lucide-react";
-import { cn } from "@/lib/classes";
+import { cn, fieldBorder, fieldBorderError } from "@/lib/classes";
 
 export interface SelectOption {
   value: string;
@@ -168,7 +168,10 @@ export default function Select({
     createPortal(
       <div
         ref={menuRef}
-        className="z-[220] overflow-hidden rounded-md border border-glass-border bg-black-3 shadow-xl"
+        className={cn(
+          "z-[220] overflow-hidden rounded-md border bg-black-3 shadow-xl",
+          fieldBorder,
+        )}
         style={{
           position: "fixed",
           left: menuPos.left,
@@ -256,9 +259,7 @@ export default function Select({
           aria-expanded={open}
           className={cn(
             "flex h-11 w-full items-center gap-2 rounded-md border border-solid bg-black/30 py-0 pl-3.5 pr-3 text-left text-sm transition-colors focus:outline-none disabled:opacity-50",
-            error
-              ? "border-red-500/50"
-              : "border-glass-border focus:border-gold/50",
+            error ? fieldBorderError : fieldBorder,
             className,
           )}
         >

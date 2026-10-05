@@ -29,13 +29,17 @@ import {
   StatCard,
   StatGrid,
 } from "@/components/ui";
-import { computeOrderProfit } from "@/lib/admin/profit";
 import {
   currentKarachiYearMonth,
   karachiMonthBounds,
   monthLabelLong,
 } from "@/lib/admin/dates";
-import type { CustomerProfile, Order, OrderWithItems } from "@/types/db";
+import {
+  fetchOrderListStats,
+  fetchPeriodSalesStats,
+  fetchProductCatalogStats,
+} from "@/lib/admin/queries";
+import type { CustomerProfile, Order } from "@/types/db";
 
 type RecentOrder = Pick<
   Order,
@@ -51,61 +55,31 @@ type RecentOrder = Pick<
   | "created_at"
 >;
 
-const LOW_STOCK_THRESHOLD = 5;
-
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
   const { year, month } = currentKarachiYearMonth();
   const mtd = karachiMonthBounds(year, month);
   const monthName = monthLabelLong(month);
-  const [
-    { data: recentOrders },
-    { data: mtdOrders },
-    { count: productCount },
-    { count: lowStockCount },
-    { count: outOfStockCount },
-    { count: pendingCount },
-    { count: unpaidCount },
-  ] = await Promise.all([
-    supabase
-      .from("orders")
-      .select(
-        "id, user_id, order_number, customer_name, customer_email, customer_phone, total, status, payment_status, created_at",
-      )
-      .order("created_at", { ascending: false })
-      .limit(8),
-    supabase
-      .from("orders")
-      .select(
-        "total, payment_status, status, items:order_items(unit_price, unit_cost, quantity)",
-      )
-      .gte("created_at", mtd.from)
-      .lt("created_at", mtd.to)
-      .neq("status", "cancelled"),
-    supabase.from("products").select("id", { count: "exact", head: true }),
-    supabase
-      .from("products")
-      .select("id", { count: "exact", head: true })
-      .gt("stock", 0)
-      .lte("stock", LOW_STOCK_THRESHOLD),
-    supabase
-      .from("products")
-      .select("id", { count: "exact", head: true })
-      .eq("stock", 0),
-    supabase
-      .from("orders")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending"),
-    supabase
-      .from("orders")
-      .select("id", { count: "exact", head: true })
-      .eq("payment_status", "unpaid")
-      .neq("status", "cancelled"),
-  ]);
+
+  const [{ data: recentOrders }, mtdStats, productStats, orderStats] =
+    await Promise.all([
+      supabase
+        .from("orders")
+        .select(
+          "id, user_id, order_number, customer_name, customer_email, customer_phone, total, status, payment_status, created_at",
+        )
+        .order("created_at", { ascending: false })
+        .limit(8),
+      fetchPeriodSalesStats(supabase, mtd.from, mtd.to),
+      fetchProductCatalogStats(supabase),
+      fetchOrderListStats(supabase),
+    ]);
 
   const orderList = (recentOrders ?? []) as RecentOrder[];
-  const lowStock = lowStockCount ?? 0;
-  const outOfStock = outOfStockCount ?? 0;
+  const lowStock = productStats.low;
+  const outOfStock = productStats.out;
+  const pendingCount = orderStats.pending;
+  const unpaidCount = orderStats.unpaid;
 
   const userIds = [
     ...new Set(orderList.map((o) => o.user_id).filter(Boolean)),
@@ -121,29 +95,16 @@ export default async function AdminDashboardPage() {
     );
   }
 
-  const mtdList = (mtdOrders ?? []) as unknown as OrderWithItems[];
-  const paidMtd = mtdList.filter((o) => o.payment_status === "paid");
-  const mtdRevenue = paidMtd.reduce((sum, o) => sum + Number(o.total), 0);
-  const mtdProfit = paidMtd.reduce(
-    (sum, o) => sum + computeOrderProfit(o.items ?? []).profit,
-    0,
-  );
-  const mtdOrderCount = mtdList.length;
-  const mtdProductCost = paidMtd.reduce(
-    (sum, o) => sum + computeOrderProfit(o.items ?? []).cogs,
-    0,
-  );
-
   const attention = [
     {
       label: "Pending orders",
-      value: pendingCount ?? 0,
+      value: pendingCount,
       href: "/admin/orders?status=pending",
       tone: "amber" as const,
     },
     {
       label: "Unpaid orders",
-      value: unpaidCount ?? 0,
+      value: unpaidCount,
       href: "/admin/orders?payment_status=unpaid",
       tone: "amber" as const,
     },
@@ -204,25 +165,25 @@ export default async function AdminDashboardPage() {
         <StatGrid className="mb-0">
           <StatCard
             label="Revenue (paid)"
-            value={formatPrice(mtdRevenue)}
+            value={formatPrice(mtdStats.paidRevenue)}
             icon={DollarSign}
             hint="Month to date · paid orders"
           />
           <StatCard
             label="Gross profit"
-            value={formatPrice(mtdProfit)}
+            value={formatPrice(mtdStats.paidProfit)}
             icon={TrendingUp}
             hint="Paid sales − COGS"
           />
           <StatCard
             label="Orders"
-            value={String(mtdOrderCount)}
+            value={String(mtdStats.orderCount)}
             icon={ShoppingBag}
             hint="Non-cancelled this month"
           />
           <StatCard
             label="Product cost"
-            value={formatPrice(mtdProductCost)}
+            value={formatPrice(mtdStats.paidCogs)}
             icon={Wallet}
             hint="Paid sales · product cost"
           />
@@ -236,24 +197,24 @@ export default async function AdminDashboardPage() {
         <StatGrid className="mb-0">
           <StatCard
             label="Pending orders"
-            value={String(pendingCount ?? 0)}
+            value={String(pendingCount)}
             icon={Clock}
           />
           <StatCard
             label="Unpaid orders"
-            value={String(unpaidCount ?? 0)}
+            value={String(unpaidCount)}
             icon={AlertTriangle}
           />
           <StatCard
             label="Products"
-            value={String(productCount ?? 0)}
+            value={String(productStats.total)}
             icon={Package}
           />
           <StatCard
             label="Low stock"
             value={String(lowStock)}
             icon={Boxes}
-            hint={`≤ ${LOW_STOCK_THRESHOLD} units`}
+            hint="≤ 5 units"
           />
         </StatGrid>
       </section>
@@ -275,7 +236,10 @@ export default async function AdminDashboardPage() {
           {orderList.length === 0 ? (
             <div className="rounded-lg border border-glass-border bg-glass-bg px-4 py-8 text-center text-sm text-white/50 sm:p-10">
               No orders yet.{" "}
-              <Link href="/admin/orders/new" className="text-gold hover:text-gold-light">
+              <Link
+                href="/admin/orders/new"
+                className="text-gold hover:text-gold-light"
+              >
                 Create your first order
               </Link>
             </div>

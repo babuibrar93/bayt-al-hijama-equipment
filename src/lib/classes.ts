@@ -89,6 +89,15 @@ export const btnLarge =
 export const glassCard =
   "rounded-lg border border-glass-border bg-glass-bg transition-all duration-[350ms]";
 
+/** Shared field chrome — used by Input, Select, Textarea, and custom search/filter fields. */
+export const fieldBorderTone = "border-white/20";
+
+export const fieldBorder =
+  `${fieldBorderTone} focus:border-gold/50`;
+
+export const fieldBorderError =
+  "border-red-500/50 focus:border-red-500/70";
+
 export const featureCard =
   "group relative overflow-hidden rounded-xl border border-glass-border bg-glass-bg transition-all duration-[350ms] ease-spring hover:-translate-y-1.5 hover:border-gold/25 hover:bg-glass-bg-hover hover:shadow-[0_12px_40px_rgba(27,107,71,0.12)]";
 
