@@ -135,9 +135,9 @@ export default async function AdminDashboardPage() {
             leftIcon={<Plus className="h-4 w-4" />}
             aria-label="Create order"
             title="Create order"
-            className="h-9 w-9 gap-0 px-0 sm:w-auto sm:gap-1.5 sm:px-3.5"
+            className="h-9 w-full justify-center gap-1.5 px-3.5 sm:w-auto"
           >
-            <span className="hidden sm:inline">Create order</span>
+            <span>Create order</span>
           </Button>
           <Button
             href="/admin/reports"

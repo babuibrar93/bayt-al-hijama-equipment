@@ -151,7 +151,7 @@ export default function OrderForm({
         unitPrice: String(item.unitPrice),
       }));
     }
-    return [{ productId: "", quantity: "1", unitPrice: "" }];
+    return [{ productId: "", quantity: "1", unitPrice: "0" }];
   });
 
   const productOptions = useMemo(
@@ -423,14 +423,14 @@ export default function OrderForm({
           <section className="rounded-lg border border-glass-border bg-glass-bg p-3 sm:p-4 lg:p-5">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 sm:mb-4">
               <h2 className="text-sm font-medium text-white/80">Line items</h2>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={refreshProducts}
                   disabled={refreshing}
                   aria-label="Refresh product stock"
                   title="Refresh product stock"
-                  className="inline-flex items-center justify-center text-white/50 transition-colors hover:text-gold disabled:opacity-40"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 bg-white/10 text-white/70 transition-colors hover:border-gold/40 hover:bg-gold/10 hover:text-gold disabled:opacity-40"
                 >
                   <RefreshCw
                     className={cn("h-4 w-4", refreshing && "animate-spin")}
@@ -442,10 +442,10 @@ export default function OrderForm({
                     onClick={() =>
                       setLines((curr) => [
                         ...curr,
-                        { productId: "", quantity: "1", unitPrice: "" },
+                        { productId: "", quantity: "1", unitPrice: "0" },
                       ])
                     }
-                    className="inline-flex items-center gap-1.5 text-sm text-gold hover:text-gold-light"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-md border border-gold/30 bg-gold/10 px-3 text-sm text-gold transition-colors hover:border-gold/50 hover:bg-gold/15 hover:text-gold-light"
                   >
                     <Plus className="h-4 w-4" /> Add line
                   </button>
@@ -463,57 +463,64 @@ export default function OrderForm({
               {lines.map((line, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-[minmax(0,1fr)_4.5rem_6.5rem_2.5rem] items-end gap-2 sm:grid-cols-[minmax(0,1fr)_5.5rem_7.5rem_2.75rem] sm:gap-3"
+                  className="grid grid-cols-1 gap-2 rounded-md border border-white/10 bg-black/20 p-2.5 sm:grid-cols-[minmax(0,1fr)_5.5rem_7.5rem_2.75rem] sm:items-end sm:gap-3 sm:border-0 sm:bg-transparent sm:p-0"
                 >
                   <Select
-                    label={index === 0 ? "Product" : undefined}
+                    label="Product"
                     options={productOptions}
                     value={line.productId}
                     onChange={(v) => onProductChange(index, v)}
                     searchable
                     disabled={lockItems}
                   />
-                  <Input
-                    label={index === 0 ? "Qty" : undefined}
-                    type="number"
-                    min="1"
-                    value={line.quantity}
-                    disabled={lockItems}
-                    onChange={(e) =>
-                      setLines((curr) =>
-                        curr.map((l, i) =>
-                          i === index ? { ...l, quantity: e.target.value } : l,
-                        ),
-                      )
-                    }
-                    aria-label="Quantity"
-                  />
-                  <Input
-                    label={index === 0 ? "Unit price" : undefined}
-                    type="number"
-                    min="0"
-                    value={line.unitPrice}
-                    disabled={lockItems}
-                    onChange={(e) =>
-                      setLines((curr) =>
-                        curr.map((l, i) =>
-                          i === index ? { ...l, unitPrice: e.target.value } : l,
-                        ),
-                      )
-                    }
-                    aria-label="Unit price"
-                  />
-                  <button
-                    type="button"
-                    aria-label="Remove line"
-                    disabled={lockItems || lines.length <= 1}
-                    onClick={() =>
-                      setLines((curr) => curr.filter((_, i) => i !== index))
-                    }
-                    className="inline-flex h-11 w-full items-center justify-center rounded-md border border-glass-border text-white/50 hover:text-red-400 disabled:opacity-40"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+                  <div className="grid grid-cols-[1fr_1.4fr_2.75rem] items-end gap-2 sm:contents">
+                    <Input
+                      label="Qty"
+                      type="number"
+                      min="1"
+                      value={line.quantity}
+                      disabled={lockItems}
+                      onChange={(e) =>
+                        setLines((curr) =>
+                          curr.map((l, i) =>
+                            i === index
+                              ? { ...l, quantity: e.target.value }
+                              : l,
+                          ),
+                        )
+                      }
+                      aria-label="Quantity"
+                    />
+                    <Input
+                      label="Unit price"
+                      type="number"
+                      min="0"
+                      value={line.unitPrice}
+                      placeholder="0"
+                      disabled={lockItems}
+                      onChange={(e) =>
+                        setLines((curr) =>
+                          curr.map((l, i) =>
+                            i === index
+                              ? { ...l, unitPrice: e.target.value }
+                              : l,
+                          ),
+                        )
+                      }
+                      aria-label="Unit price"
+                    />
+                    <button
+                      type="button"
+                      aria-label="Remove line"
+                      disabled={lockItems || lines.length <= 1}
+                      onClick={() =>
+                        setLines((curr) => curr.filter((_, i) => i !== index))
+                      }
+                      className="inline-flex h-11 w-full items-center justify-center rounded-md border border-white/20 bg-white/5 text-white/50 transition-colors hover:border-red-400/40 hover:text-red-400 disabled:opacity-40"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

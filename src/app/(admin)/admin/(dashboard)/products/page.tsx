@@ -139,9 +139,9 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
               leftIcon={<Plus className="h-4 w-4" />}
               aria-label="Add product"
               title="Add product"
-              className="h-11 w-11 gap-0 px-0 sm:w-auto sm:gap-1.5 sm:px-3.5"
+              className="h-11 w-full justify-center gap-1.5 px-3.5 sm:w-auto"
             >
-              <span className="hidden sm:inline">Add product</span>
+              <span>Add product</span>
             </Button>
           }
         />

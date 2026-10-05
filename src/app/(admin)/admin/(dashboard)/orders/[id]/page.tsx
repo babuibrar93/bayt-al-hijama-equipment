@@ -50,21 +50,21 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
 
   return (
     <div className="w-full">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 sm:mb-6 sm:gap-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+      <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-start gap-2 sm:items-center sm:gap-3">
           <Button
             href="/admin/orders"
             variant="subtle"
             size="sm"
             leftIcon={<ArrowLeft className="h-4 w-4" />}
-            className="shrink-0"
+            className="mt-0.5 shrink-0 sm:mt-0"
           >
             Back
           </Button>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1
               className={cn(
-                "truncate font-body text-xl text-gold sm:text-2xl lg:text-3xl",
+                "break-all font-body text-xl text-gold sm:text-2xl lg:text-3xl",
                 numeric,
               )}
             >
@@ -87,7 +87,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
 
       <div className="grid grid-cols-1 items-start gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_17rem] xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0 space-y-4 sm:space-y-6">
-          <StatGrid columns={2} className="mb-0">
+          <StatGrid columns={2} className="mb-0 grid-cols-1 sm:grid-cols-2">
             <StatCard
               label="Total charged"
               value={formatPrice(Number(order.total))}

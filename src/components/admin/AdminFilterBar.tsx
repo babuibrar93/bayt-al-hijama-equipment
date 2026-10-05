@@ -193,12 +193,12 @@ export default function AdminFilterBar({
   return (
     <div
       className={cn(
-        "mb-4 flex flex-wrap items-end gap-2 sm:mb-6 sm:gap-2.5",
+        "mb-4 flex flex-col gap-2.5 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-end sm:gap-2.5",
         className,
       )}
     >
       {textField && (
-        <div className="w-full max-w-sm shrink-0 sm:w-72">
+        <div className="w-full shrink-0 sm:max-w-sm sm:w-72">
           <Input
             label={textField.label}
             type="search"
@@ -210,65 +210,76 @@ export default function AdminFilterBar({
         </div>
       )}
 
-      {filterFields.map((field) => {
-        if (field.type === "select" && field.options) {
-          const allowEmpty = field.allowEmpty !== false;
-          const options = allowEmpty
-            ? [{ value: "", label: "All" }, ...field.options]
-            : field.options;
-          return (
-            <div
-              key={field.name}
-              className="min-w-[8.5rem] flex-1 basis-[8.5rem] sm:max-w-[11rem] sm:flex-none sm:basis-[10rem]"
-            >
-              <Select
-                label={field.label}
-                options={options}
-                value={values[field.name] ?? field.defaultValue ?? ""}
-                onChange={(value) => onImmediateChange(field.name, value)}
-                placeholder={allowEmpty ? "All" : "Select..."}
-                searchable={options.length > 8}
-              />
-            </div>
-          );
-        }
+      {filterFields.length > 0 && (
+        <div
+          className={cn(
+            "grid w-full gap-2 sm:flex sm:min-w-0 sm:flex-1 sm:flex-wrap sm:items-end sm:gap-2.5",
+            filterFields.length === 1 && "grid-cols-1",
+            filterFields.length === 2 && "grid-cols-2",
+            filterFields.length >= 3 && "grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+          )}
+        >
+          {filterFields.map((field) => {
+            if (field.type === "select" && field.options) {
+              const allowEmpty = field.allowEmpty !== false;
+              const options = allowEmpty
+                ? [{ value: "", label: "All" }, ...field.options]
+                : field.options;
+              return (
+                <div
+                  key={field.name}
+                  className="min-w-0 w-full sm:min-w-[9rem] sm:flex-1 sm:basis-0"
+                >
+                  <Select
+                    label={field.label}
+                    options={options}
+                    value={values[field.name] ?? field.defaultValue ?? ""}
+                    onChange={(value) => onImmediateChange(field.name, value)}
+                    placeholder={allowEmpty ? "All" : "Select..."}
+                    searchable={options.length > 8}
+                  />
+                </div>
+              );
+            }
 
-        if (field.type === "date") {
-          return (
-            <div
-              key={field.name}
-              className="min-w-[8.5rem] flex-1 basis-[8.5rem] sm:max-w-[11rem] sm:flex-none sm:basis-[10rem]"
-            >
-              <Input
-                label={field.label}
-                type="date"
-                value={values[field.name] ?? ""}
-                onChange={(e) =>
-                  onImmediateChange(field.name, e.target.value)
-                }
-              />
-            </div>
-          );
-        }
+            if (field.type === "date") {
+              return (
+                <div
+                  key={field.name}
+                  className="min-w-0 w-full sm:min-w-[9rem] sm:flex-1 sm:basis-0"
+                >
+                  <Input
+                    label={field.label}
+                    type="date"
+                    value={values[field.name] ?? ""}
+                    onChange={(e) =>
+                      onImmediateChange(field.name, e.target.value)
+                    }
+                  />
+                </div>
+              );
+            }
 
-        return (
-          <div
-            key={field.name}
-            className="min-w-[8.5rem] flex-1 basis-[8.5rem] sm:max-w-[11rem] sm:flex-none sm:basis-[10rem]"
-          >
-            <Input
-              label={field.label}
-              type="search"
-              value={values[field.name] ?? ""}
-              onChange={(e) => onTextChange(field.name, e.target.value)}
-              placeholder={field.placeholder ?? field.label}
-              leftIcon={<Search className="h-4 w-4" />}
-            />
-          </div>
-        );
-      })}
+            return (
+              <div
+                key={field.name}
+                className="min-w-0 w-full sm:min-w-[9rem] sm:flex-1 sm:basis-0"
+              >
+                <Input
+                  label={field.label}
+                  type="search"
+                  value={values[field.name] ?? ""}
+                  onChange={(e) => onTextChange(field.name, e.target.value)}
+                  placeholder={field.placeholder ?? field.label}
+                  leftIcon={<Search className="h-4 w-4" />}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-      <div className="ml-auto flex shrink-0 items-center gap-2">
+      <div className="flex w-full shrink-0 flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row sm:items-center">
         {activeCount > 0 && (
           <Button
             type="button"
@@ -277,12 +288,16 @@ export default function AdminFilterBar({
             onClick={onClear}
             disabled={pending}
             leftIcon={<FilterX className="h-4 w-4" />}
-            className="h-11"
+            className="h-11 w-full sm:w-auto"
           >
             Clear
           </Button>
         )}
-        {actions}
+        {actions ? (
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center [&_a]:w-full [&_button]:w-full sm:[&_a]:w-auto sm:[&_button]:w-auto">
+            {actions}
+          </div>
+        ) : null}
       </div>
     </div>
   );
