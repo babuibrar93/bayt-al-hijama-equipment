@@ -53,7 +53,7 @@ export default function MarqueeSection() {
                 <MarqueeIcon id={item.icon} />
               </span>
               <span
-                className={`${typeMeta} font-medium uppercase tracking-[0.12em] text-white/70 transition-colors group-hover:text-gold`}
+                className={`${typeMeta} font-medium uppercase tracking-[0.12em] text-white transition-colors group-hover:text-gold`}
               >
                 {item.label}
               </span>
@@ -67,7 +67,7 @@ export default function MarqueeSection() {
                 <MarqueeIcon id={item.icon} />
               </span>
               <span
-                className={`${typeMeta} font-medium uppercase tracking-[0.12em] text-white/70`}
+                className={`${typeMeta} font-medium uppercase tracking-[0.12em] text-white`}
               >
                 {item.label}
               </span>

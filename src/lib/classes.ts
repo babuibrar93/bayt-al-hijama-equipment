@@ -108,7 +108,7 @@ export const featureCardIndex =
   "flex h-6 min-w-[1.6rem] shrink-0 items-center justify-center rounded-md border border-gold/25 bg-gold/10 px-1.5 font-body text-[0.62rem] font-bold tabular-nums tracking-wide text-gold sm:h-7 sm:min-w-[1.75rem] sm:text-[0.68rem]";
 
 export const navLink =
-  "relative inline-flex min-h-11 items-center text-[0.85rem] font-medium uppercase tracking-[0.08em] text-white/60 transition-colors duration-[250ms] after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-gold after:transition-all after:duration-300 after:ease-out hover:text-white hover:after:w-full";
+  "relative inline-flex min-h-11 items-center text-[0.85rem] font-medium uppercase tracking-[0.08em] text-white transition-colors duration-[250ms] after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-gold after:transition-all after:duration-300 after:ease-out hover:text-gold hover:after:w-full";
 
 export function getRevealClass(
   variant: "up" | "left" | "right",
