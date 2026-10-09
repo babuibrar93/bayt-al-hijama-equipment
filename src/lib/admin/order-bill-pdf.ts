@@ -482,7 +482,7 @@ export async function buildOrderBillPdf(
   ) as string[];
   doc.text(jazzDetail, jazzX + qrSize / 2, labelY + 3.5, { align: "center" });
   const easyDetail = doc.splitTextToSize(
-    `${EASYPAISA_ACCOUNT_TITLE}\n${EASYPAISA_NUMBER}`,
+    EASYPAISA_ACCOUNT_TITLE,
     detailW,
   ) as string[];
   doc.text(easyDetail, easyX + qrSize / 2, labelY + 3.5, { align: "center" });
