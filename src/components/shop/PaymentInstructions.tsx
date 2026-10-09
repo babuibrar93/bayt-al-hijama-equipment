@@ -8,7 +8,7 @@ import {
   PAYMENT_QR,
   getPaymentOption,
 } from "@/constants/payment";
-import { formatPrice } from "@/utils";
+import { formatPrice, formatPricePlain } from "@/utils";
 import CopyValueButton from "@/components/shop/CopyValueButton";
 import type { PaymentMethod } from "@/types/db";
 
@@ -107,7 +107,7 @@ export default function PaymentInstructions({
             <span className="font-semibold text-gold">{formatPrice(total)}</span>
           </span>
           <CopyValueButton
-            value={String(Math.round(total))}
+            value={formatPricePlain(total)}
             label="Amount"
             className="border-gold/30"
           />

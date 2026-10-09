@@ -23,7 +23,7 @@ alwaysApply: false
 
 ## Prices & numbers
 - Display prices with `formatPrice()` and `tabular-nums` / `numeric` class
-- Currency is PKR (no decimals in formatter)
+- Currency is PKR. `formatPrice()` keeps paisa (23.5 stays 23.5); whole rupees stay whole
 
 ## Accessibility
 - Icon-only buttons need `aria-label`
