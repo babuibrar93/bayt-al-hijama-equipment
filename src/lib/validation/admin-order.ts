@@ -2,9 +2,16 @@ import { z } from "zod";
 
 export const adminOrderItemSchema = z.object({
   productId: z.string().uuid(),
-  quantity: z.number().int().positive(),
-  /** Optional admin override; defaults to product price */
-  unitPrice: z.number().nonnegative().optional(),
+  quantity: z
+    .number()
+    .int("Quantity must be a whole number")
+    .positive("Quantity must be at least 1"),
+  /** Optional admin override; defaults to product price. Decimals allowed (e.g. 23.5). */
+  unitPrice: z
+    .number()
+    .finite()
+    .nonnegative("Unit price must be 0 or greater")
+    .optional(),
 });
 
 const orderDateSchema = z
@@ -41,7 +48,11 @@ export const createAdminOrderSchema = z.object({
     .default("pending"),
   /** Asia/Karachi calendar day for the order (maps to created_at). */
   orderDate: orderDateSchema.optional(),
-  shippingFee: z.number().nonnegative().optional(),
+  shippingFee: z
+    .number()
+    .finite()
+    .nonnegative("Shipping fee must be 0 or greater")
+    .optional(),
   notes: z.string().max(2000).optional().or(z.literal("")),
   address: adminAddressSchema,
   items: z.array(adminOrderItemSchema).min(1, "Add at least one product"),
@@ -59,7 +70,11 @@ export const updateAdminOrderSchema = z.object({
     .enum(["pending", "confirmed", "shipped", "delivered", "cancelled"])
     .optional(),
   orderDate: orderDateSchema.optional(),
-  shippingFee: z.number().nonnegative().optional(),
+  shippingFee: z
+    .number()
+    .finite()
+    .nonnegative("Shipping fee must be 0 or greater")
+    .optional(),
   notes: z.string().max(2000).nullable().optional(),
   address: adminAddressSchema.optional(),
   items: z.array(adminOrderItemSchema).min(1).optional(),

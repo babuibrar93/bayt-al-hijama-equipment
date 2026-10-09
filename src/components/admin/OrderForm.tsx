@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
@@ -20,6 +20,143 @@ interface LineState {
   productId: string;
   quantity: string;
   unitPrice: string;
+}
+
+interface OrderFormDraft {
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  line1: string;
+  city: string;
+  province: string;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  status: OrderStatus;
+  notes: string;
+  shippingFee: string;
+  orderDate: string;
+  lines: LineState[];
+}
+
+const CREATE_DRAFT_KEY = "bah-admin-order-draft:create";
+const PAYMENT_METHODS = new Set<PaymentMethod>([
+  "cod",
+  "bank_transfer",
+  "jazzcash",
+  "easypaisa",
+]);
+const PAYMENT_STATUSES = new Set<PaymentStatus>(["unpaid", "paid", "refunded"]);
+const ORDER_STATUSES = new Set<OrderStatus>([
+  "pending",
+  "confirmed",
+  "shipped",
+  "delivered",
+  "cancelled",
+]);
+const EMPTY_LINE: LineState = { productId: "", quantity: "1", unitPrice: "0" };
+
+function orderDraftKey(mode: "create" | "edit", orderId?: string) {
+  return mode === "edit" && orderId
+    ? `bah-admin-order-draft:edit:${orderId}`
+    : CREATE_DRAFT_KEY;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function readOrderDraft(key: string): OrderFormDraft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isRecord(parsed)) return null;
+    if (typeof parsed.customerName !== "string") return null;
+    if (typeof parsed.customerPhone !== "string") return null;
+    if (typeof parsed.customerEmail !== "string") return null;
+    if (typeof parsed.line1 !== "string") return null;
+    if (typeof parsed.city !== "string") return null;
+    if (typeof parsed.province !== "string") return null;
+    if (
+      typeof parsed.paymentMethod !== "string" ||
+      !PAYMENT_METHODS.has(parsed.paymentMethod as PaymentMethod)
+    ) {
+      return null;
+    }
+    if (
+      typeof parsed.paymentStatus !== "string" ||
+      !PAYMENT_STATUSES.has(parsed.paymentStatus as PaymentStatus)
+    ) {
+      return null;
+    }
+    if (
+      typeof parsed.status !== "string" ||
+      !ORDER_STATUSES.has(parsed.status as OrderStatus)
+    ) {
+      return null;
+    }
+    if (typeof parsed.notes !== "string") return null;
+    if (typeof parsed.shippingFee !== "string") return null;
+    if (
+      typeof parsed.orderDate !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(parsed.orderDate)
+    ) {
+      return null;
+    }
+    if (!Array.isArray(parsed.lines) || parsed.lines.length === 0) return null;
+
+    const lines: LineState[] = [];
+    for (const line of parsed.lines) {
+      if (!isRecord(line)) return null;
+      if (typeof line.productId !== "string") return null;
+      if (typeof line.quantity !== "string") return null;
+      if (typeof line.unitPrice !== "string") return null;
+      lines.push({
+        productId: line.productId,
+        quantity: line.quantity,
+        unitPrice: line.unitPrice,
+      });
+    }
+
+    const province = (PROVINCES as readonly string[]).includes(parsed.province)
+      ? parsed.province
+      : "Punjab";
+
+    return {
+      customerName: parsed.customerName,
+      customerPhone: parsed.customerPhone,
+      customerEmail: parsed.customerEmail,
+      line1: parsed.line1,
+      city: parsed.city,
+      province,
+      paymentMethod: parsed.paymentMethod as PaymentMethod,
+      paymentStatus: parsed.paymentStatus as PaymentStatus,
+      status: parsed.status as OrderStatus,
+      notes: parsed.notes,
+      shippingFee: parsed.shippingFee,
+      orderDate: parsed.orderDate,
+      lines,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeOrderDraft(key: string, draft: OrderFormDraft) {
+  try {
+    localStorage.setItem(key, JSON.stringify(draft));
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+function clearOrderDraft(key: string) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
 }
 
 interface OrderFormProps {
@@ -151,8 +288,104 @@ export default function OrderForm({
         unitPrice: String(item.unitPrice),
       }));
     }
-    return [{ productId: "", quantity: "1", unitPrice: "0" }];
+    return [{ ...EMPTY_LINE }];
   });
+  const storageKey = orderDraftKey(mode, orderId);
+  const persistEnabled = useRef(true);
+  const [restored, setRestored] = useState(false);
+  const baselineRef = useRef<OrderFormDraft | null>(null);
+  if (baselineRef.current === null) {
+    baselineRef.current = {
+      customerName,
+      customerPhone,
+      customerEmail,
+      line1,
+      city,
+      province,
+      paymentMethod,
+      paymentStatus,
+      status,
+      notes,
+      shippingFee,
+      orderDate,
+      lines: lines.map((line) => ({ ...line })),
+    };
+  }
+
+  const applyDraft = (draft: OrderFormDraft) => {
+    const statusOptions =
+      mode === "edit" ? EDIT_STATUS_OPTIONS : CREATE_STATUS_OPTIONS;
+    setCustomerName(draft.customerName);
+    setCustomerPhone(draft.customerPhone);
+    setCustomerEmail(draft.customerEmail);
+    setLine1(draft.line1);
+    setCity(draft.city);
+    setProvince(draft.province);
+    setPaymentMethod(draft.paymentMethod);
+    setPaymentStatus(draft.paymentStatus);
+    setStatus(
+      statusOptions.some((option) => option.value === draft.status)
+        ? draft.status
+        : "pending",
+    );
+    setNotes(draft.notes);
+    setShippingFee(draft.shippingFee);
+    setOrderDate(draft.orderDate);
+    setLines(draft.lines.length > 0 ? draft.lines : [{ ...EMPTY_LINE }]);
+  };
+
+  useLayoutEffect(() => {
+    const draft = readOrderDraft(storageKey);
+    if (draft) applyDraft(draft);
+    setRestored(true);
+    // Restore once per form (create, or this order's edit).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storageKey]);
+
+  const draft = useMemo<OrderFormDraft>(
+    () => ({
+      customerName,
+      customerPhone,
+      customerEmail,
+      line1,
+      city,
+      province,
+      paymentMethod,
+      paymentStatus,
+      status,
+      notes,
+      shippingFee,
+      orderDate,
+      lines,
+    }),
+    [
+      customerName,
+      customerPhone,
+      customerEmail,
+      line1,
+      city,
+      province,
+      paymentMethod,
+      paymentStatus,
+      status,
+      notes,
+      shippingFee,
+      orderDate,
+      lines,
+    ],
+  );
+
+  useEffect(() => {
+    if (!restored || !persistEnabled.current) return;
+    const unchanged =
+      baselineRef.current != null &&
+      JSON.stringify(draft) === JSON.stringify(baselineRef.current);
+    if (unchanged) {
+      clearOrderDraft(storageKey);
+      return;
+    }
+    writeOrderDraft(storageKey, draft);
+  }, [restored, storageKey, draft]);
 
   const productOptions = useMemo(
     () => [
@@ -234,8 +467,15 @@ export default function OrderForm({
       toast.error("Add at least one product");
       return;
     }
-    if (items.some((item) => !Number.isFinite(item.quantity) || item.quantity < 1)) {
-      toast.error("Quantity must be at least 1");
+    if (
+      items.some(
+        (item) =>
+          !Number.isFinite(item.quantity) ||
+          !Number.isInteger(item.quantity) ||
+          item.quantity < 1,
+      )
+    ) {
+      toast.error("Quantity must be a whole number of at least 1");
       return;
     }
     if (
@@ -287,6 +527,23 @@ export default function OrderForm({
               : "Could not create order"),
         );
       }
+      persistEnabled.current = false;
+      clearOrderDraft(storageKey);
+      if (mode === "create") {
+        setCustomerName("");
+        setCustomerPhone("");
+        setCustomerEmail("");
+        setLine1("");
+        setCity("");
+        setProvince("Punjab");
+        setPaymentMethod("cod");
+        setPaymentStatus("unpaid");
+        setStatus("pending");
+        setNotes("");
+        setShippingFee("");
+        setOrderDate(currentKarachiDateKey());
+        setLines([{ ...EMPTY_LINE }]);
+      }
       toast.success(
         mode === "edit"
           ? "Order updated"
@@ -303,6 +560,10 @@ export default function OrderForm({
 
   const backHref =
     mode === "edit" && orderId ? `/admin/orders/${orderId}` : "/admin/orders";
+
+  if (!restored) {
+    return <div className="py-20 text-center text-white/50">Loading...</div>;
+  }
 
   return (
     <form onSubmit={onSubmit} className="w-full">
@@ -442,7 +703,7 @@ export default function OrderForm({
                     onClick={() =>
                       setLines((curr) => [
                         ...curr,
-                        { productId: "", quantity: "1", unitPrice: "0" },
+                        { ...EMPTY_LINE },
                       ])
                     }
                     className="inline-flex h-9 items-center gap-1.5 rounded-md border border-gold/30 bg-gold/10 px-3 text-sm text-gold transition-colors hover:border-gold/50 hover:bg-gold/15 hover:text-gold-light"
@@ -478,6 +739,8 @@ export default function OrderForm({
                       label="Qty"
                       type="number"
                       min="1"
+                      step="1"
+                      inputMode="numeric"
                       value={line.quantity}
                       disabled={lockItems}
                       onChange={(e) =>
@@ -495,6 +758,8 @@ export default function OrderForm({
                       label="Unit price"
                       type="number"
                       min="0"
+                      step="any"
+                      inputMode="decimal"
                       value={line.unitPrice}
                       placeholder="0"
                       disabled={lockItems}
@@ -545,6 +810,8 @@ export default function OrderForm({
               label="Shipping fee"
               type="number"
               min="0"
+              step="any"
+              inputMode="decimal"
               value={shippingFee}
               onChange={(e) => setShippingFee(e.target.value)}
               placeholder="Auto if empty"
