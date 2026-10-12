@@ -38,6 +38,16 @@ export const FOOTER_CONTACT = {
   location: SITE.delivery,
 };
 
+export const FOOTER_CREDIT = {
+  label: "Website by",
+  name: "Babu Ibrar",
+  line: "I design and build websites. Want one for your business?",
+  phone: "0344 4850952",
+  phoneHref: "tel:03444850952",
+  email: "babuibrar93@gmail.com",
+  emailHref: "mailto:babuibrar93@gmail.com",
+} as const;
+
 export const FOOTER_SOCIAL = [
   {
     label: "Facebook",

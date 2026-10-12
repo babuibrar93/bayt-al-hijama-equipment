@@ -5,6 +5,7 @@ import { FacebookIcon, InstagramIcon } from "@/components/icons/BrandIcons";
 import { SITE } from "@/constants/site";
 import {
   FOOTER_CONTACT,
+  FOOTER_CREDIT,
   FOOTER_PRODUCT_LINKS,
   FOOTER_PROFESSIONAL_LINKS,
   FOOTER_SOCIAL,
@@ -138,6 +139,38 @@ export default function Footer() {
         >
           <p className="text-[0.78rem] text-white/50">{SITE.copyright}</p>
           <ArabicName>{SITE.arabicName}</ArabicName>
+        </div>
+      </div>
+
+      <div className="footer-credit border-t border-glass-border py-4">
+        <div
+          className={`footer-credit-row ${container} flex flex-col items-center gap-3 text-center`}
+        >
+          <div className="shrink-0">
+            <p className="text-xs font-bold uppercase tracking-[0.15em] text-white/50">
+              {FOOTER_CREDIT.label}
+            </p>
+            <p className="font-display text-[1.35rem] leading-tight text-gold">
+              {FOOTER_CREDIT.name}
+            </p>
+          </div>
+          <p className="max-w-sm text-[0.85rem] leading-[1.65] text-white/60">
+            {FOOTER_CREDIT.line}
+          </p>
+          <div className="footer-credit-links flex shrink-0 flex-col items-center gap-1">
+            <a
+              href={FOOTER_CREDIT.phoneHref}
+              className="text-[0.85rem] tabular-nums tracking-[0.04em] text-gold transition-colors hover:text-gold-light"
+            >
+              {FOOTER_CREDIT.phone}
+            </a>
+            <a
+              href={FOOTER_CREDIT.emailHref}
+              className="text-[0.85rem] text-gold transition-colors hover:text-gold-light"
+            >
+              {FOOTER_CREDIT.email}
+            </a>
+          </div>
         </div>
       </div>
     </footer>

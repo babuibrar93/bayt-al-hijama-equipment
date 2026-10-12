@@ -136,3 +136,28 @@ html.effects-ready .animate-logo-beam {
     background: rgb(255 255 255 / 0.3);
   }
 }
+
+/* Unlayered so this wins over the footer container's padding utilities.
+   Clears the fixed "Order Now" button (bottom-right). */
+.footer-credit.footer-credit {
+  padding-bottom: 7rem;
+}
+
+@media (min-width: 1024px) {
+  .footer-credit.footer-credit {
+    padding-bottom: 1rem;
+  }
+
+  .footer-credit .footer-credit-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding-right: 15rem;
+    text-align: left;
+  }
+
+  .footer-credit .footer-credit-links {
+    align-items: flex-end;
+  }
+}
