@@ -24,7 +24,7 @@ import {
 export const revalidate = 300;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || SITE.url;
-const PER_PAGE = 8;
+const PER_PAGE = 16;
 
 interface ShopPageProps {
   searchParams: Promise<{
@@ -47,6 +47,7 @@ export async function generateMetadata({
   // prevent thin, duplicate listings; the canonical /shop stays indexable.
   const isFiltered =
     Boolean(params.search) ||
+    Boolean(params.category) ||
     page > 1 ||
     (Boolean(params.sort) && params.sort !== "newest");
 
@@ -98,6 +99,9 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   };
 
   return (
+    <>
+    <title>Shop Hijama Equipment Online | Bayt Al Hijama</title>
+    <meta name="description" content={SHOP_DESCRIPTION} />
     <div className={pageShell}>
       <div className={pageInner}>
         <h1 className="sr-only">Shop Hijama Equipment</h1>
@@ -106,33 +110,33 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           activeCategory={categorySlug}
           activeSort={sort}
           activeSearch={search}
-        />
-
-        {products.length === 0 ? (
-          <div className="rounded-lg border border-glass-border bg-glass-bg p-10 text-center">
-            <p className={`${typeCardTitle} text-white/70`}>No products found.</p>
-            <p className={`mt-2 text-white/50 ${typeBodySm}`}>
-              Try a different search or category.
-            </p>
-          </div>
-        ) : (
-          <>
-            <h2 className="sr-only">Products</h2>
-            <p className={`mb-4 text-white/75 ${typeMeta}`}>
-              Showing{" "}
-              <span className="tabular-nums text-white/70">{products.length}</span>{" "}
-              of <span className="tabular-nums text-white/70">{total}</span>{" "}
-              products
-            </p>
-            <ProductGrid products={products} priorityCount={2} />
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              pathname="/shop"
-              query={paginationQuery}
-            />
-          </>
-        )}
+        >
+          {products.length === 0 ? (
+            <div className="rounded-lg border border-glass-border bg-glass-bg p-10 text-center">
+              <p className={`${typeCardTitle} text-white/70`}>No products found.</p>
+              <p className={`mt-2 text-white/50 ${typeBodySm}`}>
+                Try a different search or category.
+              </p>
+            </div>
+          ) : (
+            <>
+              <h2 className="sr-only">Products</h2>
+              <p className={`mb-4 text-white/75 ${typeMeta}`}>
+                Showing{" "}
+                <span className="tabular-nums text-white/70">{products.length}</span>{" "}
+                of <span className="tabular-nums text-white/70">{total}</span>{" "}
+                products
+              </p>
+              <ProductGrid products={products} priorityCount={2} />
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                pathname="/shop"
+                query={paginationQuery}
+              />
+            </>
+          )}
+        </ShopFilters>
       </div>
 
       <JsonLd
@@ -145,5 +149,6 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         ]}
       />
     </div>
+    </>
   );
 }

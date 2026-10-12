@@ -33,6 +33,7 @@ export default function HeroSection() {
         alt="Professional Hijama cupping equipment"
         fill
         priority
+        fetchPriority="high"
         quality={75}
         sizes="100vw"
         className="object-cover object-[75%_32%] sm:object-[80%_28%] lg:object-[82%_30%]"

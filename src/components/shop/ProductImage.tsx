@@ -8,6 +8,8 @@ interface ProductImageProps {
   priority?: boolean;
   sizes?: string;
   className?: string;
+  /** `contain` shows the full image. `cover` fills the frame and may crop. */
+  fit?: "cover" | "contain";
 }
 
 /**
@@ -20,11 +22,15 @@ export default function ProductImage({
   priority = false,
   sizes = "(max-width: 768px) 100vw, 33vw",
   className,
+  fit = "cover",
 }: ProductImageProps) {
   return (
     <div
       className={cn(
-        "relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-green-deep/40 to-black",
+        "relative aspect-[4/3] w-full overflow-hidden",
+        fit === "contain"
+          ? "bg-white"
+          : "bg-gradient-to-br from-green-deep/40 to-black",
         className,
       )}
     >
@@ -36,7 +42,11 @@ export default function ProductImage({
           sizes={sizes}
           priority={priority}
           quality={70}
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className={
+            fit === "contain"
+              ? "object-contain"
+              : "object-cover transition-transform duration-500 group-hover:scale-105"
+          }
         />
       ) : (
         <Placeholder />

@@ -42,6 +42,8 @@ interface LogoProps {
   className?: string;
   imageClassName?: string;
   priority?: boolean;
+  /** Load immediately without marking it as the LCP preload. */
+  loading?: "eager" | "lazy";
   href?: string | null;
   showText?: boolean;
 }
@@ -78,6 +80,7 @@ export default function Logo({
   className,
   imageClassName,
   priority = false,
+  loading,
   href = "/",
   showText = true,
 }: LogoProps) {
@@ -99,6 +102,10 @@ export default function Logo({
           height={64}
           sizes={tokens.imageSize}
           priority={priority}
+          fetchPriority={
+            priority ? "high" : loading === "eager" ? "low" : undefined
+          }
+          loading={priority ? undefined : loading}
           className={cn(
             "absolute left-[60%] top-[80%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain",
             tokens.zoom,

@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useCardTilt } from "@/hooks/useCardTilt";
 import { useGeoMouseTrack, useHeroParallax } from "@/hooks/useHeroEffects";
 import { useMagneticEffect } from "@/hooks/useMagneticEffect";
+import { useAfterLoad } from "@/hooks/useAfterLoad";
 import { useSmoothScroll } from "@/hooks/useNavigation";
 import {
   useScrollRevealGroup,
@@ -17,24 +18,15 @@ export default function ClientEffects() {
   return <DeferredEffects />;
 }
 
-/** Pointer effects wait until the browser is idle so they miss the load window. */
+/** Pointer effects and logo motion wait until after load so they miss LCP. */
 function DeferredEffects() {
-  const [ready, setReady] = useState(false);
+  const ready = useAfterLoad();
 
   useEffect(() => {
-    const hasIdle = typeof window.requestIdleCallback === "function";
-    const id = hasIdle
-      ? window.requestIdleCallback(() => setReady(true), { timeout: 2500 })
-      : window.setTimeout(() => setReady(true), 1200);
-
-    return () => {
-      if (hasIdle && typeof window.cancelIdleCallback === "function") {
-        window.cancelIdleCallback(id as number);
-      } else {
-        window.clearTimeout(id as number);
-      }
-    };
-  }, []);
+    if (!ready) return;
+    document.documentElement.classList.add("effects-ready");
+    return () => document.documentElement.classList.remove("effects-ready");
+  }, [ready]);
 
   if (!ready) return null;
   return <IdleEffects />;

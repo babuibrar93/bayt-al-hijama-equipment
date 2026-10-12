@@ -73,7 +73,7 @@ export function useScrollRevealGroup(
 
     // Catch cards that mount after the route transition (e.g. ProductsSection).
     const mutationObserver = new MutationObserver(scheduleBind);
-    mutationObserver.observe(document.body, {
+    mutationObserver.observe(document.querySelector("main") ?? document.body, {
       childList: true,
       subtree: true,
     });

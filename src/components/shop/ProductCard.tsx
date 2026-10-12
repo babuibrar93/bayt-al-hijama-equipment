@@ -49,6 +49,7 @@ export default function ProductCard({
           src={image}
           alt={product.name}
           priority={priority}
+          fit="contain"
           className={
             isList
               ? "aspect-[16/10] sm:aspect-square"

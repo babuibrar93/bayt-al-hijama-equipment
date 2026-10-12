@@ -20,7 +20,7 @@ import {
   typeSectionTitle,
   typeStat,
 } from "@/lib/classes";
-import ProductImage from "@/components/shop/ProductImage";
+import ProductGallery from "@/components/shop/ProductGallery";
 import ProductGrid from "@/components/shop/ProductGrid";
 import AddToCartButton from "@/components/shop/AddToCartButton";
 import Breadcrumbs from "@/components/shop/Breadcrumbs";
@@ -111,35 +111,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
           ]}
         />
 
-        <div className="grid grid-cols-1 gap-8 md:gap-10 lg:grid-cols-2 lg:gap-12">
-          <div className="relative">
-            <div className="relative overflow-hidden rounded-lg border border-glass-border bg-glass-bg">
-              <ProductImage
-                src={mainImage}
-                alt={product.name}
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            </div>
-            {product.images.length > 1 && (
-              <div className="mt-3 grid grid-cols-3 gap-2 sm:mt-4 sm:grid-cols-4 sm:gap-3">
-                {product.images.slice(0, 4).map((img, i) => (
-                  <div
-                    key={i}
-                    className="overflow-hidden rounded-sm border border-glass-border"
-                  >
-                    <ProductImage
-                      src={img}
-                      alt={`${product.name} view ${i + 1}`}
-                      sizes="120px"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="grid min-w-0 grid-cols-1 gap-8 md:gap-10 lg:grid-cols-2 lg:gap-12">
+          <ProductGallery images={product.images} alt={product.name} />
 
-          <div>
+          <div className="min-w-0">
             {product.category && (
               <Link
                 href={`/shop/category/${product.category.slug}`}
@@ -149,7 +124,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </Link>
             )}
             <h1
-              className={`mb-3 font-body font-normal leading-tight text-white sm:mb-4 ${typeSectionTitle}`}
+              className={`mb-3 break-words font-body font-normal leading-tight text-white sm:mb-4 ${typeSectionTitle}`}
             >
               {product.name}
             </h1>

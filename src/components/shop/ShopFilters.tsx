@@ -1,25 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { Select } from "@/components/ui";
+import ProductGridSkeleton from "@/components/shop/ProductGridSkeleton";
 import { cn, fieldBorder, typeBodySm } from "@/lib/classes";
 import type { Category } from "@/types/db";
 import type { ProductSort } from "@/lib/products";
 
-function listingHref(
-  pathname: string,
-  search: string,
-  sort: ProductSort,
-) {
-  const params = new URLSearchParams();
-  if (search) params.set("search", search);
-  if (sort !== "newest") params.set("sort", sort);
-  const query = params.toString();
-  return query ? `${pathname}?${query}` : pathname;
-}
+const SEARCH_DEBOUNCE_MS = 350;
 
 const SORT_OPTIONS: { value: ProductSort; label: string }[] = [
   { value: "newest", label: "Newest" },
@@ -33,6 +23,8 @@ interface ShopFiltersProps {
   activeCategory?: string;
   activeSort: ProductSort;
   activeSearch: string;
+  /** Product results. Replaced with a skeleton while a filter is loading. */
+  children?: React.ReactNode;
 }
 
 export default function ShopFilters({
@@ -40,11 +32,28 @@ export default function ShopFilters({
   activeCategory,
   activeSort,
   activeSearch,
+  children,
 }: ShopFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(activeSearch);
+  const [isPending, startTransition] = useTransition();
+  const debounceRef = useRef<number | null>(null);
+  /** Query we already sent, so a late URL update does not wipe newer typing. */
+  const pendingQueryRef = useRef<string | null>(null);
+  /** Skip one debounce cycle after an immediate clear. */
+  const skipDebounceRef = useRef(false);
+
+  useEffect(() => {
+    if (pendingQueryRef.current !== null) {
+      if (pendingQueryRef.current === activeSearch.trim()) {
+        pendingQueryRef.current = null;
+      }
+      return;
+    }
+    setSearch(activeSearch);
+  }, [activeSearch]);
 
   const updateParams = useCallback(
     (updates: Record<string, string | undefined>, resetPage = true) => {
@@ -62,9 +71,73 @@ export default function ShopFilters({
     [router, pathname, searchParams],
   );
 
+  const commitSearch = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
+      if (trimmed === activeSearch.trim()) return;
+      pendingQueryRef.current = trimmed;
+      startTransition(() => {
+        updateParams({ search: trimmed || undefined });
+      });
+    },
+    [activeSearch, updateParams],
+  );
+
+  useEffect(() => {
+    if (skipDebounceRef.current) {
+      skipDebounceRef.current = false;
+      return;
+    }
+    if (search.trim() === activeSearch.trim()) return;
+    debounceRef.current = window.setTimeout(() => {
+      commitSearch(search);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    };
+  }, [search, activeSearch, commitSearch]);
+
+  const submitSearchNow = () => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    commitSearch(search);
+  };
+
   const onSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    updateParams({ search: search.trim() || undefined });
+    submitSearchNow();
+  };
+
+  const selectSort = (value: string) => {
+    const next = value === "newest" ? undefined : value;
+    const current = activeSort === "newest" ? undefined : activeSort;
+    if (next === current) return;
+    startTransition(() => {
+      updateParams({ sort: next });
+    });
+  };
+
+  const selectCategory = (slug?: string) => {
+    if ((slug ?? "") === (activeCategory ?? "")) return;
+    startTransition(() => {
+      updateParams({ category: slug });
+    });
+  };
+
+  const hasUrlFilters =
+    Boolean(activeSearch.trim()) ||
+    Boolean(activeCategory) ||
+    activeSort !== "newest";
+  const showClear = hasUrlFilters || Boolean(search.trim());
+
+  const clearFilters = () => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    skipDebounceRef.current = true;
+    setSearch("");
+    if (!hasUrlFilters) return;
+    pendingQueryRef.current = "";
+    startTransition(() => {
+      router.push("/shop", { scroll: false });
+    });
   };
 
   const fieldClass = cn(
@@ -74,16 +147,17 @@ export default function ShopFilters({
   );
 
   return (
+    <>
     <div
       className={cn(
         "relative mb-5 overflow-hidden rounded-xl border border-glass-border bg-glass-bg sm:mb-6",
         "before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-[1] before:w-[3px] before:bg-gradient-to-b before:from-gold before:via-green-mid/70 before:to-transparent",
       )}
     >
-      <div className="flex flex-col gap-3 border-b border-glass-border/50 px-4 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-5 sm:py-3.5">
+      <div className="flex items-center gap-2 border-b border-glass-border/50 px-4 py-3 sm:gap-3 sm:px-5 sm:py-3.5">
         <form
           onSubmit={onSearchSubmit}
-          className="relative w-full max-w-md min-w-0"
+          className="relative min-w-0 flex-1 max-w-md"
         >
           <Search
             className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40"
@@ -104,8 +178,10 @@ export default function ShopFilters({
             <button
               type="button"
               onClick={() => {
+                if (debounceRef.current) window.clearTimeout(debounceRef.current);
+                skipDebounceRef.current = true;
                 setSearch("");
-                updateParams({ search: undefined });
+                commitSearch("");
               }}
               aria-label="Clear search"
               className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-white/5 hover:text-white"
@@ -115,20 +191,26 @@ export default function ShopFilters({
           ) : null}
         </form>
 
-        <div className="w-full sm:w-auto sm:min-w-[13.5rem] sm:shrink-0">
+        <div className="w-[9.25rem] shrink-0 sm:w-auto sm:min-w-[13.5rem]">
           <Select
             options={SORT_OPTIONS}
             value={activeSort}
-            onChange={(value) =>
-              updateParams({
-                sort: value === "newest" ? undefined : value,
-              })
-            }
+            onChange={selectSort}
             placeholder="Sort by"
             searchable={false}
             containerClassName="w-full"
           />
         </div>
+        {showClear ? (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="ml-auto inline-flex h-10 shrink-0 items-center gap-1 whitespace-nowrap text-[0.68rem] font-medium text-gold transition-colors hover:text-gold-light sm:h-11 sm:text-xs"
+          >
+            <X className="h-3.5 w-3.5" aria-hidden="true" />
+            Clear filters
+          </button>
+        ) : null}
       </div>
 
       <div className="px-4 py-3 sm:px-5 sm:py-3.5">
@@ -144,37 +226,45 @@ export default function ShopFilters({
         </div>
         <div className="flex flex-wrap gap-2">
           <FilterPill
-            href={listingHref("/shop", activeSearch, activeSort)}
             label="All"
             active={!activeCategory}
+            onSelect={() => selectCategory(undefined)}
           />
           {categories.map((category) => (
             <FilterPill
               key={category.id}
-              href={`/shop/category/${category.slug}`}
               label={category.name}
               active={activeCategory === category.slug}
+              onSelect={() => selectCategory(category.slug)}
             />
           ))}
         </div>
       </div>
     </div>
+
+    <div aria-busy={isPending}>
+      {isPending ? <ProductGridSkeleton /> : children}
+    </div>
+    </>
   );
 }
 
 function FilterPill({
-  href,
   label,
   active,
+  onSelect,
 }: {
-  href: string;
   label: string;
   active: boolean;
+  onSelect: () => void;
 }) {
   return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
+    <button
+      type="button"
+      onClick={() => {
+        if (!active) onSelect();
+      }}
+      aria-pressed={active}
       className={cn(
         "inline-flex min-h-8 items-center rounded-md border px-2.5 py-1 text-[0.68rem] font-medium leading-none transition-all duration-200 sm:min-h-9 sm:rounded-lg sm:px-3.5 sm:py-1.5 sm:text-[0.78rem] md:min-h-10 md:px-4 md:text-[0.82rem]",
         active
@@ -183,6 +273,6 @@ function FilterPill({
       )}
     >
       {label}
-    </Link>
+    </button>
   );
 }

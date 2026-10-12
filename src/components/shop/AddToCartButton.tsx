@@ -61,12 +61,17 @@ export default function AddToCartButton({
   }
 
   const qtyBtnClass =
-    "flex h-11 w-11 shrink-0 items-center justify-center text-white/70 transition-colors hover:bg-white/5 hover:text-gold sm:h-12 sm:w-12";
+    "flex h-11 w-9 shrink-0 items-center justify-center text-white/70 transition-colors hover:bg-white/5 hover:text-gold sm:h-12 sm:w-11";
 
   return (
-    <div className={cn("flex w-full flex-col gap-3", withQuantity && "sm:gap-3")}>
+    <div
+      className={cn(
+        "flex w-full min-w-0",
+        withQuantity ? "flex-row items-stretch gap-2 sm:gap-3" : "flex-col",
+      )}
+    >
       {withQuantity && (
-        <div className="flex w-fit items-center self-start overflow-hidden rounded-sm border border-glass-border">
+        <div className="flex w-[7.75rem] shrink-0 items-center overflow-hidden rounded-sm border border-glass-border sm:w-40">
           <button
             type="button"
             aria-label="Decrease quantity"
@@ -99,7 +104,7 @@ export default function AddToCartButton({
               }
             }}
             className={cn(
-              "h-11 w-12 shrink-0 border-x border-glass-border bg-transparent text-center font-semibold text-white outline-none focus:bg-white/5 sm:h-12 sm:w-14",
+              "h-11 min-w-0 flex-1 border-x border-glass-border bg-transparent text-center font-semibold text-white outline-none focus:bg-white/5 sm:h-12",
               typeBody,
             )}
           />
@@ -118,7 +123,12 @@ export default function AddToCartButton({
         type="button"
         onClick={handleAdd}
         aria-label={`Add to Cart: ${product.name}`}
-        className={cn(btnPrimary, "w-full justify-center", className)}
+        className={cn(
+          btnPrimary,
+          "min-w-0 flex-1 justify-center",
+          withQuantity && "px-3 sm:px-6",
+          className,
+        )}
       >
         {added ? (
           <>

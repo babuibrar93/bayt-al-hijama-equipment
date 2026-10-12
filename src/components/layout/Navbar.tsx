@@ -73,7 +73,7 @@ export default function Navbar() {
             : "border-transparent bg-[rgba(5,12,8,0.88)]",
         )}
       >
-        <Logo size="sm" priority={pathname !== "/"} className="min-w-0" />
+        <Logo size="sm" loading="eager" className="min-w-0" />
 
         <ul className="mx-auto hidden items-center gap-7 lg:flex" role="list">
           <li>
@@ -93,6 +93,7 @@ export default function Navbar() {
         <div className="hidden shrink-0 items-center gap-3 lg:flex">
           <Link
             href="/account"
+            prefetch={false}
             aria-label="My account"
             className={navIconClass}
           >
@@ -190,6 +191,7 @@ export default function Navbar() {
           <li>
             <Link
               href="/account"
+              prefetch={false}
               className={mobileLinkClass}
               onClick={closeMenu}
             >

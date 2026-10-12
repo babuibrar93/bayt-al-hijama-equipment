@@ -90,6 +90,19 @@
   }
 }
 
+/* Logo shimmer and blur run on the main thread. Keep them paused until after LCP. */
+.animate-logo-shimmer,
+.animate-logo-glow,
+.animate-logo-beam {
+  animation-play-state: paused;
+}
+
+html.effects-ready .animate-logo-shimmer,
+html.effects-ready .animate-logo-glow,
+html.effects-ready .animate-logo-beam {
+  animation-play-state: running;
+}
+
 @layer utilities {
   .hero-grid-mask {
     mask-image: radial-gradient(
