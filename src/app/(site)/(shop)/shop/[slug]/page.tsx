@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Check, Truck, ShieldCheck, MessageCircle } from "lucide-react";
 import { SITE } from "@/constants/site";
+import { siteUrl } from "@/lib/metadata";
 import { WHATSAPP } from "@/constants/whatsapp";
 import {
   getProductBySlug,
@@ -28,11 +29,12 @@ import JsonLd from "@/components/seo/JsonLd";
 import {
   getProductSchema,
   getBreadcrumbSchema,
+  productPlainDescription,
 } from "@/lib/structured-data";
 
 export const revalidate = 300;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || SITE.url;
+const SITE_URL = siteUrl;
 
 export async function generateStaticParams() {
   const slugs = await getAllProductSlugs();
@@ -54,7 +56,7 @@ export async function generateMetadata({
   }
 
   const title = `${product.name} | ${SITE.shortName}`;
-  const description = product.description.slice(0, 160);
+  const description = productPlainDescription(product).slice(0, 160);
   const image = product.images[0] ?? `${SITE_URL}/og-default.jpg`;
   const url = `${SITE_URL}/shop/${product.slug}`;
 
@@ -153,7 +155,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <p
               className={`mb-6 leading-relaxed text-white/70 sm:mb-8 ${typeBody}`}
             >
-              {product.description}
+              {productPlainDescription(product)}
             </p>
 
             {product.features.length > 0 && (
@@ -199,7 +201,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
             >
               <div className="flex items-center gap-3">
                 <Truck className="h-5 w-5 text-gold" aria-hidden="true" />
-                Nationwide delivery across Pakistan
+                <Link href="/delivery" className="transition-colors hover:text-gold">
+                  Nationwide delivery across Pakistan
+                </Link>
               </div>
               <div className="flex items-center gap-3">
                 <ShieldCheck className="h-5 w-5 text-gold" aria-hidden="true" />

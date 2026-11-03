@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle2, MessageCircle } from "lucide-react";
 import { SITE } from "@/constants/site";
-import { getPaymentOption } from "@/constants/payment";
+import { getPaymentOption, SHIPPING_NOTE } from "@/constants/payment";
 import PaymentInstructions, {
   isPrepaidMethod,
 } from "@/components/shop/PaymentInstructions";
@@ -64,11 +64,16 @@ export default async function CheckoutSuccessPage({
               </span>
             </div>
             {typeof total === "number" && (
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-3 sm:pt-4">
-                <span className="text-sm text-white/50">Total</span>
-                <span className="font-body text-base font-semibold text-white sm:text-lg">
-                  {formatPrice(total)}
-                </span>
+              <div className="pt-3 sm:pt-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-sm text-white/50">Items total</span>
+                  <span className="font-body text-base font-semibold text-white sm:text-lg">
+                    {formatPrice(total)}
+                  </span>
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-white/45">
+                  {SHIPPING_NOTE}
+                </p>
               </div>
             )}
           </div>

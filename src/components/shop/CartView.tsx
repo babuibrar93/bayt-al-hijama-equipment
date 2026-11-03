@@ -6,10 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/utils";
 import { btnPrimary, cn } from "@/lib/classes";
 import ProductImage from "@/components/shop/ProductImage";
-import {
-  SHIPPING_FEE,
-  FREE_SHIPPING_THRESHOLD,
-} from "@/constants/payment";
+import { SHIPPING_NOTE } from "@/constants/payment";
 
 export default function CartView() {
   const { items, subtotal, updateQuantity, removeItem, isHydrated } = useCart();
@@ -37,9 +34,6 @@ export default function CartView() {
       </div>
     );
   }
-
-  const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
-  const total = subtotal + shippingFee;
 
   return (
     <div className="grid grid-cols-1 gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)]">
@@ -123,18 +117,10 @@ export default function CartView() {
             <dt>Subtotal</dt>
             <dd>{formatPrice(subtotal)}</dd>
           </div>
-          <div className="flex justify-between text-white/70">
-            <dt>Shipping</dt>
-            <dd>{shippingFee === 0 ? "Free" : formatPrice(shippingFee)}</dd>
-          </div>
-          {shippingFee > 0 && (
-            <p className="text-xs text-white/40">
-              Free shipping on orders over {formatPrice(FREE_SHIPPING_THRESHOLD)}.
-            </p>
-          )}
+          <p className="text-xs leading-relaxed text-white/45">{SHIPPING_NOTE}</p>
           <div className="mt-2 flex justify-between border-t border-glass-border pt-4 text-base font-semibold text-white">
-            <dt>Total</dt>
-            <dd className="font-body text-xl">{formatPrice(total)}</dd>
+            <dt>Items total</dt>
+            <dd className="font-body text-xl">{formatPrice(subtotal)}</dd>
           </div>
         </dl>
 

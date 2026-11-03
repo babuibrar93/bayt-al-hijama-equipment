@@ -8,10 +8,11 @@ export interface PaymentOption {
 }
 
 /**
- * Flat nationwide shipping fee in PKR. Free over the threshold.
+ * Shown instead of a price. The fee is agreed with the customer after the
+ * order, from the city and what they ordered.
  */
-export const SHIPPING_FEE = 250;
-export const FREE_SHIPPING_THRESHOLD = 10000;
+export const SHIPPING_NOTE =
+  "Shipping is confirmed with you after the order, based on your city and what you ordered. It is not included in this total.";
 
 export const CURRENCY = "PKR";
 

@@ -109,7 +109,7 @@ function orderEmailHtml(data: OrderEmailData): string {
       <tr>
         <td style="padding:4px 0;color:#777;">Shipping</td>
         <td style="padding:4px 0;text-align:right;color:#777;">${
-          data.shippingFee === 0 ? "Free" : formatPrice(data.shippingFee)
+          data.shippingFee > 0 ? formatPrice(data.shippingFee) : "To be confirmed"
         }</td>
       </tr>
       <tr>
@@ -127,6 +127,12 @@ function orderEmailHtml(data: OrderEmailData): string {
             <p style="margin:0;color:#555;font-size:14px;">${payment.instructions}</p>
           </div>`
         : ""
+    }
+
+    ${
+      data.shippingFee > 0
+        ? ""
+        : `<p style="color:#555;font-size:14px;">Shipping is not included. We will confirm it with you based on your city and order.</p>`
     }
 
     <p style="color:#555;font-size:14px;">Questions? Reach us on WhatsApp at ${SITE.phone}.</p>

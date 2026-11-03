@@ -1,7 +1,7 @@
 import { getHomeStructuredData } from "@/lib/structured-data";
 
 /**
- * Site-wide JSON-LD (Organization, LocalBusiness, WebSite, WebPage, FAQ).
+ * Site-wide JSON-LD (Organization, OnlineStore, WebSite, WebPage, FAQ).
  * Mounted on the homepage only — its FAQ schema is backed by the visible
  * FAQ section on the home page.
  */

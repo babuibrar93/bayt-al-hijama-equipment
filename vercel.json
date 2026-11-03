@@ -6,6 +6,12 @@
       "has": [{ "type": "host", "value": "www.baytalhijama.com" }],
       "destination": "https://baytalhijama.com/:path*",
       "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "bayt-al-hijama-equipment.vercel.app" }],
+      "destination": "https://baytalhijama.com/:path*",
+      "permanent": true
     }
   ]
 }

@@ -22,7 +22,9 @@ export function buildWhatsAppBillMessage(order: OrderWithItems): string {
     `Assalam o Alaikum ${order.customer_name},`,
     "",
     `Your order *${order.order_number}* from *${SITE.shortName}*`,
-    `Total: *${formatPrice(Number(order.total))}*`,
+    Number(order.shipping_fee) > 0
+      ? `Total: *${formatPrice(Number(order.total))}*`
+      : `Items total: *${formatPrice(Number(order.subtotal))}*\nShipping will be confirmed with you.`,
     "",
     "Thank you for your order. Please message us if you have any questions.",
   ].join("\n");

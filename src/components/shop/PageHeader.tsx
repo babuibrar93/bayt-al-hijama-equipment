@@ -1,4 +1,4 @@
-import { cn, typeBodySm, typeEyebrow } from "@/lib/classes";
+import { cn, typeBodySm, typeEyebrow, typeSectionTitle } from "@/lib/classes";
 import Breadcrumbs, { type Crumb } from "@/components/shop/Breadcrumbs";
 
 interface PageHeaderProps {
@@ -31,8 +31,6 @@ export default function PageHeader({
       </div>
 
       <div className="relative px-4 py-4 sm:px-5 sm:py-[1rem]">
-        <h1 className="sr-only">{pageLabel}</h1>
-
         <div className="mb-1 flex items-center gap-2.5">
           <span
             className="h-px w-5 shrink-0 bg-gold sm:w-6"
@@ -47,6 +45,12 @@ export default function PageHeader({
             {eyebrow}
           </p>
         </div>
+
+        <h1
+          className={`mb-2 font-body font-medium leading-tight text-white ${typeSectionTitle}`}
+        >
+          {pageLabel}
+        </h1>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <p

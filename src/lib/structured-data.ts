@@ -1,4 +1,5 @@
 import { SITE, SEO } from "@/constants/site";
+import { FOOTER_SOCIAL } from "@/constants/footer";
 import { FAQ_ITEMS } from "@/constants/testimonials";
 import { siteUrl } from "@/lib/metadata";
 import type { ProductWithCategory } from "@/types/db";
@@ -15,6 +16,7 @@ export function getOrganizationSchema() {
     logo: `${SITE_URL}${SITE.logo.src}`,
     image: `${SITE_URL}/og-default.jpg`,
     description: SEO.description,
+    email: SITE.email,
     telephone: SITE.phoneRaw,
     address: {
       "@type": "PostalAddress",
@@ -26,6 +28,9 @@ export function getOrganizationSchema() {
       "@type": "Country",
       name: "Pakistan",
     },
+    sameAs: FOOTER_SOCIAL.filter((item) => item.href.startsWith("https://www.")).map(
+      (item) => item.href,
+    ),
     contactPoint: {
       "@type": "ContactPoint",
       telephone: SITE.phoneRaw,
@@ -33,20 +38,21 @@ export function getOrganizationSchema() {
       availableLanguage: ["English", "Urdu"],
       areaServed: "PK",
     },
-    sameAs: [`https://wa.me/${SITE.whatsappNumber}`],
   };
 }
 
-export function getLocalBusinessSchema() {
+/** Online store, not a clinic. The visible pages describe equipment sales. */
+export function getStoreSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "MedicalBusiness",
-    "@id": `${SITE_URL}/#localbusiness`,
+    "@type": "OnlineStore",
+    "@id": `${SITE_URL}/#store`,
     name: SITE.name,
     description: SEO.description,
     url: SITE_URL,
     logo: `${SITE_URL}${SITE.logo.src}`,
     image: `${SITE_URL}/og-default.jpg`,
+    email: SITE.email,
     telephone: SITE.phoneRaw,
     address: {
       "@type": "PostalAddress",
@@ -54,29 +60,12 @@ export function getLocalBusinessSchema() {
       addressRegion: "Punjab",
       addressCountry: "PK",
     },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: 31.5204,
-      longitude: 74.3587,
-    },
     areaServed: {
       "@type": "Country",
       name: "Pakistan",
     },
-    priceRange: "$$",
-    openingHoursSpecification: {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ],
-      opens: "09:00",
-      closes: "21:00",
+    parentOrganization: {
+      "@id": `${SITE_URL}/#organization`,
     },
   };
 }
@@ -109,11 +98,12 @@ export function getWebPageSchema(params: {
   path: string;
   name: string;
   description: string;
+  type?: "WebPage" | "AboutPage" | "ContactPage";
 }) {
-  const url = `${SITE_URL}${params.path}`;
+  const url = `${SITE_URL}${params.path === "/" ? "" : params.path}`;
   return {
     "@context": "https://schema.org",
-    "@type": "WebPage",
+    "@type": params.type ?? "WebPage",
     "@id": `${url}#webpage`,
     url,
     name: params.name,
@@ -124,10 +114,14 @@ export function getWebPageSchema(params: {
   };
 }
 
-export function getFaqSchema() {
+export function getFaqSchema(path = "/") {
+  const url = path === "/" ? SITE_URL : `${SITE_URL}${path}`;
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    "@id": `${url}#faq`,
+    url,
+    isPartOf: { "@id": `${SITE_URL}/#website` },
     mainEntity: FAQ_ITEMS.map((item) => ({
       "@type": "Question",
       name: item.question,
@@ -147,7 +141,7 @@ export function getFaqSchema() {
 export function getHomeStructuredData() {
   return [
     getOrganizationSchema(),
-    getLocalBusinessSchema(),
+    getStoreSchema(),
     getWebSiteSchema(),
     getWebPageSchema({
       path: "/",
@@ -156,6 +150,15 @@ export function getHomeStructuredData() {
     }),
     getFaqSchema(),
   ];
+}
+
+export function productPlainDescription(product: {
+  name: string;
+  description: string;
+}): string {
+  const text = product.description?.replace(/\s+/g, " ").trim();
+  if (text) return text;
+  return `${product.name} from ${SITE.name}. Professional Hijama equipment with delivery across Pakistan.`;
 }
 
 /** Product + Offer schema for an individual product detail page. */
@@ -170,7 +173,8 @@ export function getProductSchema(product: ProductWithCategory) {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.description,
+    description: productPlainDescription(product),
+    url,
     ...(images ? { image: images } : {}),
     sku: product.slug,
     mpn: product.slug,
@@ -186,7 +190,15 @@ export function getProductSchema(product: ProductWithCategory) {
       "@type": "Offer",
       url,
       priceCurrency: "PKR",
-      price: product.price,
+      price: Number(product.price).toFixed(2),
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: "PK",
+        },
+        shippingSettingsLink: `${SITE_URL}/delivery`,
+      },
       priceValidUntil,
       itemCondition: "https://schema.org/NewCondition",
       availability:

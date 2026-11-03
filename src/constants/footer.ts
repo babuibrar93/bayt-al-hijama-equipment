@@ -5,22 +5,22 @@ import type { FooterLinkGroup } from "@/types";
 export const FOOTER_PRODUCT_LINKS: FooterLinkGroup = {
   title: "Products",
   links: [
-    { label: "Hijama Cups", href: WHATSAPP.footer.cups },
-    { label: "Complete Kits", href: WHATSAPP.footer.kits },
-    { label: "Accessories", href: WHATSAPP.footer.accessories },
-    { label: "Consumables", href: WHATSAPP.footer.consumables },
-    { label: "Bulk Orders", href: WHATSAPP.footer.bulk },
+    { label: "Hijama Cups", href: "/shop/category/hijama-cups" },
+    { label: "Pumps & Machines", href: "/shop/category/pumps-machines" },
+    { label: "Therapy Tools", href: "/shop/category/therapy-tools" },
+    { label: "Consumables", href: "/shop/category/consumables" },
+    { label: "All Products", href: "/shop" },
   ],
 };
 
-export const FOOTER_PROFESSIONAL_LINKS: FooterLinkGroup = {
-  title: "For Professionals",
+export const FOOTER_COMPANY_LINKS: FooterLinkGroup = {
+  title: "Company",
   links: [
-    { label: "Hijama Therapists", href: WHATSAPP.footer.therapists },
-    { label: "Clinic Owners", href: WHATSAPP.footer.clinics },
-    { label: "Training Institutes", href: WHATSAPP.footer.institutes },
-    { label: "Students", href: WHATSAPP.footer.students },
-    { label: "Wellness Centers", href: WHATSAPP.footer.wellness },
+    { label: "About", href: "/about" },
+    { label: "Delivery & Payment", href: "/delivery" },
+    { label: "FAQ", href: "/faq" },
+    { label: "Contact", href: "/contact" },
+    { label: "Bulk Orders", href: WHATSAPP.footer.bulk },
   ],
 };
 

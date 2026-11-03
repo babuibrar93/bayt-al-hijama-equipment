@@ -24,4 +24,5 @@ Export both schema and inferred type: `export type X = z.infer<typeof xSchema>`
 ## Pakistan-specific fields
 - Provinces: `PROVINCES` from `@/lib/validation/order`
 - Payment methods: `cod | bank_transfer | jazzcash | easypaisa`
-- Phone: digits, spaces, `+`, `-` only
+- Phone: normalize contact-app formatting, then require 10–15 digits
+- Checkout line quantity is capped high (`10000`). Low or zero stock must not reject a customer order.

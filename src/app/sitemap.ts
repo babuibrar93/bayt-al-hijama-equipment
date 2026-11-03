@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
-import { SITE } from "@/constants/site";
 import { getProducts, getCategories } from "@/lib/products";
+import { siteUrl } from "@/lib/metadata";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || SITE.url;
+const SITE_URL = siteUrl;
 
 export const revalidate = 3600;
 
@@ -24,6 +24,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/about`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
+      url: `${SITE_URL}/delivery`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${SITE_URL}/faq`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${SITE_URL}/contact`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
     },
   ];
 

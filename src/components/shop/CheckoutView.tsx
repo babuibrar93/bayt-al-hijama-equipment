@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { ArrowLeft, Lock } from "lucide-react";
@@ -21,8 +21,7 @@ import {
 } from "@/lib/validation/order";
 import {
   PAYMENT_OPTIONS,
-  SHIPPING_FEE,
-  FREE_SHIPPING_THRESHOLD,
+  SHIPPING_NOTE,
   getPaymentOption,
 } from "@/constants/payment";
 
@@ -62,6 +61,21 @@ function readDraftValues(): CheckoutFormValues | null {
   } catch {
     return null;
   }
+}
+
+function firstFormError(
+  errors: FieldErrors<CheckoutFormValues>,
+): string | undefined {
+  for (const value of Object.values(errors)) {
+    if (!value || typeof value !== "object") continue;
+    if ("message" in value && typeof value.message === "string" && value.message) {
+      return value.message;
+    }
+    if ("type" in value || "ref" in value) continue;
+    const nested = firstFormError(value as FieldErrors<CheckoutFormValues>);
+    if (nested) return nested;
+  }
+  return undefined;
 }
 
 function writeDraftValues(values: CheckoutFormValues) {
@@ -136,8 +150,7 @@ export default function CheckoutView() {
     return <div className="py-20 text-center text-white/50">Loading...</div>;
   }
 
-  const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
-  const total = subtotal + shippingFee;
+  const total = subtotal;
   const paymentOption = getPaymentOption(selectedMethod);
 
   const placeOrder = async (values: CheckoutFormValues) => {
@@ -180,6 +193,16 @@ export default function CheckoutView() {
       toast.error("Something went wrong. Please try again.");
       setSubmitting(false);
     }
+  };
+
+  const onInvalid = (formErrors: FieldErrors<CheckoutFormValues>) => {
+    const message = firstFormError(formErrors);
+    if (message) toast.error(message);
+    requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLElement>("[aria-invalid='true']")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
   };
 
   const onDetailsSubmit = async (values: CheckoutFormValues) => {
@@ -228,12 +251,13 @@ export default function CheckoutView() {
         </section>
 
         <aside className="h-fit rounded-lg border border-glass-border bg-glass-bg p-4 sm:p-5 lg:sticky lg:top-24 lg:p-6">
-          <h2 className="mb-3 font-body text-lg text-white">Order total</h2>
+          <h2 className="mb-3 font-body text-lg text-white">Items total</h2>
           <p className={cn("mb-3 text-xl font-semibold text-gold sm:mb-4 sm:text-2xl", numeric)}>
             {formatPrice(total)}
           </p>
+          <p className="mb-4 text-xs leading-relaxed text-white/45">{SHIPPING_NOTE}</p>
           <p className="mb-4 break-words text-xs text-white/45">
-            Shipping to {pendingValues.customerName}, {pendingValues.address.city}
+            Deliver to {pendingValues.customerName}, {pendingValues.address.city}
           </p>
           <Button
             type="button"
@@ -264,7 +288,7 @@ export default function CheckoutView() {
 
   return (
     <form
-      onSubmit={handleSubmit(onDetailsSubmit)}
+      onSubmit={handleSubmit(onDetailsSubmit, onInvalid)}
       className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,340px)] lg:gap-6"
     >
       <div className="flex min-w-0 flex-col gap-4 sm:gap-6">
@@ -338,6 +362,7 @@ export default function CheckoutView() {
             <Input
               label="Postal Code (optional)"
               autoComplete="postal-code"
+              error={errors.address?.postalCode?.message}
               {...register("address.postalCode")}
             />
           </div>
@@ -389,6 +414,7 @@ export default function CheckoutView() {
             label="Order Notes (optional)"
             rows={3}
             placeholder="Any special instructions for delivery..."
+            error={errors.notes?.message}
             {...register("notes")}
           />
         </section>
@@ -414,14 +440,9 @@ export default function CheckoutView() {
             <dt>Subtotal</dt>
             <dd className={numeric}>{formatPrice(subtotal)}</dd>
           </div>
-          <div className="flex justify-between text-white/70">
-            <dt>Shipping</dt>
-            <dd className={numeric}>
-              {shippingFee === 0 ? "Free" : formatPrice(shippingFee)}
-            </dd>
-          </div>
+          <p className="text-xs leading-relaxed text-white/45">{SHIPPING_NOTE}</p>
           <div className="mt-1 flex items-center justify-between border-t border-glass-border pt-3 text-base font-semibold text-white">
-            <dt>Total</dt>
+            <dt>Items total</dt>
             <dd className={cn("text-lg", numeric)}>{formatPrice(total)}</dd>
           </div>
         </dl>

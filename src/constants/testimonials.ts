@@ -42,16 +42,36 @@ export const FAQ_ITEMS = [
   {
     question: "Do you deliver Hijama equipment across Pakistan?",
     answer:
-      "Yes, Bayt Al Hijama Equipment delivers professional Hijama cups, kits, and accessories to all major cities and towns across Pakistan including Lahore, Karachi, Islamabad, and beyond.",
+      "Yes. Bayt Al Hijama Equipment delivers Hijama cups, pumps, kits, and clinic supplies to cities and towns across Pakistan, including Lahore, Karachi, Islamabad, Rawalpindi, Faisalabad, Multan, and Peshawar.",
+  },
+  {
+    question: "Is shipping included in the product price?",
+    answer:
+      "No. The price on each product is the item price only. Shipping is confirmed with you after the order, based on your city and what you ordered.",
   },
   {
     question: "How can I order Hijama equipment?",
     answer:
-      "You can order directly via WhatsApp at +92 329 3561309. Our team provides product recommendations, pricing, and delivery details within minutes.",
+      "Add products to your cart on baytalhijama.com and place the order online, or message WhatsApp at +92 329 3561309. The team can help you choose cup sizes, pumps, and clinic supplies.",
+  },
+  {
+    question: "Which payment methods do you accept?",
+    answer:
+      "You can pay by cash on delivery, Meezan Bank transfer or Raast, JazzCash, or Easypaisa. Payment details are shown at checkout.",
   },
   {
     question: "What products do you supply?",
     answer:
-      "We supply Hijama cups, complete kits, vacuum pumps, accessories, and clinic consumables including lancets, gloves, and sterilization supplies.",
+      "The shop covers Hijama cups, vacuum pumps and machines, therapy tools such as hijama pens and massage rollers, and consumables including gloves, blades, lancets, masks, gowns, and clinic disposables.",
+  },
+  {
+    question: "Who do you supply?",
+    answer:
+      "Hijama therapists, clinic owners, training institutes, students, and wellness centers across Pakistan. There is no minimum order, and bulk pricing is available on WhatsApp.",
+  },
+  {
+    question: "Where is Bayt Al Hijama Equipment based?",
+    answer:
+      "The business is based in Lahore, Pakistan, and ships nationwide. Call or WhatsApp +92 329 3561309, or email info@baytalhijama.com.",
   },
 ] as const;

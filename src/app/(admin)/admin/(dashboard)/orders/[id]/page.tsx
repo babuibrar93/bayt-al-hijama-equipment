@@ -105,7 +105,11 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
             />
             <StatCard
               label="Shipping fee"
-              value={formatPrice(Number(order.shipping_fee))}
+              value={
+                Number(order.shipping_fee) > 0
+                  ? formatPrice(Number(order.shipping_fee))
+                  : "Not confirmed"
+              }
               icon={Truck}
             />
 

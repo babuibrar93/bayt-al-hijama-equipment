@@ -125,8 +125,13 @@ export default async function AccountPage() {
                       <span className="capitalize text-white/50">
                         {order.payment_method.replace("_", " ")}
                       </span>
-                      <span className={cn("text-base font-semibold text-white", numeric)}>
+                      <span className={cn("text-right text-base font-semibold text-white", numeric)}>
                         {formatPrice(order.total)}
+                        {Number(order.shipping_fee) <= 0 && (
+                          <span className="mt-1 block text-xs font-normal text-white/40">
+                            Shipping to be confirmed
+                          </span>
+                        )}
                       </span>
                     </div>
                   </article>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Logo from "@/components/ui/Logo";
 import ArabicName from "@/components/layout/ArabicName";
 import WhatsAppIcon from "@/components/ui/WhatsAppIcon";
@@ -6,8 +7,8 @@ import { SITE } from "@/constants/site";
 import {
   FOOTER_CONTACT,
   FOOTER_CREDIT,
+  FOOTER_COMPANY_LINKS,
   FOOTER_PRODUCT_LINKS,
-  FOOTER_PROFESSIONAL_LINKS,
   FOOTER_SOCIAL,
 } from "@/constants/footer";
 import { container } from "@/lib/classes";
@@ -56,7 +57,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {[FOOTER_PRODUCT_LINKS, FOOTER_PROFESSIONAL_LINKS].map((group) => (
+          {[FOOTER_PRODUCT_LINKS, FOOTER_COMPANY_LINKS].map((group) => (
             <div key={group.title}>
               <p className="mb-3 text-xs font-bold uppercase tracking-[0.15em] text-white">
                 {group.title}
@@ -64,14 +65,7 @@ export default function Footer() {
               <ul className="flex flex-col gap-2.5" role="list">
                 {group.links.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[0.85rem] text-white/60 transition-colors hover:text-gold"
-                    >
-                      {link.label}
-                    </a>
+                    <FooterLink href={link.href}>{link.label}</FooterLink>
                   </li>
                 ))}
               </ul>
@@ -174,5 +168,30 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  const className =
+    "text-[0.85rem] text-white/60 transition-colors hover:text-gold";
+
+  if (href.startsWith("/")) {
+    return (
+      <Link href={href} className={className}>
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+      {children}
+    </a>
   );
 }

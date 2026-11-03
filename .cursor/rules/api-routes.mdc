@@ -16,13 +16,14 @@ alwaysApply: false
 ## Status codes used in this project
 - 400 — validation / bad input
 - 401 — not authenticated or not admin
-- 409 — stock/product availability conflict (orders)
+- 409 — inactive or missing product (orders). Low stock does not reject checkout.
 - 500 — unexpected DB errors
 - 503 — Supabase not configured
 
 ## Orders (`/api/orders`)
 - Never trust client prices — always re-fetch from DB
-- Validate stock server-side before insert
+- Do not reject an order because quantity is above stock
+- Customer checkout saves `shipping_fee` as 0. The fee is agreed later and entered in admin.
 - Emails are best-effort (`Promise.allSettled`) — never fail the order on email errors
 
 ## Uploads (`/api/admin/upload`)

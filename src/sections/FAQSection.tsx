@@ -1,3 +1,4 @@
+import Link from "next/link";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { FAQ_ITEMS } from "@/constants/testimonials";
 import {
@@ -59,6 +60,14 @@ export default function FAQSection() {
             </details>
           ))}
         </div>
+        <p className="mt-6 text-center">
+          <Link
+            href="/faq"
+            className="text-sm font-medium text-gold transition-colors hover:text-gold-light"
+          >
+            Read all questions
+          </Link>
+        </p>
       </div>
     </section>
   );

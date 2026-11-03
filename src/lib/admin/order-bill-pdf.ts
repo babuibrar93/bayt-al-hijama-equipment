@@ -367,7 +367,9 @@ export async function buildOrderBillPdf(
     { label: "Subtotal", value: money(Number(order.subtotal)), bold: false },
     {
       label: "Shipping",
-      value: money(Number(order.shipping_fee)),
+      value: Number(order.shipping_fee) > 0
+        ? money(Number(order.shipping_fee))
+        : "To be confirmed",
       bold: false,
     },
     { label: "Total", value: money(Number(order.total)), bold: true },

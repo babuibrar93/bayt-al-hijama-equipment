@@ -1,8 +1,20 @@
 import type { Metadata } from "next";
 import { SEO, SITE } from "@/constants/site";
 
-/** Canonical, env-aware site origin. Use everywhere absolute URLs are built. */
-export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || SITE.url;
+/**
+ * Public origin used for canonical, Open Graph, sitemap, and robots.
+ * A `*.vercel.app` value is ignored so Google indexes baytalhijama.com.
+ * Localhost is still honored for local development.
+ */
+function resolveSiteUrl() {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+  if (configured && !configured.includes(".vercel.app")) {
+    return configured;
+  }
+  return SITE.url;
+}
+
+export const siteUrl = resolveSiteUrl();
 
 export const OG_IMAGE = {
   url: "/og-default.jpg",
@@ -52,6 +64,9 @@ export const siteMetadata: Metadata = {
     images: [OG_IMAGE.url],
   },
   category: "Medical Equipment",
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+    : {}),
   icons: {
     icon: [
       { url: SITE.favicon, sizes: "32x32" },

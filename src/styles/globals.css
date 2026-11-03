@@ -38,6 +38,15 @@
     @apply rounded outline-2 outline-offset-[3px] outline-gold;
   }
 
+  /* Crawlers that do not run JavaScript still receive the copy in the HTML.
+     This keeps scroll-reveal text readable when scripting is unavailable. */
+  @media (scripting: none) {
+    [data-reveal] {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

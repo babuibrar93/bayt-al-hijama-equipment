@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { createOrderSchema } from "@/lib/validation/order";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
-import { SHIPPING_FEE, FREE_SHIPPING_THRESHOLD } from "@/constants/payment";
 import {
   sendOrderConfirmation,
   sendAdminOrderAlert,
@@ -28,8 +27,11 @@ export async function POST(request: Request) {
 
   const parsed = createOrderSchema.safeParse(body);
   if (!parsed.success) {
+    const message =
+      parsed.error.issues[0]?.message ||
+      "Please check your details and try again.";
     return NextResponse.json(
-      { error: "Validation failed", issues: parsed.error.flatten() },
+      { error: message, issues: parsed.error.flatten() },
       { status: 400 },
     );
   }
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
   const productIds = data.items.map((i) => i.productId);
   const { data: products, error: productError } = await admin
     .from("products")
-    .select("id, name, price, cost_price, stock, is_active")
+    .select("id, name, price, cost_price, is_active")
     .in("id", productIds);
 
   if (productError || !products) {
@@ -51,7 +53,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // Build order line items from server-side prices, validating stock.
+  // Build order line items from server-side prices. Stock does not block checkout.
   const lineItems: {
     product_id: string;
     product_name: string;
@@ -65,12 +67,6 @@ export async function POST(request: Request) {
     if (!product || !product.is_active) {
       return NextResponse.json(
         { error: "One or more products are unavailable" },
-        { status: 409 },
-      );
-    }
-    if (product.stock < item.quantity) {
-      return NextResponse.json(
-        { error: `Insufficient stock for ${product.name}` },
         { status: 409 },
       );
     }
@@ -88,8 +84,8 @@ export async function POST(request: Request) {
     (sum, item) => sum + item.unit_price * item.quantity,
     0,
   );
-  const shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
-  const total = subtotal + shippingFee;
+  const shippingFee = 0;
+  const total = subtotal;
 
   // Associate the order with the logged-in user, if any.
   const supabase = await createClient();

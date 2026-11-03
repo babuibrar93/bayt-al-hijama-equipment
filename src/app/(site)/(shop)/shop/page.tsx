@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { SITE, SEO } from "@/constants/site";
+import Link from "next/link";
+import { SEO } from "@/constants/site";
+import { siteUrl } from "@/lib/metadata";
 import {
   getCategories,
   getProductsPage,
@@ -12,9 +14,11 @@ import JsonLd from "@/components/seo/JsonLd";
 import {
   pageInner,
   pageShell,
+  typeBody,
   typeBodySm,
   typeCardTitle,
   typeMeta,
+  typeSectionTitle,
 } from "@/lib/classes";
 import {
   getBreadcrumbSchema,
@@ -23,7 +27,7 @@ import {
 
 export const revalidate = 300;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || SITE.url;
+const SITE_URL = siteUrl;
 const PER_PAGE = 16;
 
 interface ShopPageProps {
@@ -100,11 +104,34 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
 
   return (
     <>
-    <title>Shop Hijama Equipment Online | Bayt Al Hijama</title>
-    <meta name="description" content={SHOP_DESCRIPTION} />
     <div className={pageShell}>
       <div className={pageInner}>
-        <h1 className="sr-only">Shop Hijama Equipment</h1>
+        <header className="mb-6 max-w-3xl">
+          <h1 className={`mb-2 font-body font-medium text-white ${typeSectionTitle}`}>
+            Shop Hijama Equipment
+          </h1>
+          <p className={`leading-relaxed text-white/70 ${typeBody}`}>
+            {SHOP_DESCRIPTION} Prices are in Pakistani rupees. Shipping is
+            confirmed after the order and is not included in the product price.
+          </p>
+        </header>
+        <nav aria-label="Product categories" className="mb-6">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-gold">
+            Browse by category
+          </h2>
+          <ul className="flex flex-wrap gap-x-4 gap-y-2">
+            {categories.map((category) => (
+              <li key={category.id}>
+                <Link
+                  href={`/shop/category/${category.slug}`}
+                  className="text-sm text-white/75 transition-colors hover:text-gold"
+                >
+                  {category.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
         <ShopFilters
           categories={categories}
           activeCategory={categorySlug}

@@ -814,8 +814,8 @@ export default function OrderForm({
               inputMode="decimal"
               value={shippingFee}
               onChange={(e) => setShippingFee(e.target.value)}
-              placeholder="Auto if empty"
-              hint="Leave empty to use default shipping"
+              placeholder="Confirm with customer"
+              hint="Leave empty until you agree the fee for this city and order."
             />
             <dl className="mt-4 space-y-2.5 text-sm">
               <div className="flex items-center justify-between gap-3 text-white/60">
@@ -827,20 +827,13 @@ export default function OrderForm({
               <div className="flex items-center justify-between gap-3 text-white/60">
                 <dt>Shipping</dt>
                 <dd className={`text-white ${numeric}`}>
-                  {shippingN == null ? "Auto" : formatPrice(shippingN)}
+                  {shippingN == null ? "Not set" : formatPrice(shippingN)}
                 </dd>
               </div>
               <div className="flex items-center justify-between gap-3 border-t border-glass-border pt-2.5 font-medium text-white">
                 <dt>Total</dt>
                 <dd className={`text-gold ${numeric}`}>
-                  {shippingN == null
-                    ? formatPrice(subtotal)
-                    : formatPrice(estimatedTotal)}
-                  {shippingN == null && (
-                    <span className="ml-1 text-xs font-normal text-white/40">
-                      + ship
-                    </span>
-                  )}
+                  {formatPrice(estimatedTotal)}
                 </dd>
               </div>
             </dl>
