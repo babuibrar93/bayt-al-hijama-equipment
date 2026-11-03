@@ -40,7 +40,7 @@ export const FOOTER_CONTACT = {
 
 export const FOOTER_CREDIT = {
   label: "Website by",
-  name: "Babu Ibrar",
+  name: "Ibrar",
   line: "I design and build websites. Want one for your business?",
   phone: "0344 4850952",
   phoneHref: "tel:03444850952",
