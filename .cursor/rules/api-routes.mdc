@@ -23,7 +23,6 @@ alwaysApply: false
 ## Orders (`/api/orders`)
 - Never trust client prices — always re-fetch from DB
 - Do not reject an order because quantity is above stock
-- Customer checkout saves `shipping_fee` as 0. The fee is agreed later and entered in admin.
 - Emails are best-effort (`Promise.allSettled`) — never fail the order on email errors
 
 ## Uploads (`/api/admin/upload`)

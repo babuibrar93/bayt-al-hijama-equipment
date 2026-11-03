@@ -7,6 +7,7 @@ import {
   currentKarachiDateKey,
   karachiDateWithTimeIso,
 } from "@/lib/admin/dates";
+import { SHIPPING_FEE, FREE_SHIPPING_THRESHOLD } from "@/constants/payment";
 import type { ShippingAddress } from "@/types/db";
 
 export async function POST(request: Request) {
@@ -87,7 +88,12 @@ export async function POST(request: Request) {
     (sum, item) => sum + item.unit_price * item.quantity,
     0,
   );
-  const shippingFee = data.shippingFee ?? 0;
+  const shippingFee =
+    data.shippingFee != null
+      ? data.shippingFee
+      : subtotal >= FREE_SHIPPING_THRESHOLD
+        ? 0
+        : SHIPPING_FEE;
   const total = subtotal + shippingFee;
 
   const shippingAddress: ShippingAddress = {

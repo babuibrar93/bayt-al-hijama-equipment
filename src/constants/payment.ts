@@ -14,6 +14,10 @@ export interface PaymentOption {
 export const SHIPPING_NOTE =
   "Shipping is confirmed with you after the order, based on your city and what you ordered. It is not included in this total.";
 
+/** Admin default when a manual shipping fee is left blank. Storefront does not use these. */
+export const SHIPPING_FEE = 250;
+export const FREE_SHIPPING_THRESHOLD = 10000;
+
 export const CURRENCY = "PKR";
 
 /**
